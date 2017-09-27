@@ -1,0 +1,5 @@
+[run]
+include = olc_webportalv2/*
+omit = *migrations*, *tests*
+plugins =
+    django_coverage_plugin
