@@ -56,6 +56,14 @@ LOCAL_APPS = [
     # custom users app
     'olc_webportalv2.users.apps.UsersConfig',
     # Your stuff: custom apps go here
+    'olc_webportalv2.projects.apps.ProjectsConfig',
+    'olc_webportalv2.jobs.apps.JobsConfig',
+
+    # Need this to get django-multiselectfield to work
+    'multiselectfield',
+
+    # Django-bootstrap-forms
+    'bootstrapform',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -280,3 +288,4 @@ ADMIN_URL = r'^admin/'
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
+ALLOWED_HOSTS = ['0.0.0.0']

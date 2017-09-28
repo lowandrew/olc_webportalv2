@@ -13,9 +13,13 @@ services:
       - postgres
     volumes:
       - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
     environment:
       - POSTGRES_USER=olc_webportalv2
       - USE_DOCKER=yes
+      - DOCKER_SOCKET=/var/run/docker.sock
+      - DOCKER_GROUP=dockerhost
+      - DOCKER_HOST=unix:///var/run/docker.sock
     ports:
       - "8000:8000"
     command: /start.sh
@@ -27,9 +31,9 @@ services:
     volumes:
       - postgres_data_local:/var/lib/postgresql/data
       - postgres_backup_local:/backups
+      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
     environment:
       - POSTGRES_USER=olc_webportalv2
-
 
   redis:
     image: redis:3.0
@@ -51,4 +55,20 @@ services:
       - postgres
     ports: []
     command: /start-celerybeat.sh
+
+  genesippr:
+    ports:
+      - "8001:8001"
+    image: "sipprverse:latest"
+    container_name: genesipprv2
+#    entrypoint:
+#      - bash
+    tty: true
+    stdin_open: true
+    volumes:
+      - /mnt/nas/bio_requests/8312/newsixteens/targets/:/targets
+      - /olc_webportalv2/olc_webportalv2/media/uploads/:/sequences
+      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
+
+
 

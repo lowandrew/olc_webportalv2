@@ -1,4 +1,5 @@
 FROM python:3.5
+MAINTAINER Forest Dussault, forest.dussault@inspection.gc.ca
 
 ENV PYTHONUNBUFFERED 1
 
@@ -21,6 +22,11 @@ RUN chmod +x /start-celeryworker.sh
 COPY ./compose/local/django/celery/beat/start.sh /start-celerybeat.sh
 RUN sed -i 's/\r//' /start-celerybeat.sh
 RUN chmod +x /start-celerybeat.sh
+
+# Genesippr setup
+COPY ./compose/local/django/genesipprv2/start.sh /start-genesipprv2.sh
+RUN sed -i 's/\r//' /start-genesipprv2.sh
+RUN chmod +x /start-genesipprv2.sh
 
 WORKDIR /app
 

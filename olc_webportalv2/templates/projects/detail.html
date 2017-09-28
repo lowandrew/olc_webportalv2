@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <br>
+    <div class="container" align="center">
+        <div class="jumbotron">
+            <h3> {{ project_id.project_title }}</h3>
+            <h5> Date Created: {{ project_id.date }}</h5>
+        </div>
+
+        <div class="container">
+
+            <table class="table table-hover">
+                <tr>
+                    <th>File R1</th>
+                    <th>File R2</th>
+                    <th>Organism</th>
+                    <th>Reference</th>
+                    <th>Type</th>
+                    <th>Requested Jobs</th>
+                    <th>GenesipprV2 Results</th>
+                </tr>
+
+                <tr>
+                    <td> {{ project_id.filename_r1 }}</td>
+                    <td> {{ project_id.filename_r2 }}</td>
+                    <td> {{ project_id.organism }}</td>
+                    <td> {{ project_id.reference }}</td>
+                    <td> {{ project_id.type }}</td>
+                    <td> {{ project_id.requested_jobs }}</td>
+                    <td> {{ project_id.genesippr_results }}</td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+{% block content %}
+<br>
+
+
+
+<div class="container">
+{#    Create new project form#}
+    <h4 align="center">Create a new project</h4>
+
+    <div class="jumbotron">
+        <form method="post" role="form" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|bootstrap }}
+
+            <div class="form-group">
+                <button class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+
+
+
+    {#    Display existing projects    #}
+
+        <div class="page-header">
+            <h4 align="center">Projects</h4>
+        </div>
+        <div>
+            <table class="table table-hover">
+                <tr>
+                    <th>Project Title</th>
+                    <th>Organism</th>
+                    <th>Date Created</th>
+                    <th></th>
+                </tr>
+                {% for id in project_list %}
+                    <tr>
+                        <td>{{ id.project_title }}</td>
+                        <td>{{ id.organism }}</td>
+                        <td>{{ id.date }}</td>
+                        <td><a href="{% url 'projects:project_detail' project_id=id.pk %}">Details</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
