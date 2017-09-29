@@ -1,21 +1,83 @@
-/* These styles are generated from project.scss. */
+.navbar {
+  background-color: #0e4164; }
+  .navbar .navbar-brand {
+    color: #fbfcff; }
+    .navbar .navbar-brand:hover, .navbar .navbar-brand:focus {
+      color: white; }
+  .navbar .navbar-text {
+    color: #fbfcff; }
+  .navbar .navbar-nav .nav-link {
+    color: #fbfcff;
+    border-radius: .25rem;
+    margin: 0 0.25em; }
+    .navbar .navbar-nav .nav-link:not(.disabled):hover, .navbar .navbar-nav .nav-link:not(.disabled):focus {
+      color: white; }
+  .navbar .navbar-nav .nav-item.active .nav-link, .navbar .navbar-nav .nav-item.active .nav-link:hover, .navbar .navbar-nav .nav-item.active .nav-link:focus, .navbar .navbar-nav .nav-item.show .nav-link, .navbar .navbar-nav .nav-item.show .nav-link:hover, .navbar .navbar-nav .nav-item.show .nav-link:focus {
+    color: white;
+    background-color: #193451; }
+  .navbar .navbar-toggle {
+    border-color: #193451; }
+    .navbar .navbar-toggle:hover, .navbar .navbar-toggle:focus {
+      background-color: #193451; }
+    .navbar .navbar-toggle .navbar-toggler-icon {
+      color: #fbfcff; }
+  .navbar .navbar-collapse,
+  .navbar .navbar-form {
+    border-color: #fbfcff; }
+  .navbar .navbar-link {
+    color: #fbfcff; }
+    .navbar .navbar-link:hover {
+      color: white; }
+
+@media (max-width: 575px) {
+  .navbar-expend-sm .navbar-nav .show .dropdown-menu .dropdown-item {
+    color: #fbfcff; }
+    .navbar-expend-sm .navbar-nav .show .dropdown-menu .dropdown-item:hover, .navbar-expend-sm .navbar-nav .show .dropdown-menu .dropdown-item:focus {
+      color: white; }
+  .navbar-expend-sm .navbar-nav .show .dropdown-menu .dropdown-item.active {
+    color: white;
+    background-color: #193451; } }
+@media (max-width: 767px) {
+  .navbar-expend-md .navbar-nav .show .dropdown-menu .dropdown-item {
+    color: #fbfcff; }
+    .navbar-expend-md .navbar-nav .show .dropdown-menu .dropdown-item:hover, .navbar-expend-md .navbar-nav .show .dropdown-menu .dropdown-item:focus {
+      color: white; }
+  .navbar-expend-md .navbar-nav .show .dropdown-menu .dropdown-item.active {
+    color: white;
+    background-color: #193451; } }
+@media (max-width: 991px) {
+  .navbar-expend-lg .navbar-nav .show .dropdown-menu .dropdown-item {
+    color: #fbfcff; }
+    .navbar-expend-lg .navbar-nav .show .dropdown-menu .dropdown-item:hover, .navbar-expend-lg .navbar-nav .show .dropdown-menu .dropdown-item:focus {
+      color: white; }
+  .navbar-expend-lg .navbar-nav .show .dropdown-menu .dropdown-item.active {
+    color: white;
+    background-color: #193451; } }
+@media (max-width: 1199px) {
+  .navbar-expend-xl .navbar-nav .show .dropdown-menu .dropdown-item {
+    color: #fbfcff; }
+    .navbar-expend-xl .navbar-nav .show .dropdown-menu .dropdown-item:hover, .navbar-expend-xl .navbar-nav .show .dropdown-menu .dropdown-item:focus {
+      color: white; }
+  .navbar-expend-xl .navbar-nav .show .dropdown-menu .dropdown-item.active {
+    color: white;
+    background-color: #193451; } }
+.navbar-expend .navbar-nav .show .dropdown-menu .dropdown-item {
+  color: #fbfcff; }
+  .navbar-expend .navbar-nav .show .dropdown-menu .dropdown-item:hover, .navbar-expend .navbar-nav .show .dropdown-menu .dropdown-item:focus {
+    color: white; }
+.navbar-expend .navbar-nav .show .dropdown-menu .dropdown-item.active {
+  color: white;
+  background-color: #193451; }
 
 .alert-debug {
-  color: black;
   background-color: white;
   border-color: #d6e9c6;
-}
+  color: black; }
 
 .alert-error {
-  color: #b94a48;
   background-color: #f2dede;
   border-color: #eed3d7;
-}
+  color: #b94a48; }
 
-/* Display django-debug-toolbar.
-   See https://github.com/django-debug-toolbar/django-debug-toolbar/issues/742
-   and https://github.com/pydanny/cookiecutter-django/issues/317
-*/
 [hidden][style="display: block;"] {
-  display: block !important;
-}
+  display: block !important; }

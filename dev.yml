@@ -14,6 +14,7 @@ services:
     volumes:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
+      - /usr/bin:/usr/bin # mount bin to access docker exec
     environment:
       - POSTGRES_USER=olc_webportalv2
       - USE_DOCKER=yes

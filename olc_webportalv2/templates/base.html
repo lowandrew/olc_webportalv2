@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{% block title %}olc_webportalv2{% endblock title %}</title>
+    <title>{% block title %}OLC Webportal{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="author" content="Forest Dussault">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <![endif]-->
+{#    [if lt IE 9]#}
+{#      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>#}
+{#    [endif]#}
 
     {% block css %}
     <!-- Latest compiled and minified Bootstrap 4 beta CSS -->
@@ -20,7 +20,7 @@
     <!-- Your stuff: Third-party CSS libraries go here -->
 
     <!-- This file stores project-specific CSS -->
-    <link href="{% static 'css/project.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static '/css/project.css' %}">
 
     {% endblock %}
 
@@ -28,12 +28,17 @@
 
   <body>
 
-    <div class="m-b-1">
-      <nav class="navbar navbar-expand-md navbar-light bg-light">
+    <div class="m-b-1" id="main-navbar">
+      <nav class="navbar navbar-expand-md">
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="{% url 'home' %}">olc_webportalv2</a>
+
+        <img class="img-responsive" style="width: 2%" src="{% static 'images/600px-Canada_Maple_Leaf.svg.png' %}">
+
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <strong>OLC Webportal</strong>
+        </a>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
@@ -80,7 +85,22 @@
       {% endif %}
 
       {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
+        <br>
+        <div class="container">
+                <div class="jumbotron">
+                    <p class="lead h6">
+                        Welcome to the <em>OLC Webportal</em>.
+                        Here you will find a variety of tools to process raw NGS sequence data.
+                    </p>
+                    <p class="lead h6">
+                        A variety of tools are available, including:
+                        <ul class="list-inline">
+                            <li class="h4"><kbd>GeneSipprV2</kbd></li>
+                        </ul>
+                    </p>
+                </div>
+        </div>
+
       {% endblock content %}
 
     </div> <!-- /container -->

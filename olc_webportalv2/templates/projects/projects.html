@@ -3,29 +3,28 @@
 {% block content %}
 <br>
 
-
-
+{#Head container#}
 <div class="container">
 {#    Create new project form#}
-    <h4 align="center">Create a new project</h4>
 
-    <div class="jumbotron">
-        <form method="post" role="form" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form|bootstrap }}
-
-            <div class="form-group">
-                <button class="btn btn-primary">Submit</button>
-            </div>
-        </form>
+    <button type="button" class="btn btn-success" data-toggle="collapse" data-target="#create-project-button">Create New Project</button>
+     <div id="create-project-button" class="collapse">
+        <br>
+        <div class="jumbotron">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|bootstrap }}
+                <div class="form-group">
+                    <button class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 
-
     {#    Display existing projects    #}
-
         <div class="page-header">
-            <h4 align="center">Projects</h4>
+            <br>
         </div>
         <div>
             <table class="table table-hover">
