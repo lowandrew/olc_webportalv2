@@ -64,6 +64,9 @@ LOCAL_APPS = [
 
     # Django-bootstrap-forms
     'bootstrapform',
+
+    # Sortable HTML tables
+    'django_tables2',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

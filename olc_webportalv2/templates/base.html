@@ -17,10 +17,11 @@
     <!-- Latest compiled and minified Bootstrap 4 beta CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
 
-    <!-- Your stuff: Third-party CSS libraries go here -->
-
     <!-- This file stores project-specific CSS -->
     <link rel="stylesheet" href="{% static '/css/project.css' %}">
+
+    <!-- Your stuff: Third-party CSS libraries go here -->
+    <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
 
     {% endblock %}
 
@@ -89,13 +90,16 @@
         <div class="container">
                 <div class="jumbotron">
                     <p class="lead h6">
-                        Welcome to the <em>OLC Webportal</em>.
-                        Here you will find a variety of tools to process raw NGS sequence data.
+                        <btn class="btn btn-block btn-lg btn-primary">Welcome to the <b>OLC Webportal</b></btn><br>
+                        A variety of tools to process raw NGS sequence data are available:
                     </p>
                     <p class="lead h6">
-                        A variety of tools are available, including:
                         <ul class="list-inline">
-                            <li class="h4"><kbd>GeneSipprV2</kbd></li>
+                            <li class="h5"><kbd>GeneSipprV2</kbd></li>
+                            <li class="h5"><kbd>Bleep blorp</kbd></li>
+                            <li class="h5"><kbd>Schnoodlizer</kbd></li>
+                            <li class="h5"><kbd>FastQC</kbd></li>
+                            <li class="h5"><kbd>... and more!</kbd></li>
                         </ul>
                     </p>
                 </div>
@@ -117,6 +121,7 @@
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
 
       <!-- Your stuff: Third-party javascript libraries go here -->
+      <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
 
       <!-- place project specific Javascript in this file -->
 

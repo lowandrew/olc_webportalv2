@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load bootstrap %}
+{% load render_table from django_tables2 %}
 {% block content %}
-<br>
 
 {#Head container#}
 <div class="container">
-{#    Create new project form#}
 
+{#    Create new project form#}
+    <br>
     <button type="button" class="btn btn-success" data-toggle="collapse" data-target="#create-project-button">Create New Project</button>
      <div id="create-project-button" class="collapse">
         <br>
@@ -23,27 +24,34 @@
 
 
     {#    Display existing projects    #}
-        <div class="page-header">
-            <br>
-        </div>
-        <div>
-            <table class="table table-hover">
-                <tr>
-                    <th>Project Title</th>
-                    <th>Organism</th>
-                    <th>Date Created</th>
-                    <th></th>
-                </tr>
-                {% for id in project_list %}
-                    <tr>
-                        <td>{{ id.project_title }}</td>
-                        <td>{{ id.organism }}</td>
-                        <td>{{ id.date }}</td>
-                        <td><a href="{% url 'projects:project_detail' project_id=id.pk %}">Details</a></td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </div>
-    </div>
+
+{#        <div class="page-header">#}
+{#            <br>#}
+{#        </div>#}
+{#        <div>#}
+{#            <table class="table table-hover" id="project_table">#}
+{#                <tr>#}
+{#                    <th>Project Title</th>#}
+{#                    <th>Organism</th>#}
+{#                    <th>Date Created</th>#}
+{#                    <th></th>#}
+{#                </tr>#}
+{#                {% for id in project_list %}#}
+{#                    <tr>#}
+{#                        <td>{{ id.project_title }}</td>#}
+{#                        <td>{{ id.organism }}</td>#}
+{#                        <td>{{ id.date }}</td>#}
+{#                        <td><a href="{% url 'projects:project_detail' project_id=id.pk %}">Details</a></td>#}
+{#                    </tr>#}
+{#                {% endfor %}#}
+{#            </table>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+
+<div class="container" >
+    <br>
+    {% render_table project_table %}
 </div>
+
 {% endblock %}
