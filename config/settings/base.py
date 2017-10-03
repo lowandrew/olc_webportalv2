@@ -67,6 +67,9 @@ LOCAL_APPS = [
 
     # Sortable HTML tables
     'django_tables2',
+
+    # django-background-tasks (alternative to Celery)
+    'background_task'
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

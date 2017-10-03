@@ -23,35 +23,36 @@
     </div>
 
 
-    {#    Display existing projects    #}
+{#        Display existing projects#}
 
-{#        <div class="page-header">#}
-{#            <br>#}
-{#        </div>#}
-{#        <div>#}
-{#            <table class="table table-hover" id="project_table">#}
-{#                <tr>#}
-{#                    <th>Project Title</th>#}
-{#                    <th>Organism</th>#}
-{#                    <th>Date Created</th>#}
-{#                    <th></th>#}
-{#                </tr>#}
-{#                {% for id in project_list %}#}
-{#                    <tr>#}
-{#                        <td>{{ id.project_title }}</td>#}
-{#                        <td>{{ id.organism }}</td>#}
-{#                        <td>{{ id.date }}</td>#}
-{#                        <td><a href="{% url 'projects:project_detail' project_id=id.pk %}">Details</a></td>#}
-{#                    </tr>#}
-{#                {% endfor %}#}
-{#            </table>#}
-{#        </div>#}
-{#    </div>#}
-{#</div>#}
-
-<div class="container" >
-    <br>
-    {% render_table project_table %}
+        <div class="page-header">
+            <br>
+        </div>
+        <div>
+            <table class="table table-hover" id="project_table">
+                <tr>
+                    <th>Project Title</th>
+                    <th>Organism</th>
+                    <th>Date Created</th>
+                    <th></th>
+                </tr>
+                {% for id in project_list %}
+                    <tr>
+                        <td>{{ id.project_title }}</td>
+                        <td>{{ id.organism }}</td>
+                        <td>{{ id.date }}</td>
+                        <td><a href="{% url 'projects:project_detail' project_id=id.pk %}">Details</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
 </div>
+
+{#    Use this for a sortable table later on in development#}
+{#<div class="container" >#}
+{#    <br>#}
+{#    {% render_table project_table %}#}
+{#</div>#}
 
 {% endblock %}

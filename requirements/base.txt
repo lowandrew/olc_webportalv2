@@ -46,10 +46,8 @@ redis>=2.10.5
 
 celery==3.1.25
 
-
-
-
 # Your custom requirements go here
 django-multiselectfield==0.1.8
 django-bootstrap-form
 django-tables2
+django-background-tasks
