@@ -66,7 +66,7 @@ services:
     stdin_open: true
     volumes:
       - /mnt/nas/bio_requests/8312/newsixteens/targets/:/targets
-      - ./olc_webportalv2/media/uploads/:/sequences
+      - ./olc_webportalv2/media/:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
 
 

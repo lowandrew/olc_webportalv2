@@ -15,9 +15,11 @@ Cookiecutter Django Reference
 --------
 
 Docker development: docker_.
+
 Settings: settings_.
 
 .. _settings: http://cookiecutter-django.readthedocs.io/en/latest/settings.html
+
 .. _docker: http://cookiecutter-django.readthedocs.io/en/latest/developing-locally-docker.html
 
 Basic Commands
