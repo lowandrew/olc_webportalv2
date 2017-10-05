@@ -23,3 +23,5 @@ su ${REGULAR_USER} -c "/usr/bin/env bash runner.sh ${@}"
 
 python manage.py migrate
 python manage.py runserver_plus 0.0.0.0:8000
+# Necessary to handle jobs
+python manage.py process_tasks

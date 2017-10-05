@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from .tasks import run_genesippr
 
 
 # Create your views here.

@@ -1,12 +1,14 @@
-from django.shortcuts import render, redirect
-from django.http import Http404
-from .models import Project
-from django.core.exceptions import ValidationError
-from .forms import ProjectForm
-from .table import ProjectTable
-from django_tables2 import RequestConfig
-from ..jobs import tasks
 import os
+
+from django.core.exceptions import ValidationError
+from django.http import Http404
+from django.shortcuts import render, redirect
+from django_tables2 import RequestConfig
+
+from . import tasks
+from .forms import ProjectForm
+from .models import Project
+from .table import ProjectTable
 
 
 def projects(request):
@@ -14,8 +16,8 @@ def projects(request):
     form = ProjectForm(request.POST, request.FILES)
 
     # Configure the table
-    project_table = ProjectTable(Project.objects.all())
-    RequestConfig(request).configure(project_table)
+    # project_table = ProjectTable(Project.objects.all())
+    # RequestConfig(request).configure(project_table)
 
     # Create new project
     if request.method == 'POST':
@@ -34,14 +36,17 @@ def projects(request):
             # Debug
             print('PK: {}, User: {}'.format(new_entry.pk, new_entry.user))
             print('File 1: {}\nFile 2: {}'.format(new_entry.file_R1, new_entry.file_R2))
-            print('Requested jobs: {}'.format(new_entry.requested_jobs))
+            print('Requested jobs: {} for project {}\n'.format(new_entry.requested_jobs, new_entry.pk))
 
             # Check jobs
             if 'genesipprv2' in new_entry.requested_jobs:
-                print('Requested GenesipprV2 job on project {}'.format(new_entry.pk))
                 file_path = os.path.dirname(str(new_entry.file_R1))
-                print("File path: " + file_path)
-                tasks.run_genesippr.now(file_path)
+
+                # Update model status for the detail.html page
+                Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Processing...")
+
+                # Queue up the genesippr job
+                tasks.run_genesippr(file_path, new_entry.pk)
 
             return redirect('project/{}'.format(new_entry.pk))
         else:
@@ -53,7 +58,7 @@ def projects(request):
                                                       'form': form,
                                                       'project_id': Project.pk,
                                                       'user': request.user,
-                                                      'project_table': project_table
+                                                      # 'project_table': project_table
                                                       }
                   )
 
@@ -65,3 +70,14 @@ def project_detail(request, project_id):
         raise Http404("Project ID {} does not exist.".format(project_id))
 
     return render(request, 'projects/detail.html', {'project_id': project_id})
+
+
+def project_table(request, project_id):
+    # Configure the table
+    project_id = Project.objects.get(pk=project_id)
+    project_table = ProjectTable(Project.objects.all())
+    RequestConfig(request).configure(project_table)
+
+    return render(request, 'projects/project_table.html', {'project_table': project_table,
+                                                           'project_id': project_id,
+                                                           })

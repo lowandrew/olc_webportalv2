@@ -27,8 +27,8 @@ class Project(models.Model):
                                  blank=True)
     type = models.CharField(max_length=128,
                             blank=True)
-    genesippr_results = models.CharField(max_length=128,
-                                         blank=True)
+    genesippr_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
     requested_jobs = MultiSelectField(choices=JOB_CHOICES)
 
     def filename_r1(self):
