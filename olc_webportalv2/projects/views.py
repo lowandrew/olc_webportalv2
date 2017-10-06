@@ -7,8 +7,8 @@ from django_tables2 import RequestConfig
 
 from . import tasks
 from .forms import ProjectForm
-from .models import Project
-from .table import ProjectTable
+from .models import Project, GenesipprResults
+from .table import ProjectTable, GenesipprTable
 
 
 def projects(request):
@@ -43,7 +43,11 @@ def projects(request):
                 file_path = os.path.dirname(str(new_entry.file_R1))
 
                 # Update model status for the detail.html page
-                Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Processing...")
+
+                # This would be nice but I can't get the model in tasks.py to update...
+                # Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Queued")
+
+                Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Processing")
 
                 # Queue up the genesippr job
                 tasks.run_genesippr(file_path, new_entry.pk)
@@ -58,7 +62,6 @@ def projects(request):
                                                       'form': form,
                                                       'project_id': Project.pk,
                                                       'user': request.user,
-                                                      # 'project_table': project_table
                                                       }
                   )
 
@@ -69,7 +72,9 @@ def project_detail(request, project_id):
     except Project.DoesNotExist:
         raise Http404("Project ID {} does not exist.".format(project_id))
 
-    return render(request, 'projects/detail.html', {'project_id': project_id})
+    return render(request, 'projects/detail.html', {'project_id': project_id,
+                                                    }
+                  )
 
 
 def project_table(request, project_id):
@@ -80,4 +85,17 @@ def project_table(request, project_id):
 
     return render(request, 'projects/project_table.html', {'project_table': project_table,
                                                            'project_id': project_id,
-                                                           })
+                                                           }
+                  )
+
+
+def genesippr_results_table(request, project_id):
+    # Configure the table
+    project = GenesipprResults.objects.get(project=Project.objects.get(pk=project_id))
+    genesippr_results_table = GenesipprTable(GenesipprResults.objects.all())
+    RequestConfig(request).configure(genesippr_results_table)
+
+    return render(request, 'projects/genesippr_results_table.html', {'genesippr_results_table': genesippr_results_table,
+                                                                     'project': project,
+                                                                     }
+                  )

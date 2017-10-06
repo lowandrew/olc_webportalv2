@@ -70,6 +70,7 @@ LOCAL_APPS = [
 
     # django-background-tasks (alternative to Celery)
     'background_task'
+
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
