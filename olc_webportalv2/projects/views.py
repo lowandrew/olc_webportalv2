@@ -1,6 +1,7 @@
 import os
 
 from django.core.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
@@ -10,7 +11,7 @@ from .forms import ProjectForm
 from .models import Project, GenesipprResults
 from .table import ProjectTable, GenesipprTable
 
-
+@login_required
 def projects(request):
     project_list = Project.objects.all()
     form = ProjectForm(request.POST, request.FILES)
@@ -66,6 +67,7 @@ def projects(request):
                   )
 
 
+@login_required
 def project_detail(request, project_id):
     try:
         project_id = Project.objects.get(pk=project_id)
@@ -76,7 +78,7 @@ def project_detail(request, project_id):
                                                     }
                   )
 
-
+@login_required
 def project_table(request, project_id):
     # Configure the table
     project_id = Project.objects.get(pk=project_id)
@@ -88,7 +90,7 @@ def project_table(request, project_id):
                                                            }
                   )
 
-
+@login_required
 def genesippr_results_table(request, project_id):
     # Configure the table
     project = GenesipprResults.objects.get(project=Project.objects.get(pk=project_id))
