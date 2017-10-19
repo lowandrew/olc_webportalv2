@@ -3,12 +3,13 @@
 {% block content %}
     <br>
     <div class="container" align="center">
-        <div class="jumbotron">
-            <h3> {{ project_id.project_title }}</h3>
-            <h5> Date Created: {{ project_id.date }}</h5>
+        <div class="form-control bg-light">
+            <h4> <strong>Project Title:</strong> {{ project_id.project_title }}</h4>
+            <h5> <strong>Date Created:</strong> {{ project_id.date }}</h5>
         </div>
 
 {#Main table for displaying project metadata#}
+        <br>
         <div id="project-table" class="form-control">
             {% include 'projects/project_table.html' %}
         </div>
@@ -30,14 +31,30 @@
 
     </div>
 
-{# Script to reload the project table periodically #}
     <script type="text/javascript">
-        setInterval(function() {
-            jQuery(document).ready(function(){
-                jQuery("#project-table").load("project_table");
-                jQuery("#genesippr-results-table").load("genesippr_results_table");
+        function loadTables() {
+            $(document).ready(function(){
+                $("#project-table").load("project_table");
+                $("#genesippr-results-table").load("genesippr_results_table");
             });
-        }, 1000); // This reloads the <div> every 1 second.
+        }
+
+        //Immediately load the tables
+        setTimeout(function() {
+            console.log('Initial table loading')
+            loadTables()
+        }, 1); //
+
+        //Periodically load the tables if project_id.genesippr_status == 'Processing'
+
+        setInterval(function() {
+            {% if project_id.genesippr_status == 'Processing' %}
+                console.log('Project still processing. Checking status...')
+                loadTables()
+            {% endif %}
+        }, 5000); // This reloads the <div> every 5 seconds.
+
+
     </script>
 
 {% endblock content %}
