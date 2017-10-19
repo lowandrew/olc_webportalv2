@@ -16,7 +16,7 @@ class Project(models.Model):
     I probably need to rethink the 'genesippr_status' column to support other tasks (i.e. FastQC).
     """
     JOB_CHOICES = (
-        ('genesipprv2','GENESIPPRV2'),
+        ('genesipprv2', 'GENESIPPRV2'),
         ('fastqc', 'FASTQC')
     )
 
@@ -33,7 +33,7 @@ class Project(models.Model):
     type = models.CharField(max_length=128,
                             blank=True)
     genesippr_status = models.CharField(max_length=128,
-                                         default="Unprocessed")
+                                        default="Unprocessed")
     requested_jobs = MultiSelectField(choices=JOB_CHOICES)
 
     def filename_r1(self):
@@ -41,6 +41,10 @@ class Project(models.Model):
 
     def filename_r2(self):
         return os.path.basename(self.file_R2.name)
+
+    # For admin panel
+    def __str__(self):
+        return '{}:{}'.format(self.user,str(self.pk))
 
     # This mess is necessary in order to pre-save the PK for use in the final file path for uploaded files.
     def save(self, *args, **kwargs):
@@ -75,9 +79,35 @@ class Project(models.Model):
 
 
 class GenesipprResults(models.Model):
+    # For admin panel
+    def __str__(self):
+        return '{}'.format(self.project)
+
+    # TODO: Accomodate seqID
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     strain = models.CharField(max_length=256, default="N/A")
     genus = models.CharField(max_length=256, default="N/A")
+    gdcs = models.CharField(max_length=256, default="N/A")
+    gdcs_coverage = models.CharField(max_length=256, default="N/A")
+    pass_fail = models.CharField(max_length=256, default="N/A")
+
+    # # STEC fields
+    # uida = models.CharField(max_length=256, default="N/A")
+    # stx1 = models.CharField(max_length=256, default="N/A")
+    # stx2 = models.CharField(max_length=256, default="N/A")
+    # stx2f = models.CharField(max_length=256, default="N/A")
+    # eae = models.CharField(max_length=256, default="N/A")
+    # serotype = models.CharField(max_length=256, default="N/A")
+    #
+    # # Salmonella fields
+    # inva = models.CharField(max_length=256, default="N/A")
+    # stn = models.CharField(max_length=256, default="N/A")
+    #
+    # # Listeria fields
+    # hyla = models.CharField(max_length=256, default="N/A")
+    # inij = models.CharField(max_length=256, default="N/A")
+    # igs = models.CharField(max_length=256, default="N/A")
+
 
 
 #  Deleting the following functions results in an irritating migration error. Should probably fix this one day...
