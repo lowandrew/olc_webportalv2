@@ -11,6 +11,7 @@ from .forms import ProjectForm
 from .models import Project, GenesipprResults
 from .table import ProjectTable, GenesipprTable
 
+
 @login_required
 def projects(request):
     project_list = Project.objects.all()
@@ -37,14 +38,20 @@ def projects(request):
             # Debug
             print('PK: {}, User: {}'.format(new_entry.pk, new_entry.user))
             print('File 1: {}\nFile 2: {}'.format(new_entry.file_R1, new_entry.file_R2))
-            print('Requested jobs: {} for project {}\n'.format(new_entry.requested_jobs, new_entry.pk))
+            print('Requested jobs: {} for project {}'.format(new_entry.requested_jobs, new_entry.pk))
 
             # Check jobs
             if 'genesipprv2' in new_entry.requested_jobs:
+                print('\nGenesipprV2 job detected.')
+
+                # Create GenesipprResults entry
+                GenesipprResults.objects.get_or_create(project=Project.objects.get(id=new_entry.pk))
+                print('\nCreated GenesipprResults entry for project {}'.format(new_entry.pk))
+
+                # Set file path
                 file_path = os.path.dirname(str(new_entry.file_R1))
 
                 # Update model status for the detail.html page
-
                 # This would be nice but I can't get the model in tasks.py to update...
                 # Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Queued")
 
@@ -78,6 +85,7 @@ def project_detail(request, project_id):
                                                     }
                   )
 
+
 @login_required
 def project_table(request, project_id):
     # Configure the table
@@ -89,6 +97,7 @@ def project_table(request, project_id):
                                                            'project_id': project_id,
                                                            }
                   )
+
 
 @login_required
 def genesippr_results_table(request, project_id):
