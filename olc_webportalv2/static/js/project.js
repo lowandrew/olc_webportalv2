@@ -20,4 +20,4 @@ Issues with the above approach:
 */
 $('.form-group').removeClass('row');
 
-
+jQuery.noConflict();
