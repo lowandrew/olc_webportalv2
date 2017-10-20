@@ -6,9 +6,9 @@
                 <th>Project ID#</th>
                 <th>File R1</th>
                 <th>File R2</th>
-                <th>Organism</th>
-                <th>Reference</th>
-                <th>Type</th>
+{#                <th>Organism</th>#}
+{#                <th>Reference</th>#}
+{#                <th>Type</th>#}
                 <th>Requested Jobs</th>
                 <th>GenesipprV2 Status</th>
             </tr>
@@ -16,9 +16,9 @@
                 <td> {{ project_id.pk }}</td>
                 <td> {{ project_id.filename_r1 }}</td>
                 <td> {{ project_id.filename_r2 }}</td>
-                <td> {{ project_id.organism }}</td>
-                <td> {{ project_id.reference }}</td>
-                <td> {{ project_id.type }}</td>
+{#                <td> {{ project_id.organism }}</td>#}
+{#                <td> {{ project_id.reference }}</td>#}
+{#                <td> {{ project_id.type }}</td>#}
                 <td> {{ project_id.requested_jobs }}</td>
                 <td> {% if project_id.genesippr_status == 'Processing' %}
                     <div class="progress">

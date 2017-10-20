@@ -1,10 +1,23 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 from multiselectfield import MultiSelectField
 from olc_webportalv2.users.models import User
 
 import datetime
 import os
 
+
+# Validation functions
+def validate_fastq(fieldfile):
+    filename = os.path.basename(fieldfile.name)
+    if filename.endswith('.fastq.gz') or filename.endswith('.fastq'):
+        print('File extension for {} confirmed valid'.format(filename))
+    else:
+        raise ValidationError(
+            _('%(file)s does not end with .fastq or .fastq.gz'),
+            params={'filename': filename},
+        )
 
 # Create your models here.
 
@@ -16,16 +29,17 @@ class Project(models.Model):
     I probably need to rethink the 'genesippr_status' column to support other tasks (i.e. FastQC).
     """
     JOB_CHOICES = (
-        ('genesipprv2', 'GENESIPPRV2'),
-        ('fastqc', 'FASTQC')
+        ('genesipprv2', 'GenesipprV2'),
+        ('sendsketch', 'sendsketch'),
+        ('gloobleshteen', 'Gloobleshteen'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project_title = models.CharField(max_length=256)
     description = models.CharField(max_length=200, blank=True)
     date = models.DateTimeField(auto_now_add=True)
-    file_R1 = models.FileField(upload_to='', blank=True)
-    file_R2 = models.FileField(upload_to='', blank=True)
+    file_R1 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
+    file_R2 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
     organism = models.CharField(max_length=256,
                                 blank=True)
     reference = models.CharField(max_length=256,
@@ -34,6 +48,8 @@ class Project(models.Model):
                             blank=True)
     genesippr_status = models.CharField(max_length=128,
                                         default="Unprocessed")
+    sendsketch_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
     requested_jobs = MultiSelectField(choices=JOB_CHOICES)
 
     def filename_r1(self):
@@ -108,6 +124,13 @@ class GenesipprResults(models.Model):
     # inij = models.CharField(max_length=256, default="N/A")
     # igs = models.CharField(max_length=256, default="N/A")
 
+
+class SendsketchResults(models.Model):
+    # For admin panel
+    def __str__(self):
+        return '{}'.format(self.project)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
 
 #  Deleting the following functions results in an irritating migration error. Should probably fix this one day...

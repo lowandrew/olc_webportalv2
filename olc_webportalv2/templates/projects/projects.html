@@ -7,16 +7,43 @@
 <div class="container">
 
 {#    Create new project form#}
-    <br>
-    <button type="button" class="btn btn-success" data-toggle="collapse" data-target="#create-project-button">Create New Project</button>
+    <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#create-project-button">Create New Project</button>
      <div id="create-project-button" class="collapse">
         <br>
-        <div class="jumbotron">
-            <form method="post" enctype="multipart/form-data">
+        <div class="panel border rounded" style="padding: 25px">
+            <form method="post" enctype="multipart/form-data" class="form-horizontal">
                 {% csrf_token %}
-                {{ form|bootstrap }}
+{#                Uncomment this line to get the django-bootstrap-form styling going automatically#}
+{#                {{ form|bootstrap }}#}
+                    <div class="form-group has-success has-feedback">
+                        <label>Title</label>
+                        {{ form.project_title }}
+                    </div>
+
+                    <div class="form-group">
+                        <p>File R1{{ form.file_R1 }}</p>
+                    </div>
+
+                    <div class="form-group">
+                        <p>File R2{{ form.file_R2 }}</p>
+                    </div>
+
+                    <div class="form-group">
+                        <p>Select jobs to run:</p>
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group-vertical btn-group-md" data-toggle="buttons">
+                                {% for checkbox in form.requested_jobs %}
+                                    <label class="btn btn-outline-primary">
+                                        {{ checkbox.tag }}
+                                        {{ checkbox.choice_label }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
                 <div class="form-group">
-                    <button class="btn btn-primary">Submit</button>
+                    <button class="btn btn-primary btn-block">Submit project</button>
                 </div>
             </form>
         </div>
@@ -28,18 +55,32 @@
     <br>
 </div>
 
-<div>
+<div class="border rounded" style="padding: 25px">
     <table class="table table-hover" id="project_table">
         <tr>
             <th onclick="sortTable(0)">Project Title <i class="fa fa-fw fa-sort"></i> </th>
-            <th onclick="sortTable(1)">Organism <i class="fa fa-fw fa-sort"></i></th>
+            <th onclick="sortTable(1)">Genesippr Status <i class="fa fa-fw fa-sort"></i></th>
             <th onclick="sortTable(2)">Date Created <i class="fa fa-fw fa-sort"></i></th>
             <th></th>
         </tr>
         {% for id in project_list %}
             <tr>
                 <td>{{ id.project_title }}</td>
-                <td>{{ id.organism }}</td>
+                <td>
+                {% if id.genesippr_status == 'Complete' %}
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                            {{ id.genesippr_status }}
+                        </div>
+                    </div>
+                {% elif id.genesippr_status == 'Processing' %}
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                              {{ id.genesippr_status }}
+                        </div>
+                    </div>
+                {% endif %}
+                </td>
                 <td>{{ id.date }}</td>
                 <td><a href="{% url 'projects:project_detail' project_id=id.pk %}">Details</a></td>
             </tr>

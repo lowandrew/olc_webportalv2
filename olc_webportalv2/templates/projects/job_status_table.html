@@ -1,0 +1,17 @@
+{% block content %}
+
+<div class="container">
+    <h5>Job Status</h5>
+        <table class="table table-hover">
+            <tr>
+                <th>GenesipprV2</th>
+                <th>sendsketch</th>
+            </tr>
+            <tr>
+                <td>{{ project.genesippr_status }}</td>
+                <td>{{ project.sendsketch_status }}</td>
+            </tr>
+        </table>
+ </div>
+
+{% endblock content %}

@@ -69,5 +69,16 @@ services:
       - ./olc_webportalv2/media/:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
 
+  bbmap:
+    ports:
+      - "8002:8002"
+    image: "dussaultf/bbmap:v1"
+    container_name: olcwebportalv2_bbmap
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./olc_webportalv2/media/:/sequences
+      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
+
 
 

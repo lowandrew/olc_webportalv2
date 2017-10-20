@@ -6,10 +6,32 @@ import csv
 
 
 @background(schedule=5)
-def run_genesippr(file_path, proj_pk):
+def run_sendsketch(read1, read2, proj_pk, file_path):
+    print('\nrun_sendsketch() called successfully for project ID {}'.format(proj_pk))
 
-    # Set genesippr status
-    Project.objects.filter(id=proj_pk).update(genesippr_status="Processing...")
+    output_filename = '{0}/project_{1}_sendsketch_results.txt'.format(file_path, proj_pk)
+
+    # Run Genesippr
+    cmd = 'docker exec ' \
+          'olc_webportalv2_bbmap ' \
+          'sendsketch.sh ' \
+          'in=/sequences/{0} ' \
+          'in2=/sequences/{1} ' \
+          'out=/sequences/{2} ' \
+          'reads=400k'.format(read1, read2, output_filename)
+
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+    except:
+        print('sendsketch.sh failed to execute command.')
+        quit()
+
+    print('\nsendsketch.sh container actions complete')
+
+
+@background(schedule=5)
+def run_genesippr(file_path, proj_pk):
 
     print('\nrun_genesippr() called successfully for project ID {}'.format(proj_pk))
 
@@ -22,8 +44,12 @@ def run_genesippr(file_path, proj_pk):
           '-t /targets ' \
           '-s /sequences/{0}'.format(file_path)
 
-    p = Popen(cmd, shell=True)
-    p.communicate()  # wait until the script completes before resuming the code
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+    except:
+        print('GenesipprV2 failed to execute command.')
+        quit()
 
     print('\nGenesipprV2 container actions complete')
 

@@ -10,9 +10,14 @@
   <div class="row">
     <div class="col-sm-12">
 
-      <h2>{{ object.username }}</h2>
       {% if object.name %}
-        <p>{{ object.name }}</p>
+          <ul class="list-group">
+            <li class="list-group-item active"><strong>Username:</strong> {{ object.username }}</li>
+            <li class="list-group-item"><strong>Name:</strong> {{ object.name }}</li>
+            <li class="list-group-item"><strong>Lab:</strong> {{ object.lab }}</li>
+            <li class="list-group-item"><strong>Rank:</strong> {{ object.rank }}</li>
+          </ul>
+          <br>
       {% endif %}
     </div>
   </div>
@@ -22,8 +27,8 @@
 <div class="row">
 
   <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
-    <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
+    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">Update Info</a>
+    <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">Update Email</a>
     <!-- Your Stuff: Custom user template urls -->
   </div>
 

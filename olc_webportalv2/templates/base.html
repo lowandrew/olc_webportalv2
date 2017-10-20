@@ -48,11 +48,11 @@
               <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'projects:projects' %}">Projects</a>
+              <a class="nav-link" href="{% url 'projects:projects' %}">My Projects</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'jobs:jobs' %}">Jobs</a>
-            </li>
+{#            <li class="nav-item">#}
+{#              <a class="nav-link" href="{% url 'jobs:jobs' %}">Jobs</a>#}
+{#            </li>#}
             {% if request.user.is_authenticated %}
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
@@ -65,11 +65,11 @@
             {% else %}
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% trans "Login" %}</a>
               </li>
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% trans "Sign In" %}</a>
+                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
               </li>
             {% endif %}
           </ul>
@@ -79,24 +79,26 @@
     </div>
 
     <div class="container">
-
+    {#This is where alert messages will appear (i.e. successful signin)#}
+      <br>
       {% if messages %}
           {% for message in messages %}
+              <div class="container">
               <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+              </div>
           {% endfor %}
       {% endif %}
 
       {% block content %}
         <br>
-        <div class="container">
                 <div class="jumbotron">
                     <p class="lead h6">
-                        <btn class="btn btn-block btn-lg btn-primary">Welcome to the <b>OLC Webportal</b></btn><br>
+                        <span class="h2">Welcome to the <b>OLC Webportal</b></span><br>
                         A variety of tools to process raw NGS sequence data are available:
                     </p>
                     <p class="lead h6">
                         <ul class="list-inline">
-                            <li class="h5"><kbd>GeneSipprV2</kbd></li>
+                            <li class="h5"><kbd>GenesipprV2</kbd></li>
                             <li class="h5"><kbd>Bleep blorp</kbd></li>
                             <li class="h5"><kbd>Schnoodlizer</kbd></li>
                             <li class="h5"><kbd>FastQC</kbd></li>

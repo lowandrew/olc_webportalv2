@@ -58,12 +58,23 @@ def projects(request):
                 Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Processing")
 
                 # Queue up the genesippr job
-                tasks.run_genesippr(file_path, new_entry.pk)
+                tasks.run_genesippr(file_path=file_path,
+                                    proj_pk=new_entry.pk)
+
+            if 'sendsketch' in new_entry.requested_jobs:
+                print('\nSendsketch job detected.')
+
+                file_path = os.path.dirname(str(new_entry.file_R1))
+
+                tasks.run_sendsketch.now(read1=new_entry.file_R1,
+                                         read2=new_entry.file_R1,
+                                         proj_pk=new_entry.pk,
+                                         file_path=file_path)
 
             return redirect('project/{}'.format(new_entry.pk))
         else:
             raise ValidationError(
-                'Form is not valid. Try again.'
+                'Form is not valid. Please ensure the file type for your reads are fastq or fastq.gz.'
             )
 
     return render(request, 'projects/projects.html', {'project_list': project_list,
