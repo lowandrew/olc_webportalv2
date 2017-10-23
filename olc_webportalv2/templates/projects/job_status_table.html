@@ -8,8 +8,81 @@
                 <th>sendsketch</th>
             </tr>
             <tr>
-                <td>{{ project.genesippr_status }}</td>
-                <td>{{ project.sendsketch_status }}</td>
+                {#TODO: Wrap this up and consolidate into a for loop#}
+                <td>{% if project_id.genesippr_status == 'Processing' %}
+                    <div class="progress">
+                      <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                          {{ project_id.genesippr_status }}
+                      </div>
+                    </div>
+
+                    {% elif project_id.genesippr_status == 'Queued' %}
+                    <div class="progress">
+                        <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                            {{ project_id.genesippr_status }}
+                        </div>
+                    </div>
+
+                     {% elif project_id.genesippr_status == 'Complete' %}
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                            {{ project_id.genesippr_status }}
+                        </div>
+                    </div>
+
+                    {% elif project_id.genesippr_status == 'Error' %}
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                            {{ project_id.genesippr_status }}
+                        </div>
+                    </div>
+
+                    {% elif project_id.genesippr_status == 'Unprocessed' %}
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                            {{ project_id.genesippr_status }}
+                        </div>
+                    </div>
+
+                     {% endif %}
+                </td>
+                <td>{% if project_id.sendsketch_status == 'Processing' %}
+                        <div class="progress">
+                          <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                              {{ project_id.sendsketch_status }}
+                          </div>
+                        </div>
+
+                        {% elif project.sendsketch_status == 'Queued' %}
+                        <div class="progress">
+                            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                {{ project_id.sendsketch_status }}
+                            </div>
+                        </div>
+
+                         {% elif project_id.sendsketch_status == 'Complete' %}
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                {{ project_id.sendsketch_status }}
+                            </div>
+                        </div>
+
+                        {% elif project_id.sendsketch_status == 'Error' %}
+                        <div class="progress">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                {{ project_id.sendsketch_status }}
+                            </div>
+                        </div>
+
+                        {% elif project_id.sendsketch_status == 'Unprocessed' %}
+                        <div class="progress">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 100%; height: 25px; font-size: medium; line-height: 25px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                {{ project_id.sendsketch_status }}
+                            </div>
+                        </div>
+
+                        {% endif %}
+                </td>
             </tr>
         </table>
  </div>

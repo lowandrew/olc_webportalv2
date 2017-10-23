@@ -54,10 +54,9 @@ def projects(request):
                 # Update model status for the detail.html page
                 # This would be nice but I can't get the model in tasks.py to update...
                 # Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Queued")
-
                 Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Processing")
 
-                # Queue up the genesippr job
+                # # Queue genesippr task
                 tasks.run_genesippr(file_path=file_path,
                                     proj_pk=new_entry.pk)
 
@@ -66,10 +65,13 @@ def projects(request):
 
                 file_path = os.path.dirname(str(new_entry.file_R1))
 
-                tasks.run_sendsketch.now(read1=new_entry.file_R1,
-                                         read2=new_entry.file_R1,
-                                         proj_pk=new_entry.pk,
-                                         file_path=file_path)
+                Project.objects.filter(pk=new_entry.pk).update(sendsketch_status="Processing")
+
+                # Queue sendsketch task
+                tasks.run_sendsketch(read1=new_entry.file_R1.name,
+                                     read2=new_entry.file_R1.name,
+                                     proj_pk=new_entry.pk,
+                                     file_path=file_path)
 
             return redirect('project/{}'.format(new_entry.pk))
         else:

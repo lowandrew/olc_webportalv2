@@ -31,9 +31,9 @@ class Project(models.Model):
     JOB_CHOICES = (
         ('genesipprv2', 'GenesipprV2'),
         ('sendsketch', 'sendsketch'),
-        ('gloobleshteen', 'Gloobleshteen'),
     )
 
+    # user key is pulled from the User model
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project_title = models.CharField(max_length=256)
     description = models.CharField(max_length=200, blank=True)
@@ -107,6 +107,9 @@ class GenesipprResults(models.Model):
     gdcs_coverage = models.CharField(max_length=256, default="N/A")
     pass_fail = models.CharField(max_length=256, default="N/A")
 
+    class Meta:
+        verbose_name_plural = "Genesippr Results"
+
     # # STEC fields
     # uida = models.CharField(max_length=256, default="N/A")
     # stx1 = models.CharField(max_length=256, default="N/A")
@@ -131,6 +134,21 @@ class SendsketchResults(models.Model):
         return '{}'.format(self.project)
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    wkid = models.CharField(max_length=256, default='N/A')
+    kid = models.CharField(max_length=256, default='N/A')
+    ani = models.CharField(max_length=256, default='N/A')
+    complt = models.CharField(max_length=256, default='N/A')
+    contam = models.CharField(max_length=256, default='N/A')
+    matches = models.CharField(max_length=256, default='N/A')
+    unique = models.CharField(max_length=256, default='N/A')
+    nohit = models.CharField(max_length=256, default='N/A')
+    taxid = models.CharField(max_length=256, default='N/A')
+    gsize = models.CharField(max_length=256, default='N/A')
+    gseqs = models.CharField(max_length=256, default='N/A')
+    taxname = models.CharField(max_length=256, default='N/A')
+
+    class Meta:
+        verbose_name_plural = "Sendsketch Results"
 
 
 #  Deleting the following functions results in an irritating migration error. Should probably fix this one day...

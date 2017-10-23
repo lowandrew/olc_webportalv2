@@ -3,9 +3,9 @@ from background_task import background
 from .models import Project, GenesipprResults
 import glob
 import csv
+import pandas as pd
 
-
-@background(schedule=5)
+@background(schedule=2)
 def run_sendsketch(read1, read2, proj_pk, file_path):
     print('\nrun_sendsketch() called successfully for project ID {}'.format(proj_pk))
 
@@ -13,7 +13,7 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
 
     # Run Genesippr
     cmd = 'docker exec ' \
-          'olc_webportalv2_bbmap ' \
+          'olcwebportalv2_bbmap ' \
           'sendsketch.sh ' \
           'in=/sequences/{0} ' \
           'in2=/sequences/{1} ' \
@@ -28,6 +28,7 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
         quit()
 
     print('\nsendsketch.sh container actions complete')
+    Project.objects.filter(pk=proj_pk).update(sendsketch_status="Complete")
 
 
 @background(schedule=5)
