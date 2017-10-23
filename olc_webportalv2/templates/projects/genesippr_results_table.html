@@ -2,6 +2,10 @@
 
 <div class="container">
     <h5>GenesipprV2 Results</h5>
+    {% if base_project.genesippr_status == 'Processing' %}
+        <pre>Processing...</pre>
+        <i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i>
+    {% elif base_project.genesippr_status == 'Complete' %}
         <table class="table table-hover">
             <tr>
                 <th>Genus</th>
@@ -12,6 +16,9 @@
                 <td>{{ project.strain }}</td>
             </tr>
         </table>
+    {% else %}
+        <pre>Not available</pre>
+    {% endif %}
  </div>
 
 {% endblock content %}

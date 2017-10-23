@@ -8,11 +8,6 @@
     <meta name="description" content="">
     <meta name="author" content="Forest Dussault">
 
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-{#    [if lt IE 9]#}
-{#      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>#}
-{#    [endif]#}
-
     {% block css %}
     <!-- Latest compiled and minified Bootstrap 4 beta CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
@@ -94,14 +89,46 @@
                 <div class="jumbotron">
                     <p class="lead h6">
                         <span class="h2">Welcome to the <b>OLC Webportal</b></span><br>
-                        A variety of tools to process raw NGS sequence data are available:
+                        A variety of tools to process raw NGS sequence data are available.
+                        Click a tool to view its description.
                     </p>
-                    <p class="lead h6">
-                        <ul class="list-inline">
-                            <li class="h5"><kbd>GenesipprV2</kbd></li>
-                            <li class="h5"><kbd>sendsketch</kbd></li>
-                        </ul>
-                    </p>
+                    <br>
+
+                    <button type="button" class="btn btn-success btn-lg" data-toggle="collapse" data-target="#genesippr-button">GenesipprV2</button>
+                        <div id="genesippr-button" class="collapse">
+                            <br>
+                            <div class="container">
+                                <blockquote>This pipeline searches for gene targets in FASTQ files.
+                                    These files may be previously generated,
+                                    or created from BCL files from a run of an Illumina MiSeq as part of the pipeline.
+                                    The latter functionality is to allow for the creation
+                                    of FASTQ files from an in progress MiSeq run.
+                                </blockquote>
+                            </div>
+                        </div>
+                    <br><br>
+                    <button type="button" class="btn btn-primary btn-lg" data-toggle="collapse" data-target="#sendsketch-button">sendsketch</button>
+                        <div id="sendsketch-button" class="collapse">
+                            <br>
+                            <div class="container">
+                                <p>BBMap's Sketch tools use a technique called MinHash to rapidly compare large sequences.
+                                    The result is similar to BLAST: a list of hits from a query sequence to various reference sequences,
+                                    sorted by similarity, but the mechanisms are very different.
+                                    <br><br>
+                                    Sketch is designed to be extremely fast (potentially thousands of times faster than
+                                    BLAST) while having a very low disk and memory footprint, but gives more
+                                    approximate results and does not produce alignments.
+                                    <br><br>
+                                    The sensitivity is typically lower compared to alignment
+                                    when seeking remote homology, though default parameters are
+                                    adequate to identify the species of a raw PacBio library
+                                    (~85% identity to reference), and detect homology between full bacterial genomes
+                                    with 76% identity.
+                                    The Sketch tools support both nucleotide and amino acid sequences.</p>
+                            </div>
+                        </div>
+
+
                 </div>
         </div>
 
@@ -125,9 +152,7 @@
       <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 
       <!-- place project specific Javascript in this file -->
-
       <script src="{% static 'js/project.js' %}"></script>
-
 
     {% endblock javascript %}
   </body>

@@ -8,8 +8,8 @@ from django_tables2 import RequestConfig
 
 from . import tasks
 from .forms import ProjectForm
-from .models import Project, GenesipprResults
-from .table import ProjectTable, GenesipprTable
+from .models import Project, GenesipprResults, SendsketchResults
+from .table import ProjectTable, GenesipprTable, SendsketchTable
 
 
 @login_required
@@ -63,6 +63,10 @@ def projects(request):
             if 'sendsketch' in new_entry.requested_jobs:
                 print('\nSendsketch job detected.')
 
+                # Create SendsketchResults entry
+                SendsketchResults.objects.get_or_create(project=Project.objects.get(id=new_entry.pk))
+                print('\nCreated SendsketchResults entry for project {}'.format(new_entry.pk))
+
                 file_path = os.path.dirname(str(new_entry.file_R1))
 
                 Project.objects.filter(pk=new_entry.pk).update(sendsketch_status="Processing")
@@ -113,13 +117,43 @@ def project_table(request, project_id):
 
 
 @login_required
+def job_status_table(request, project_id):
+    # Configure the table
+    project_id = Project.objects.get(pk=project_id)
+    job_status_table = ProjectTable(Project.objects.all())
+    RequestConfig(request).configure(job_status_table)
+
+    return render(request, 'projects/job_status_table.html', {'job_status_table': job_status_table,
+                                                              'project_id': project_id,
+                                                           }
+                  )
+
+
+@login_required
 def genesippr_results_table(request, project_id):
     # Configure the table
     project = GenesipprResults.objects.get(project=Project.objects.get(pk=project_id))
     genesippr_results_table = GenesipprTable(GenesipprResults.objects.all())
+    base_project = Project.objects.get(pk=project_id)
     RequestConfig(request).configure(genesippr_results_table)
 
     return render(request, 'projects/genesippr_results_table.html', {'genesippr_results_table': genesippr_results_table,
                                                                      'project': project,
+                                                                     'base_project': base_project
                                                                      }
+                  )
+
+@login_required
+def sendsketch_results_table(request, project_id):
+    # TODO: Sort the project queryset by ANI
+    project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id))
+    sendsketch_results_table = SendsketchTable(SendsketchResults.objects.all())
+    base_project = Project.objects.get(pk=project_id)
+    RequestConfig(request).configure(sendsketch_results_table)
+
+    return render(request, 'projects/sendsketch_results_table.html',
+                  {'sendsketch_results_table': sendsketch_results_table,
+                   'project': project,
+                   'base_project': base_project
+                   }
                   )

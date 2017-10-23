@@ -3,7 +3,7 @@
 {% block content %}
     <br>
     <div class="container" align="center">
-        <div class="form-control bg-light">
+        <div class="form-control">
             <h4> <strong>Project Title:</strong> {{ project_id.project_title }}</h4>
             <h5> <strong>Date Created:</strong> {{ project_id.date }}</h5>
         </div>
@@ -21,7 +21,7 @@
         </div>
 
         {#Table for displaying genesippr results once they are complete#}
-        {% if project_id.genesippr_status == 'Complete' %}
+{#        {% if project_id.genesippr_status == 'Complete' %}#}
         <br>
             <div id="genesippr-results-table" class="form-control">
 
@@ -35,14 +35,14 @@
 {#                    </div>#}
 
             </div>
-        {% endif %}
+{#        {% endif %}#}
 
         {#Table for displaying sendsketch results once they are complete#}
         <br>
-        {% if project_id.sendsketch_status == 'Complete' %}
-            <div id="sendsketch-results-table" class="form-control">
+{#        {% if project_id.sendsketch_status == 'Complete' %}#}
+        <div id="sendsketch-results-table" class="form-control">
 
-                    {% include 'projects/sendsketch_results_table.html' %}
+                {% include 'projects/sendsketch_results_table.html' %}
 {#                {% else %}#}
 {#                    <h5>Sendsketch Results</h5>#}
 {#                    <div class="progress">#}
@@ -50,34 +50,35 @@
 {#                            Pending#}
 {#                        </div>#}
 {#                    </div>#}
-            </div>
-        {% endif %}
+        </div>
+{#        {% endif %}#}
 
     </div>
 
     <script type="text/javascript">
         function loadTables() {
-            $(document).ready(function(){
-                $("#project-table").load("project_table");
-                $("#genesippr-results-table").load("genesippr_results_table");
+            jQuery(document).ready(function(){
+                jQuery("#project-table").load("project_table");
+                jQuery("#genesippr-results-table").load("genesippr_results_table");
+                jQuery("#sendsketch-results-table").load("sendsketch_results_table");
+                jQuery("#job-status-table").load("job_status_table");
             });
         }
 
         //Immediately load the tables
         setTimeout(function() {
-            console.log('Initial table loading')
-            loadTables()
+            console.log('Initial table loading');
+            loadTables();
         }, 1); //
 
-        //Periodically load the tables if project_id.genesippr_status == 'Processing'
+        //Periodically load the tables if and job status == 'Processing'
 
         setInterval(function() {
-            {% if project_id.genesippr_status == 'Processing' %}
-                console.log("{{ project_id.genesippr_status }}...")
-                loadTables()
+            {% if project_id.genesippr_status == 'Processing' or project_id.sendsketch_status == 'Processing' %}
+                console.log('Loading...')
+                loadTables();
             {% endif %}
         }, 5000); // This reloads the <div> every 5 seconds.
-
 
     </script>
 

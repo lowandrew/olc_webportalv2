@@ -1,6 +1,6 @@
 from subprocess import Popen
 from background_task import background
-from .models import Project, GenesipprResults
+from .models import Project, GenesipprResults, SendsketchResults
 import glob
 import csv
 import pandas as pd
@@ -27,8 +27,18 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
         print('sendsketch.sh failed to execute command.')
         quit()
 
-    print('\nsendsketch.sh container actions complete')
+    sendsketch_result_path = 'olc_webportalv2/media/{}'.format(output_filename)
+
+    # try:
+    read_sendsketch_results(sendsketch_result_path, proj_pk=proj_pk)
+    # print('Successfully read sendsketch results from {}'.format(sendsketch_result_path))
     Project.objects.filter(pk=proj_pk).update(sendsketch_status="Complete")
+    # except:
+    #     print('Failed to read sendsketch results from {}'.format(sendsketch_result_path))
+    #     Project.objects.filter(pk=proj_pk).update(sendsketch_status="Error")
+
+    print('\nsendsketch.sh container actions complete')
+
 
 
 @background(schedule=5)
@@ -81,7 +91,41 @@ def read_genesippr_results(genesippr_result_path, proj_pk):
         reader = csv.reader(f, delimiter=',')
         # header = next(reader)
         for row in reader:
-            add_genesippr_csv_result(proj_pk=proj_pk,
-                                     strain=str(row[0]),
-                                     genus=str(row[1]),
-                                     )
+            GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).update(strain=str(row[0]),
+                                                                                            genus=str(row[1],))
+            # add_genesippr_csv_result(proj_pk=proj_pk,
+            #                          strain=str(row[0]),
+            #                          genus=str(row[1]),
+            #                          )
+
+
+def read_sendsketch_results(sendsketch_result_path, proj_pk):
+    # Read raw result file
+    df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
+
+    # Pull records into dictionary
+    df_records = df.to_dict('records')
+
+    # Create list of model instances for bulk create
+    model_instances = [SendsketchResults(
+        project=Project.objects.get(id=proj_pk),
+        wkid=record['WKID'],
+        kid=record['KID'],
+        ani=record['ANI'],
+        complt=record['Complt'],
+        contam=record['Contam'],
+        matches=record['Matches'],
+        unique=record['Unique'],
+        nohit=record['noHit'],
+        taxid=record['TaxID'],
+        gsize=record['gSize'],
+        gseqs=record['gSeqs'],
+        taxname=record['taxName']
+    ) for record in df_records]
+
+    # # Update model
+    # for instance in model_instances:
+    #     print(instance)
+    SendsketchResults.objects.bulk_create(model_instances)
+
+

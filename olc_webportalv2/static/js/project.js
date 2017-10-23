@@ -21,3 +21,7 @@ Issues with the above approach:
 $('.form-group').removeClass('row');
 
 jQuery.noConflict();
+
+jQuery(function () {
+    jQuery('[data-toggle="tooltip"]').tooltip()
+})
