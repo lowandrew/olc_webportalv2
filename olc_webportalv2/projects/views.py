@@ -1,6 +1,6 @@
 import os
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render, redirect
@@ -16,10 +16,6 @@ from .table import ProjectTable, GenesipprTable, SendsketchTable
 def projects(request):
     project_list = Project.objects.all()
     form = ProjectForm(request.POST, request.FILES)
-
-    # Configure the table
-    # project_table = ProjectTable(Project.objects.all())
-    # RequestConfig(request).configure(project_table)
 
     # Create new project
     if request.method == 'POST':
@@ -51,12 +47,10 @@ def projects(request):
                 # Set file path
                 file_path = os.path.dirname(str(new_entry.file_R1))
 
-                # Update model status for the detail.html page
-                # This would be nice but I can't get the model in tasks.py to update...
-                # Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Queued")
+                # Set status
                 Project.objects.filter(pk=new_entry.pk).update(genesippr_status="Processing")
 
-                # # Queue genesippr task
+                # Queue genesippr task
                 tasks.run_genesippr(file_path=file_path,
                                     proj_pk=new_entry.pk)
 
@@ -83,11 +77,13 @@ def projects(request):
                 'Form is not valid. Please ensure the file type for your reads are fastq or fastq.gz.'
             )
 
-    return render(request, 'projects/projects.html', {'project_list': project_list,
-                                                      'form': form,
-                                                      'project_id': Project.pk,
-                                                      'user': request.user,
-                                                      }
+    return render(request,
+                  'projects/projects.html',
+                  {'project_list': project_list,
+                   'form': form,
+                   'project_id': Project.pk,
+                   'user': request.user,
+                   }
                   )
 
 
@@ -98,61 +94,79 @@ def project_detail(request, project_id):
     except Project.DoesNotExist:
         raise Http404("Project ID {} does not exist.".format(project_id))
 
-    return render(request, 'projects/detail.html', {'project_id': project_id,
-                                                    }
+    return render(request,
+                  'projects/detail.html',
+                  {'project_id': project_id,
+                   }
                   )
 
 
 @login_required
 def project_table(request, project_id):
-    # Configure the table
     project_id = Project.objects.get(pk=project_id)
-    project_table = ProjectTable(Project.objects.all())
+    project_table_ = ProjectTable(Project.objects.all())
     RequestConfig(request).configure(project_table)
 
-    return render(request, 'projects/project_table.html', {'project_table': project_table,
-                                                           'project_id': project_id,
-                                                           }
+    return render(request,
+                  'projects/project_table.html',
+                  {'project_table': project_table_,
+                   'project_id': project_id,
+                   }
                   )
 
 
 @login_required
 def job_status_table(request, project_id):
-    # Configure the table
     project_id = Project.objects.get(pk=project_id)
-    job_status_table = ProjectTable(Project.objects.all())
-    RequestConfig(request).configure(job_status_table)
+    job_status_table_ = ProjectTable(Project.objects.all())
+    RequestConfig(request).configure(job_status_table_)
 
-    return render(request, 'projects/job_status_table.html', {'job_status_table': job_status_table,
-                                                              'project_id': project_id,
-                                                           }
+    return render(request,
+                  'projects/job_status_table.html',
+                  {'job_status_table': job_status_table_,
+                   'project_id': project_id,
+                   }
                   )
 
 
 @login_required
 def genesippr_results_table(request, project_id):
-    # Configure the table
-    project = GenesipprResults.objects.get(project=Project.objects.get(pk=project_id))
-    genesippr_results_table = GenesipprTable(GenesipprResults.objects.all())
-    base_project = Project.objects.get(pk=project_id)
-    RequestConfig(request).configure(genesippr_results_table)
+    try:
+        project = GenesipprResults.objects.get(project=Project.objects.get(pk=project_id))
+        genesippr_results_table_ = GenesipprTable(GenesipprResults.objects.all())
+        base_project = Project.objects.get(pk=project_id)
+        RequestConfig(request).configure(genesippr_results_table_)
+    except ObjectDoesNotExist:
+        genesippr_results_table_ = None
+        project = None
+        base_project = None
 
-    return render(request, 'projects/genesippr_results_table.html', {'genesippr_results_table': genesippr_results_table,
-                                                                     'project': project,
-                                                                     'base_project': base_project
-                                                                     }
+    return render(request,
+                  'projects/genesippr_results_table.html',
+                  {'genesippr_results_table': genesippr_results_table_,
+                   'project': project,
+                   'base_project': base_project
+                   }
                   )
+
 
 @login_required
 def sendsketch_results_table(request, project_id):
     # TODO: Sort the project queryset by ANI
-    project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id))
-    sendsketch_results_table = SendsketchTable(SendsketchResults.objects.all())
-    base_project = Project.objects.get(pk=project_id)
-    RequestConfig(request).configure(sendsketch_results_table)
 
-    return render(request, 'projects/sendsketch_results_table.html',
-                  {'sendsketch_results_table': sendsketch_results_table,
+    try:
+        project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id))
+        sendsketch_results_table_ = SendsketchTable(SendsketchResults.objects.all())
+        base_project = Project.objects.get(pk=project_id)
+        RequestConfig(request).configure(sendsketch_results_table_)
+    except ObjectDoesNotExist:
+        sendsketch_results_table_ = None
+        project = None
+        base_project = None
+
+    return render(request,
+                  'projects/sendsketch_results_table.html',
+                  {'sendsketch_results_table': sendsketch_results_table_,
                    'project': project,
                    'base_project': base_project
                    }
