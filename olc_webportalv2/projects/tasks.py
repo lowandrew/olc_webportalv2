@@ -1,9 +1,12 @@
-from subprocess import Popen
-from background_task import background
-from .models import Project, GenesipprResults, SendsketchResults
+import pandas as pd
 import glob
 import csv
-import pandas as pd
+
+from subprocess import Popen
+from background_task import background
+
+from .models import Project, GenesipprResults, SendsketchResults
+
 
 @background(schedule=2)
 def run_sendsketch(read1, read2, proj_pk, file_path):
@@ -76,37 +79,28 @@ def run_genesippr(file_path, proj_pk):
         print('\nReading genesippr results failed.')
 
 
-def add_genesippr_csv_result(proj_pk, strain, genus,):
-    """
-    Function to retrieve a specific project ID, then update the GenesipprResults model with according data from
-    the genesippr.csv report created.
-    """
-    c = GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).update(strain=strain,
-                                                                                        genus=genus,)
-    return c
-
-
 def read_genesippr_results(genesippr_result_path, proj_pk):
+    # TODO: Use pandas instead of this hack (see read_sendsketch_results())
     with open(genesippr_result_path, newline='', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=',')
         # header = next(reader)
         for row in reader:
-            GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).update(strain=str(row[0]),
-                                                                                            genus=str(row[1],))
-            # add_genesippr_csv_result(proj_pk=proj_pk,
-            #                          strain=str(row[0]),
-            #                          genus=str(row[1]),
-            #                          )
+            GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).\
+                update(strain=str(row[0]),
+                       genus=str(row[1],))
 
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):
     # Read raw result file
     df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
 
+    # Sort by ANI
+    df = df.sort_values('ANI', ascending=False)
+
     # Pull records into dictionary
     df_records = df.to_dict('records')
 
-    # Create list of model instances for bulk create
+    # Create list of model instances for bulk create with a list comprehension
     model_instances = [SendsketchResults(
         project=Project.objects.get(id=proj_pk),
         wkid=record['WKID'],
@@ -123,9 +117,7 @@ def read_sendsketch_results(sendsketch_result_path, proj_pk):
         taxname=record['taxName']
     ) for record in df_records]
 
-    # # Update model
-    # for instance in model_instances:
-    #     print(instance)
+    # Update model
     SendsketchResults.objects.bulk_create(model_instances)
 
 
