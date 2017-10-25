@@ -19,25 +19,11 @@ def validate_fastq(fieldfile):
             params={'filename': filename},
         )
 
+
 # Create your models here.
-
-
-class Project(models.Model):
-    """
-    Main model for storing projects. Each project has a unique ID which is linked to a specific user.
-    Job choices must be updated with new modules as they are implemented.
-    I probably need to rethink the 'genesippr_status' column to support other tasks (i.e. FastQC).
-    """
-    JOB_CHOICES = (
-        ('genesipprv2', 'GenesipprV2'),
-        ('sendsketch', 'sendsketch'),
-    )
-
-    # user key is pulled from the User model
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project_title = models.CharField(max_length=256)
-    description = models.CharField(max_length=200, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
+class Sample(models.Model):
+    project = models.ForeignKey(Project, related_name="parent_project", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="parent_user", on_delete=models.CASCADE)
     file_R1 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
     file_R2 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
     organism = models.CharField(max_length=256,
@@ -46,11 +32,6 @@ class Project(models.Model):
                                  blank=True)
     type = models.CharField(max_length=128,
                             blank=True)
-    genesippr_status = models.CharField(max_length=128,
-                                        default="Unprocessed")
-    sendsketch_status = models.CharField(max_length=128,
-                                         default="Unprocessed")
-    requested_jobs = MultiSelectField(choices=JOB_CHOICES)
 
     def filename_r1(self):
         return os.path.basename(self.file_R1.name)
@@ -58,13 +39,11 @@ class Project(models.Model):
     def filename_r2(self):
         return os.path.basename(self.file_R2.name)
 
-    # For admin panel
     def __str__(self):
-        return '{}:{}'.format(self.user,str(self.pk))
+        return '{}:{}'.format(self.user, str(self.pk))
 
-    # This mess is necessary in order to pre-save the PK for use in the final file path for uploaded files.
     def save(self, *args, **kwargs):
-        super(Project, self).save(*args, **kwargs)
+        super(Sample, self).save(*args, **kwargs)
 
         file_R1 = self.file_R1
         file_R2 = self.file_R2
@@ -91,8 +70,33 @@ class Project(models.Model):
                 self.file_R2.close()
                 self.file_R2.storage.delete(old_R2)
 
-        super(Project, self).save(*args, **kwargs)
+        super(Sample, self).save(*args, **kwargs)
 
+
+class Project(models.Model):
+    """
+    Main model for storing projects. Each project has a unique ID which is linked to a specific user.
+    Job choices must be updated with new modules as they are implemented.
+    """
+    JOB_CHOICES = (
+        ('genesipprv2', 'GenesipprV2'),
+        ('sendsketch', 'sendsketch'),
+    )
+
+    # user key is pulled from the User model
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project_title = models.CharField(max_length=256)
+    description = models.CharField(max_length=200, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+    genesippr_status = models.CharField(max_length=128,
+                                        default="Unprocessed")
+    sendsketch_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
+    requested_jobs = MultiSelectField(choices=JOB_CHOICES)
+
+    # For admin panel
+    def __str__(self):
+        return '{}:{}'.format(self.user, str(self.pk))
 
 class GenesipprResults(models.Model):
     # For admin panel
@@ -101,35 +105,88 @@ class GenesipprResults(models.Model):
 
     # TODO: Accomodate seqID
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    # genesippr.csv
     strain = models.CharField(max_length=256, default="N/A")
     genus = models.CharField(max_length=256, default="N/A")
-    gdcs = models.CharField(max_length=256, default="N/A")
-    gdcs_coverage = models.CharField(max_length=256, default="N/A")
-    pass_fail = models.CharField(max_length=256, default="N/A")
+
+    # ??
+    vt1 = models.CharField(max_length=256, default="N/A")
+    vt2 = models.CharField(max_length=256, default="N/A")
+    vt2f = models.CharField(max_length=256, default="N/A")
+
+    # STEC
+    serotype = models.CharField(max_length=256, default="N/A")
+    o26 = models.CharField(max_length=256, default="N/A")
+    o45 = models.CharField(max_length=256, default="N/A")
+    o103 = models.CharField(max_length=256, default="N/A")
+    o111 = models.CharField(max_length=256, default="N/A")
+    o121 = models.CharField(max_length=256, default="N/A")
+    o145 = models.CharField(max_length=256, default="N/A")
+    o157 = models.CharField(max_length=256, default="N/A")
+    uida = models.CharField(max_length=256, default="N/A")
+    eae = models.CharField(max_length=256, default="N/A")
+    eae_1 = models.CharField(max_length=256, default="N/A")
+
+    # listeria
+    igs = models.CharField(max_length=256, default="N/A")
+    hyla = models.CharField(max_length=256, default="N/A")
+    inlj = models.CharField(max_length=256, default="N/A")
+
+    # salmonella
+    inva = models.CharField(max_length=256, default="N/A")
+    stn = models.CharField(max_length=256, default="N/A")
 
     class Meta:
         verbose_name_plural = "Genesippr Results"
 
-    # # STEC fields
-    # uida = models.CharField(max_length=256, default="N/A")
-    # stx1 = models.CharField(max_length=256, default="N/A")
-    # stx2 = models.CharField(max_length=256, default="N/A")
-    # stx2f = models.CharField(max_length=256, default="N/A")
-    # eae = models.CharField(max_length=256, default="N/A")
-    # serotype = models.CharField(max_length=256, default="N/A")
-    #
-    # # Salmonella fields
-    # inva = models.CharField(max_length=256, default="N/A")
-    # stn = models.CharField(max_length=256, default="N/A")
-    #
-    # # Listeria fields
-    # hyla = models.CharField(max_length=256, default="N/A")
-    # inij = models.CharField(max_length=256, default="N/A")
-    # igs = models.CharField(max_length=256, default="N/A")
+
+class GenesipprResultsSixteens(models.Model):
+    class Meta:
+        verbose_name_plural = "SixteenS Results"
+
+    def __str__(self):
+        return '{}'.format(self.project)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    # sixteens_full.csv
+    strain = models.CharField(max_length=256, default="N/A")
+    gene = models.CharField(max_length=256, default="N/A")
+    percentidentity = models.CharField(max_length=256, default="N/A")
+    genus = models.CharField(max_length=256, default="N/A")
+    foldcoverage = models.CharField(max_length=256, default="N/A")
+
+
+class GenesipprResultsGDCS(models.Model):
+    class Meta:
+        verbose_name_plural = "GDCS Results"
+
+    def __str__(self):
+        return '{}'.format(self.project)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    # GDCS.csv
+    strain = models.CharField(max_length=256, default="N/A")
+    genus = models.CharField(max_length=256, default="N/A")
+    matches = models.CharField(max_length=256, default="N/A")
+
+
+class GenesipprResultsSerosippr(models.Model):
+    class Meta:
+        verbose_name_plural = "Serosippr Results"
+
+    def __str__(self):
+        return '{}'.format(self.project)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
 
 class SendsketchResults(models.Model):
-    # For admin panel
+    class Meta:
+        verbose_name_plural = "Sendsketch Results"
+
     def __str__(self):
         return '{}'.format(self.project)
 
@@ -147,8 +204,6 @@ class SendsketchResults(models.Model):
     gseqs = models.CharField(max_length=256, default='N/A')
     taxname = models.CharField(max_length=256, default='N/A')
 
-    class Meta:
-        verbose_name_plural = "Sendsketch Results"
 
 
 #  Deleting the following functions results in an irritating migration error. Should probably fix this one day...
