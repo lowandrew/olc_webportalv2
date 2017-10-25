@@ -20,18 +20,28 @@ def validate_fastq(fieldfile):
         )
 
 
-# Create your models here.
-class Sample(models.Model):
-    project = models.ForeignKey(Project, related_name="parent_project", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="parent_user", on_delete=models.CASCADE)
+class Project(models.Model):
+    """
+    Main model for storing projects. Each project has a unique ID which is linked to a specific user.
+    Job choices must be updated with new modules as they are implemented.
+    """
+    JOB_CHOICES = (
+        ('genesipprv2', 'GenesipprV2'),
+        ('sendsketch', 'sendsketch'),
+    )
+
+    # user key is pulled from the User model
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project_title = models.CharField(max_length=256)
+    description = models.CharField(max_length=200, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
     file_R1 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
     file_R2 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
-    organism = models.CharField(max_length=256,
-                                blank=True)
-    reference = models.CharField(max_length=256,
-                                 blank=True)
-    type = models.CharField(max_length=128,
-                            blank=True)
+    genesippr_status = models.CharField(max_length=128,
+                                        default="Unprocessed")
+    sendsketch_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
+    requested_jobs = MultiSelectField(choices=JOB_CHOICES)
 
     def filename_r1(self):
         return os.path.basename(self.file_R1.name)
@@ -43,7 +53,7 @@ class Sample(models.Model):
         return '{}:{}'.format(self.user, str(self.pk))
 
     def save(self, *args, **kwargs):
-        super(Sample, self).save(*args, **kwargs)
+        super(Project, self).save(*args, **kwargs)
 
         file_R1 = self.file_R1
         file_R2 = self.file_R2
@@ -70,33 +80,7 @@ class Sample(models.Model):
                 self.file_R2.close()
                 self.file_R2.storage.delete(old_R2)
 
-        super(Sample, self).save(*args, **kwargs)
-
-
-class Project(models.Model):
-    """
-    Main model for storing projects. Each project has a unique ID which is linked to a specific user.
-    Job choices must be updated with new modules as they are implemented.
-    """
-    JOB_CHOICES = (
-        ('genesipprv2', 'GenesipprV2'),
-        ('sendsketch', 'sendsketch'),
-    )
-
-    # user key is pulled from the User model
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project_title = models.CharField(max_length=256)
-    description = models.CharField(max_length=200, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
-    genesippr_status = models.CharField(max_length=128,
-                                        default="Unprocessed")
-    sendsketch_status = models.CharField(max_length=128,
-                                         default="Unprocessed")
-    requested_jobs = MultiSelectField(choices=JOB_CHOICES)
-
-    # For admin panel
-    def __str__(self):
-        return '{}:{}'.format(self.user, str(self.pk))
+        super(Project, self).save(*args, **kwargs)
 
 class GenesipprResults(models.Model):
     # For admin panel

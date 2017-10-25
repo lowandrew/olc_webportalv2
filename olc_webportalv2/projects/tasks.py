@@ -74,7 +74,6 @@ def run_genesippr(file_path, proj_pk):
     print('\nAttempting to read the following:')
     for report in genesippr_reports:
         print(report)
-
     try:
         read_genesippr_results(genesippr_reports, proj_pk)
         Project.objects.filter(pk=proj_pk).update(genesippr_status="Complete")
