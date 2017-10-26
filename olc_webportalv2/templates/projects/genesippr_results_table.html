@@ -14,6 +14,7 @@
                 {% if genesippr_project.genus == 'Salmonella' %}
                     <th>invA</th>
                     <th>stn</th>
+                    <th>Serotype</th>
                 {% elif genesippr_project.genus == 'Listeria' %}
                     <th>IGS</th>
                     <th>hylA</th>
@@ -33,6 +34,7 @@
                 {% if genesippr_project.genus == 'Salmonella' %}
                     <td>{{ genesippr_project.inva }}</td>
                     <td>{{ genesippr_project.stn }}</td>
+                    <td>{{ genesippr_project.serotype }}</td>
                 {% elif genesippr_project.genus == 'Listeria' %}
                     <td>{{ genesippr_project.igs }}</td>
                     <td>{{ genesippr_project.hyla }}</td>
