@@ -25,7 +25,7 @@ from .table import ProjectTable, \
 
 @login_required
 def projects(request):
-    project_list = Project.objects.all()
+    project_list = Project.objects.filter(user=request.user)
     form = ProjectForm(request.POST, request.FILES)
 
     # Create new project
