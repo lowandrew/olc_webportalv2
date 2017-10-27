@@ -6,7 +6,7 @@
         <i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i>
     {% elif base_project.genesippr_status == 'Complete' %}
 
-        <table class="table table-hover table-sm table-responsive">
+        <table class="table table-hover table-sm table-responsive table-bordered">
         <h5 align="left">GeneSippr Analysis Report</h5>
             <tr>
                 <th>Strain</th>
@@ -50,7 +50,7 @@
             </tr>
         </table>
         <br>
-        <table class="table table-hover table-sm table-responsive">
+        <table class="table table-hover table-sm table-responsive table-bordered">
         <h5 align="left">GDCS</h5>
             <tr>
                 <th>Strain</th>
@@ -64,7 +64,7 @@
             </tr>
         </table>
         <br>
-        <table class="table table-hover table-sm table-responsive">
+        <table class="table table-hover table-sm table-responsive table-bordered">
         <h5 align="left">SixteenS</h5>
             <tr>
                 <th>Strain</th>
@@ -76,7 +76,7 @@
             <tr>
                 <td>{{ sixteens_project.strain }}</td>
                 <td>{{ sixteens_project.genus }}</td>
-                <td>{{ sixteens_project.gene }}</td>
+                <td><a href="https://www.ncbi.nlm.nih.gov/nuccore/{{ sixteens_project.gi_accession }}">{{ sixteens_project.gene }}</a></td>
                 <td>{{ sixteens_project.percentidentity }}</td>
                 <td>{{ sixteens_project.foldcoverage }}</td>
             </tr>
