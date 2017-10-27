@@ -94,11 +94,6 @@ class GenesipprResults(models.Model):
     strain = models.CharField(max_length=256, default="N/A")
     genus = models.CharField(max_length=256, default="N/A")
 
-    # ??
-    vt1 = models.CharField(max_length=256, default="N/A")
-    vt2 = models.CharField(max_length=256, default="N/A")
-    vt2f = models.CharField(max_length=256, default="N/A")
-
     # STEC
     serotype = models.CharField(max_length=256, default="N/A")
     o26 = models.CharField(max_length=256, default="N/A")
@@ -111,6 +106,9 @@ class GenesipprResults(models.Model):
     uida = models.CharField(max_length=256, default="N/A")
     eae = models.CharField(max_length=256, default="N/A")
     eae_1 = models.CharField(max_length=256, default="N/A")
+    vt1 = models.CharField(max_length=256, default="N/A")
+    vt2 = models.CharField(max_length=256, default="N/A")
+    vt2f = models.CharField(max_length=256, default="N/A")
 
     # listeria
     igs = models.CharField(max_length=256, default="N/A")
@@ -140,6 +138,12 @@ class GenesipprResultsSixteens(models.Model):
     percentidentity = models.CharField(max_length=256, default="N/A")
     genus = models.CharField(max_length=256, default="N/A")
     foldcoverage = models.CharField(max_length=256, default="N/A")
+
+    @property
+    def gi_accession(self):
+        # Split by | delimiter, pull second element which should be the GI#
+        gi_accession = self.gene.split('|')[1]
+        return gi_accession
 
 
 class GenesipprResultsGDCS(models.Model):
@@ -187,7 +191,6 @@ class SendsketchResults(models.Model):
     gsize = models.CharField(max_length=256, default='N/A')
     gseqs = models.CharField(max_length=256, default='N/A')
     taxname = models.CharField(max_length=256, default='N/A')
-
 
 
 #  Deleting the following functions results in an irritating migration error. Should probably fix this one day...
