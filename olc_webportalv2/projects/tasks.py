@@ -24,7 +24,8 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
           'in=/sequences/{0} ' \
           'in2=/sequences/{1} ' \
           'out=/sequences/{2} ' \
-          'reads=400k'.format(read1, read2, output_filename)
+          'reads=400k ' \
+          'overwrite=true'.format(read1, read2, output_filename)
 
     try:
         p = Popen(cmd, shell=True)
@@ -53,9 +54,8 @@ def run_genesippr(file_path, proj_pk):
 
     # Run Genesippr
     cmd = 'docker exec ' \
-          'genesipprv2 ' \
-          'python3 ' \
-          'geneSipprV2/sipprverse/method.py ' \
+          'olcwebportalv2_genesipprv2 ' \
+          'method.py ' \
           '/sequences/{0} ' \
           '-t /targets ' \
           '-s /sequences/{0}'.format(file_path)
@@ -97,10 +97,10 @@ def read_genesippr_results(genesippr_reports, proj_pk):
         elif 'sixteens_full' in report:
             sixteens_csv = report
 
-    # Read raw results files
-    genesippr_df = pd.read_csv(genesippr_csv)
-    gdcs_df = pd.read_csv(gdcs_csv)
-    sixteens_df = pd.read_csv(sixteens_csv)
+    # Read raw results files - .fillna method added to prevent 'nan' values from populating db
+    genesippr_df = pd.read_csv(genesippr_csv).fillna('')
+    gdcs_df = pd.read_csv(gdcs_csv).fillna('')
+    sixteens_df = pd.read_csv(sixteens_csv).fillna('')
 
     # Pull records into dictionaries
     genesippr_df_records = genesippr_df.to_dict('records')
@@ -146,6 +146,8 @@ def read_genesippr_results(genesippr_reports, proj_pk):
         strain=gdcs_df_records[0]['Strain'],
         genus=gdcs_df_records[0]['Genus'],
         matches=gdcs_df_records[0]['Matches'],
+        meancoverage=gdcs_df_records[0]['MeanCoverage'],
+        passfail=gdcs_df_records[0]['Pass/Fail'],
     )
 
     # sixteens_full.csv
@@ -158,6 +160,36 @@ def read_genesippr_results(genesippr_reports, proj_pk):
     )
 
 
+# def read_sendsketch_results(sendsketch_result_path, proj_pk):
+#     # Read raw result file
+#     df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
+#
+#     # Sort by ANI
+#     df = df.sort_values('ANI', ascending=False)
+#
+#     # Pull records into dictionary
+#     df_records = df.to_dict('records')
+#
+#     # Create list of model instances for bulk create with a list comprehension
+#     model_instances = [SendsketchResults(
+#         project=Project.objects.get(id=proj_pk),
+#         wkid=record['WKID'],
+#         kid=record['KID'],
+#         ani=record['ANI'],
+#         complt=record['Complt'],
+#         contam=record['Contam'],
+#         matches=record['Matches'],
+#         unique=record['Unique'],
+#         nohit=record['noHit'],
+#         taxid=record['TaxID'],
+#         gsize=record['gSize'],
+#         gseqs=record['gSeqs'],
+#         taxname=record['taxName']
+#     ) for record in df_records]
+#
+#     # Update model
+#     SendsketchResults.objects.bulk_create(model_instances)
+
 def read_sendsketch_results(sendsketch_result_path, proj_pk):
     # Read raw result file
     df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
@@ -165,27 +197,29 @@ def read_sendsketch_results(sendsketch_result_path, proj_pk):
     # Sort by ANI
     df = df.sort_values('ANI', ascending=False)
 
+    # Add ranking column
+    df.insert(0, 'Rank', range(1, len(df) + 1))
+
+    # Set Rank to the index
+    df.set_index('Rank')
+
     # Pull records into dictionary
     df_records = df.to_dict('records')
 
     # Create list of model instances for bulk create with a list comprehension
-    model_instances = [SendsketchResults(
-        project=Project.objects.get(id=proj_pk),
-        wkid=record['WKID'],
-        kid=record['KID'],
-        ani=record['ANI'],
-        complt=record['Complt'],
-        contam=record['Contam'],
-        matches=record['Matches'],
-        unique=record['Unique'],
-        nohit=record['noHit'],
-        taxid=record['TaxID'],
-        gsize=record['gSize'],
-        gseqs=record['gSeqs'],
-        taxname=record['taxName']
-    ) for record in df_records]
-
-    # Update model
-    SendsketchResults.objects.bulk_create(model_instances)
-
-
+    for index in range(len(df_records)):
+        to_update = SendsketchResults.objects.create(project=Project.objects.get(id=proj_pk))
+        to_update.rank = df_records[index]['Rank']
+        to_update.wkid = df_records[index]['WKID']
+        to_update.kid = df_records[index]['KID']
+        to_update.ani = df_records[index]['ANI']
+        to_update.complt = df_records[index]['Complt']
+        to_update.contam = df_records[index]['Contam']
+        to_update.matches = df_records[index]['Matches']
+        to_update.unique = df_records[index]['Unique']
+        to_update.nohit = df_records[index]['noHit']
+        to_update.taxid = df_records[index]['TaxID']
+        to_update.gsize = df_records[index]['gSize']
+        to_update.gseqs = df_records[index]['gSeqs']
+        to_update.taxname = df_records[index]['taxName']
+        to_update.save()
