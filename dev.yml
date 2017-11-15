@@ -60,8 +60,8 @@ services:
   genesippr:
     ports:
       - "8001:8001"
-    image: "sipprverse:latest"
-    container_name: genesipprv2
+    image: "sipprverse:v0.1"
+    container_name: olcwebportalv2_genesipprv2
     tty: true
     stdin_open: true
     volumes:

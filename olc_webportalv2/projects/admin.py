@@ -6,7 +6,6 @@ from .models import Project, \
     GenesipprResultsSixteens, \
     GenesipprResultsSerosippr
 
-
 # Register your models here.
 admin.site.register(Project)
 admin.site.register(GenesipprResults)

@@ -82,6 +82,7 @@ class Project(models.Model):
 
         super(Project, self).save(*args, **kwargs)
 
+
 class GenesipprResults(models.Model):
     # For admin panel
     def __str__(self):
@@ -159,6 +160,8 @@ class GenesipprResultsGDCS(models.Model):
     strain = models.CharField(max_length=256, default="N/A")
     genus = models.CharField(max_length=256, default="N/A")
     matches = models.CharField(max_length=256, default="N/A")
+    meancoverage = models.CharField(max_length=128, default="N/A")
+    passfail = models.CharField(max_length=16, default="N/A")
 
 
 class GenesipprResultsSerosippr(models.Model):
@@ -176,9 +179,10 @@ class SendsketchResults(models.Model):
         verbose_name_plural = "Sendsketch Results"
 
     def __str__(self):
-        return '{}'.format(self.project)
+        return 'pk {}: Rank {}: Project {}'.format(self.pk, self.rank, self.project.pk)
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    rank = models.CharField(max_length=8, default='N/A')
     wkid = models.CharField(max_length=256, default='N/A')
     kid = models.CharField(max_length=256, default='N/A')
     ani = models.CharField(max_length=256, default='N/A')

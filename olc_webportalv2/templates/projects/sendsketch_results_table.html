@@ -7,6 +7,7 @@
     {% elif base_project.sendsketch_status == 'Complete' %}
         <table class="table table-hover table-sm table-responsive table-bordered">
             <tr>
+                <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Rank according to ANI.">Rank</button></th>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Weighted Kmer IDentity, which is the kmer identity compensating for differences in size.  So, comparing human chr1 to the full human genome would yield 100% WKID but approximately 10% KID.">WKID</button></th>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Kmer IDentity, equal to matches/length; this is the fraction of shared kmers.">KID</button></th>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Average Nucleotide Identity, derived from WKID and kmer length.">ANI</button></th>
@@ -22,6 +23,7 @@
             </tr>
             {% for item in project|slice:'1:' %}
                 <tr align="center">
+                    <td>{{ item.rank }}</td>
                     <td>{{ item.wkid }}</td>
                     <td>{{ item.kid }}</td>
                     {% if item.ani|slice:':2'|add:"0" > 95 %}

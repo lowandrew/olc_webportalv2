@@ -56,11 +56,21 @@
                 <th>Strain</th>
                 <th>Genus</th>
                 <th>Matches</th>
+                <th>Mean Coverage</th>
+                <th>Pass/Fail</th>
             </tr>
             <tr>
                 <td>{{ gdcs_project.strain }}</td>
                 <td>{{ gdcs_project.genus }}</td>
                 <td>{{ gdcs_project.matches }}</td>
+                <td>{{ gdcs_project.meancoverage }}</td>
+                {% if gdcs_project.passfail == '+' %}
+                    <td class="table-success">{{ gdcs_project.passfail }}</td>
+                {% elif gdcs_project.passfail == '-' %}
+                    <td class="table-danger">{{ gdcs_project.passfail }}</td>
+                {% else %}
+                    <td>{{ gdcs_project.passfail }}</td>
+                {% endif %}
             </tr>
         </table>
         <br>

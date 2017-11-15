@@ -25,3 +25,4 @@ class ProjectForm(BootstrapModelForm):
                   'file_R1',
                   'file_R2',
                   'requested_jobs')
+

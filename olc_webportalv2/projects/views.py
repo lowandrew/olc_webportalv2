@@ -8,6 +8,7 @@ from django_tables2 import RequestConfig
 
 from . import tasks
 from .forms import ProjectForm
+
 from .models import Project, \
     GenesipprResults, \
     SendsketchResults, \
@@ -196,8 +197,6 @@ def genesippr_results_table(request, project_id):
 
 @login_required
 def sendsketch_results_table(request, project_id):
-    # TODO: Sort the project queryset by ANI
-
     try:
         project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id))
         sendsketch_results_table_ = SendsketchTable(SendsketchResults.objects.all())
