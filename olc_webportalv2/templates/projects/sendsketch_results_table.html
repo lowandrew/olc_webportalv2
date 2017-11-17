@@ -21,7 +21,8 @@
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Number of sequences used in the sketch.">gSeqs</button></th>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="NCBI's name for that taxID.  If there is no taxID, the sequence name will be used.">taxName</button></th>
             </tr>
-            {% for item in project|slice:'1:' %}
+{#            {% for item in project|slice:'1:' %}#}
+            {% for item in project %}
                 <tr align="center">
                     <td>{{ item.rank }}</td>
                     <td>{{ item.wkid }}</td>
