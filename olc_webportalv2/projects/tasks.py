@@ -1,5 +1,8 @@
 import pandas as pd
+import pandas_highcharts
+import zipfile
 import glob
+import os
 
 from subprocess import Popen
 from background_task import background
@@ -55,7 +58,7 @@ def run_genesippr(file_path, proj_pk):
     # Run Genesippr
     cmd = 'docker exec ' \
           'olcwebportalv2_genesipprv2 ' \
-          'method.py ' \
+          'sippr.py ' \
           '/sequences/{0} ' \
           '-t /targets ' \
           '-s /sequences/{0}'.format(file_path)
@@ -74,12 +77,35 @@ def run_genesippr(file_path, proj_pk):
     print('\nAttempting to read the following:')
     for report in genesippr_reports:
         print(report)
+
     try:
         read_genesippr_results(genesippr_reports, proj_pk)
         Project.objects.filter(pk=proj_pk).update(genesippr_status="Complete")
         print('\nReading genesippr results complete.')
     except:
         print('\nReading genesippr results failed.')
+
+    # Zip up the reports
+    zip_files(file_path, genesippr_reports)
+
+    # # Chart stuff
+    # for report in genesippr_reports:
+    #     if 'GDCS.csv' in report:
+    #         gdcs_chart_df = create_gdcs_chart(report)
+    #         print(gdcs_chart_df)
+
+
+def zip_files(file_path, file_list):
+    # Create zip
+    output_file = os.path.join('olc_webportalv2/media/', file_path, 'reports/reports.zip')
+    report_zip = zipfile.ZipFile(output_file, 'w')
+
+    for file in file_list:
+        report_zip.write(file, os.path.basename(file),
+                         compress_type=zipfile.ZIP_DEFLATED)
+
+    report_zip.close()
+    return output_file
 
 
 def read_genesippr_results(genesippr_reports, proj_pk):
@@ -111,7 +137,7 @@ def read_genesippr_results(genesippr_reports, proj_pk):
     serotype = 'N/A'
     for key, value in genesippr_df_records[0].items():
         if key[0][0] == 'O':
-            if pd.isnull(value):
+            if value == '':
                 pass
             else:
                 serotype = key
@@ -135,7 +161,7 @@ def read_genesippr_results(genesippr_reports, proj_pk):
         eae=genesippr_df_records[0]['eae'],
         eae_1=genesippr_df_records[0]['eae_1'],
         igs=genesippr_df_records[0]['IGS'],
-        hyla=genesippr_df_records[0]['hylA'],
+        hlya=genesippr_df_records[0]['hlyA'],
         inlj=genesippr_df_records[0]['inlJ'],
         inva=genesippr_df_records[0]['invA'],
         stn=genesippr_df_records[0]['stn']
@@ -160,39 +186,28 @@ def read_genesippr_results(genesippr_reports, proj_pk):
     )
 
 
-# def read_sendsketch_results(sendsketch_result_path, proj_pk):
-#     # Read raw result file
-#     df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
-#
-#     # Sort by ANI
-#     df = df.sort_values('ANI', ascending=False)
-#
-#     # Pull records into dictionary
-#     df_records = df.to_dict('records')
-#
-#     # Create list of model instances for bulk create with a list comprehension
-#     model_instances = [SendsketchResults(
-#         project=Project.objects.get(id=proj_pk),
-#         wkid=record['WKID'],
-#         kid=record['KID'],
-#         ani=record['ANI'],
-#         complt=record['Complt'],
-#         contam=record['Contam'],
-#         matches=record['Matches'],
-#         unique=record['Unique'],
-#         nohit=record['noHit'],
-#         taxid=record['TaxID'],
-#         gsize=record['gSize'],
-#         gseqs=record['gSeqs'],
-#         taxname=record['taxName']
-#     ) for record in df_records]
-#
-#     # Update model
-#     SendsketchResults.objects.bulk_create(model_instances)
+def create_gdcs_chart(gdcs_csv):
+    df = pd.read_csv(gdcs_csv)
+
+    # Drop unnecessary columns
+    to_drop = ['Strain', 'Genus', 'Matches', 'MeanCoverage', 'Pass/Fail']
+    for item in to_drop:
+        df = df.drop(item, 1)
+    df = df.dropna(1)
+
+    # Remove everything after the % character
+    for x in df:
+        df[x] = df[x].apply(lambda x: x.split('%')[0])
+
+    return df
+
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):
     # Read raw result file
     df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
+
+    # Drop N/A values
+    df = df.dropna(1)
 
     # Sort by ANI
     df = df.sort_values('ANI', ascending=False)
@@ -208,18 +223,19 @@ def read_sendsketch_results(sendsketch_result_path, proj_pk):
 
     # Create list of model instances for bulk create with a list comprehension
     for index in range(len(df_records)):
-        to_update = SendsketchResults.objects.create(project=Project.objects.get(id=proj_pk))
-        to_update.rank = df_records[index]['Rank']
-        to_update.wkid = df_records[index]['WKID']
-        to_update.kid = df_records[index]['KID']
-        to_update.ani = df_records[index]['ANI']
-        to_update.complt = df_records[index]['Complt']
-        to_update.contam = df_records[index]['Contam']
-        to_update.matches = df_records[index]['Matches']
-        to_update.unique = df_records[index]['Unique']
-        to_update.nohit = df_records[index]['noHit']
-        to_update.taxid = df_records[index]['TaxID']
-        to_update.gsize = df_records[index]['gSize']
-        to_update.gseqs = df_records[index]['gSeqs']
-        to_update.taxname = df_records[index]['taxName']
-        to_update.save()
+        if df_records[index]['Rank'] != 'N/A':
+            to_update = SendsketchResults.objects.create(project=Project.objects.get(id=proj_pk))
+            to_update.rank = df_records[index]['Rank']
+            to_update.wkid = df_records[index]['WKID']
+            to_update.kid = df_records[index]['KID']
+            to_update.ani = df_records[index]['ANI']
+            to_update.complt = df_records[index]['Complt']
+            to_update.contam = df_records[index]['Contam']
+            to_update.matches = df_records[index]['Matches']
+            to_update.unique = df_records[index]['Unique']
+            to_update.nohit = df_records[index]['noHit']
+            to_update.taxid = df_records[index]['TaxID']
+            to_update.gsize = df_records[index]['gSize']
+            to_update.gseqs = df_records[index]['gSeqs']
+            to_update.taxname = df_records[index]['taxName']
+            to_update.save()
