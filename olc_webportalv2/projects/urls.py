@@ -11,6 +11,10 @@ urlpatterns = [
     url(r'^project/(?P<project_id>\d+)/$',
         views.project_detail, name="project_detail"),
 
+    # Download genesippr report url
+    url(r'^project/(?P<project_id>\d+)/genesippr_data$',
+        views.download_genesippr_files, name="genesippr_data"),
+
     # Tables for the views.project_detail page
     url(r'^project/(?P<project_id>\d+)/project_table$',
         views.project_table, name="project_table"),
