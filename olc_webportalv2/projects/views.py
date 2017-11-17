@@ -2,9 +2,11 @@ import os
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
+from django_pandas.io import read_frame
+
 
 from . import tasks
 from .forms import ProjectForm
@@ -97,7 +99,7 @@ def projects(request):
                   {'project_list': project_list,
                    'form': form,
                    'project_id': Project.pk,
-                   'user': request.user,
+                   'user': request.user
                    }
                   )
 
@@ -114,6 +116,22 @@ def project_detail(request, project_id):
                   {'project_id': project_id,
                    }
                   )
+
+
+@login_required
+def download_genesippr_files(request, project_id):
+    project = Project.objects.get(pk=project_id)
+    print(os.path.join(os.path.dirname(project.file_R1.name), 'reports/reports.zip'))
+    filename = os.path.join('olc_webportalv2',
+                            'media',
+                            os.path.dirname(project.file_R1.name),
+                            'reports',
+                            'reports.zip')
+    print(filename)
+    data = open(filename, "rb").read()
+    response = HttpResponse(data, content_type='application/vnd')
+    response['Content-Length'] = os.path.getsize(filename)
+    return response
 
 
 @login_required
@@ -198,7 +216,7 @@ def genesippr_results_table(request, project_id):
 @login_required
 def sendsketch_results_table(request, project_id):
     try:
-        project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id))
+        project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id)).exclude(rank='N/A')
         sendsketch_results_table_ = SendsketchTable(SendsketchResults.objects.all())
         base_project = Project.objects.get(pk=project_id)
         RequestConfig(request).configure(sendsketch_results_table_)
