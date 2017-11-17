@@ -43,6 +43,9 @@ class Project(models.Model):
                                          default="Unprocessed")
     requested_jobs = MultiSelectField(choices=JOB_CHOICES)
 
+    def genesippr_report_path(self):
+        return str(os.path.join(os.path.dirname(self.file_R1.name), 'reports/reports.zip'))
+
     def filename_r1(self):
         return os.path.basename(self.file_R1.name)
 
@@ -113,12 +116,33 @@ class GenesipprResults(models.Model):
 
     # listeria
     igs = models.CharField(max_length=256, default="N/A")
-    hyla = models.CharField(max_length=256, default="N/A")
+    hlya = models.CharField(max_length=256, default="N/A")
     inlj = models.CharField(max_length=256, default="N/A")
 
     # salmonella
     inva = models.CharField(max_length=256, default="N/A")
     stn = models.CharField(max_length=256, default="N/A")
+
+    def inva_number(self):
+        return float(self.inva.split('%')[0])
+
+    def uida_number(self):
+        return float(self.uida.split('%')[0])
+
+    def vt1_number(self):
+        return float(self.vt1.split('%')[0])
+
+    def vt2_number(self):
+        return float(self.vt2.split('%')[0])
+
+    def vt2f_number(self):
+        return float(self.vt2f.split('%')[0])
+
+    def eae_number(self):
+        return float(self.eae.split('%')[0])
+
+    def eae_1_number(self):
+        return float(self.eae_1.split('%')[0])
 
     class Meta:
         verbose_name_plural = "Genesippr Results"
