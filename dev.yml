@@ -60,12 +60,11 @@ services:
   genesippr:
     ports:
       - "8001:8001"
-    image: "sipprverse:v0.1"
+    image: "sipprverse:v0.2"
     container_name: olcwebportalv2_genesipprv2
     tty: true
     stdin_open: true
     volumes:
-      - /mnt/nas/bio_requests/8312/newsixteens/targets/:/targets
       - ./olc_webportalv2/media/:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
 
