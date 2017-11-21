@@ -1,8 +1,9 @@
 import os
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
 from django_pandas.io import read_frame
@@ -121,17 +122,37 @@ def project_detail(request, project_id):
 @login_required
 def download_genesippr_files(request, project_id):
     project = Project.objects.get(pk=project_id)
-    print(os.path.join(os.path.dirname(project.file_R1.name), 'reports/reports.zip'))
     filename = os.path.join('olc_webportalv2',
                             'media',
                             os.path.dirname(project.file_R1.name),
                             'reports',
                             'reports.zip')
-    print(filename)
     data = open(filename, "rb").read()
     response = HttpResponse(data, content_type='application/vnd')
     response['Content-Length'] = os.path.getsize(filename)
+
+    # Open 'Save As' prompt for user (doesn't appear to work)
+    response['Content-Disposition'] = 'attachment'
+
     return response
+
+
+@login_required
+def download_genesippr_pdf(request, project_id):
+    project = Project.objects.get(pk=project_id)
+    fs = FileSystemStorage()
+    filename = os.path.join('olc_webportalv2',
+                            'media',
+                            os.path.dirname(project.file_R1.name),
+                            'report',
+                            'report.pdf')
+    if fs.exists(filename):
+        with fs.open(filename) as pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
+            return response
+    else:
+        return HttpResponseNotFound('The requested PDF was not found in our server.')
 
 
 @login_required
@@ -167,6 +188,51 @@ def job_status_table(request, project_id):
                    'project_id': project_id,
                    }
                   )
+
+
+@login_required
+def genesippr_report(request, project_id):
+    try:
+        # Grab the base project
+        base_project = Project.objects.get(pk=project_id)
+
+        # Get GenesipprResults project
+        genesippr_project = GenesipprResults.objects.get(project=base_project)
+        gdcs_project = GenesipprResultsGDCS.objects.get(project=base_project)
+        sixteens_project = GenesipprResultsSixteens.objects.get(project=base_project)
+        serosippr_project = GenesipprResultsSerosippr.objects.get(project=base_project)
+
+        # Genesippr Multi-table setup
+        genesippr_results_table_ = GenesipprTable(GenesipprResults.objects.all())
+        gdcs_results_table_ = GDCSTable(GenesipprResultsGDCS.objects.all())
+        sixteens_results_table_ = SixteensTable(GenesipprResultsSixteens.objects.all())
+        serosippr_results_table_ = SerosipprTable(GenesipprResultsSerosippr.objects.all())
+
+        # Config tables
+        RequestConfig(request).configure(genesippr_results_table_)
+        RequestConfig(request).configure(gdcs_results_table_)
+        RequestConfig(request).configure(sixteens_results_table_)
+        RequestConfig(request).configure(serosippr_results_table_)
+
+    except ObjectDoesNotExist:
+        genesippr_results_table_ = gdcs_results_table_ = sixteens_results_table_ = serosippr_results_table_ = None
+        genesippr_project = gdcs_project = sixteens_project = serosippr_project = None
+        base_project = None
+
+    return render(request,
+                  'projects/genesippr_report.html',
+                  {'genesippr_results_table': genesippr_results_table_,
+                   'gdcs_results_table': gdcs_results_table_,
+                   'sixteens_results_table': sixteens_results_table_,
+                   'serosippr_results_table': serosippr_results_table_,
+                   'genesippr_project': genesippr_project,
+                   'gdcs_project': gdcs_project,
+                   'sixteens_project': sixteens_project,
+                   'serosippr_project': serosippr_project,
+                   'base_project': base_project
+                   }
+                  )
+
 
 
 @login_required
