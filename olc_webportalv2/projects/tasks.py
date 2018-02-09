@@ -1,11 +1,17 @@
 import pandas as pd
+import pandas_highcharts
+import zipfile
 import glob
-import csv
+import os
 
 from subprocess import Popen
 from background_task import background
 
-from .models import Project, GenesipprResults, SendsketchResults
+from .models import Project, \
+    GenesipprResults, \
+    GenesipprResultsGDCS, \
+    GenesipprResultsSixteens, \
+    SendsketchResults
 
 
 @background(schedule=2)
@@ -21,7 +27,8 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
           'in=/sequences/{0} ' \
           'in2=/sequences/{1} ' \
           'out=/sequences/{2} ' \
-          'reads=400k'.format(read1, read2, output_filename)
+          'reads=400k ' \
+          'overwrite=true'.format(read1, read2, output_filename)
 
     try:
         p = Popen(cmd, shell=True)
@@ -43,7 +50,6 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
     print('\nsendsketch.sh container actions complete')
 
 
-
 @background(schedule=5)
 def run_genesippr(file_path, proj_pk):
 
@@ -51,9 +57,8 @@ def run_genesippr(file_path, proj_pk):
 
     # Run Genesippr
     cmd = 'docker exec ' \
-          'genesipprv2 ' \
-          'python3 ' \
-          'geneSipprV2/sipprverse/method.py ' \
+          'olcwebportalv2_genesipprv2 ' \
+          'sippr.py ' \
           '/sequences/{0} ' \
           '-t /targets ' \
           '-s /sequences/{0}'.format(file_path)
@@ -67,57 +72,170 @@ def run_genesippr(file_path, proj_pk):
 
     print('\nGenesipprV2 container actions complete')
 
-    genesippr_result_path = glob.glob('olc_webportalv2/media/{}/reports/genesippr.csv'.format(file_path))
-    genesippr_result_path = genesippr_result_path[0]
+    genesippr_reports = glob.glob('olc_webportalv2/media/{}/reports/*.csv'.format(file_path))
 
-    print('\nAttempting to read ' + genesippr_result_path)
+    print('\nAttempting to read the following:')
+    for report in genesippr_reports:
+        print(report)
+
     try:
-        read_genesippr_results(genesippr_result_path, proj_pk)
+        read_genesippr_results(genesippr_reports, proj_pk)
         Project.objects.filter(pk=proj_pk).update(genesippr_status="Complete")
         print('\nReading genesippr results complete.')
     except:
         print('\nReading genesippr results failed.')
 
+    # Zip up the reports
+    zip_files(file_path, genesippr_reports)
 
-def read_genesippr_results(genesippr_result_path, proj_pk):
-    # TODO: Use pandas instead of this hack (see read_sendsketch_results())
-    with open(genesippr_result_path, newline='', encoding='utf-8') as f:
-        reader = csv.reader(f, delimiter=',')
-        # header = next(reader)
-        for row in reader:
-            GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).\
-                update(strain=str(row[0]),
-                       genus=str(row[1],))
+    # # Chart stuff
+    # for report in genesippr_reports:
+    #     if 'GDCS.csv' in report:
+    #         gdcs_chart_df = create_gdcs_chart(report)
+    #         print(gdcs_chart_df)
+
+
+def zip_files(file_path, file_list):
+    # Create zip
+    output_file = os.path.join('olc_webportalv2/media/', file_path, 'reports/reports.zip')
+    report_zip = zipfile.ZipFile(output_file, 'w')
+
+    for file in file_list:
+        report_zip.write(file, os.path.basename(file),
+                         compress_type=zipfile.ZIP_DEFLATED)
+
+    report_zip.close()
+    return output_file
+
+
+def read_genesippr_results(genesippr_reports, proj_pk):
+    # Pull out reports
+    genesippr_csv = gdcs_csv = serosippr_csv = sixteens_csv = None
+
+    # Grab reports from glob list
+    for report in genesippr_reports:
+        if 'genesippr.csv' in report:
+            genesippr_csv = report
+        elif 'GDCS.csv' in report:
+            gdcs_csv = report
+        elif 'serosippr.csv' in report:
+            serosippr_csv = report
+        elif 'sixteens_full' in report:
+            sixteens_csv = report
+
+    # Read raw results files - .fillna method added to prevent 'nan' values from populating db
+    genesippr_df = pd.read_csv(genesippr_csv).fillna('')
+    gdcs_df = pd.read_csv(gdcs_csv).fillna('')
+    sixteens_df = pd.read_csv(sixteens_csv).fillna('')
+
+    # Pull records into dictionaries
+    genesippr_df_records = genesippr_df.to_dict('records')
+    gdcs_df_records = gdcs_df.to_dict('records')
+    sixteens_df_records = sixteens_df.to_dict('records')
+
+    # Parse O45, O103, etc. for serotype
+    serotype = 'N/A'
+    for key, value in genesippr_df_records[0].items():
+        if key[0][0] == 'O':
+            if value == '':
+                pass
+            else:
+                serotype = key
+
+    # genesippr.csv
+    GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).update(
+        strain=genesippr_df_records[0]['Strain'],
+        genus=genesippr_df_records[0]['Genus'],
+        vt1=genesippr_df_records[0]['VT1'],
+        vt2=genesippr_df_records[0]['VT2'],
+        vt2f=genesippr_df_records[0]['VT2f'],
+        serotype=serotype,
+        o26=genesippr_df_records[0]['O26'],
+        o45=genesippr_df_records[0]['O45'],
+        o103=genesippr_df_records[0]['O103'],
+        o111=genesippr_df_records[0]['O111'],
+        o121=genesippr_df_records[0]['O121'],
+        o145=genesippr_df_records[0]['O145'],
+        o157=genesippr_df_records[0]['O157'],
+        uida=genesippr_df_records[0]['uidA'],
+        eae=genesippr_df_records[0]['eae'],
+        eae_1=genesippr_df_records[0]['eae_1'],
+        igs=genesippr_df_records[0]['IGS'],
+        hlya=genesippr_df_records[0]['hlyA'],
+        inlj=genesippr_df_records[0]['inlJ'],
+        inva=genesippr_df_records[0]['invA'],
+        stn=genesippr_df_records[0]['stn']
+    )
+
+    # GDCS.csv
+    GenesipprResultsGDCS.objects.filter(project=Project.objects.get(id=proj_pk)).update(
+        strain=gdcs_df_records[0]['Strain'],
+        genus=gdcs_df_records[0]['Genus'],
+        matches=gdcs_df_records[0]['Matches'],
+        meancoverage=gdcs_df_records[0]['MeanCoverage'],
+        passfail=gdcs_df_records[0]['Pass/Fail'],
+    )
+
+    # sixteens_full.csv
+    GenesipprResultsSixteens.objects.filter(project=Project.objects.get(id=proj_pk)).update(
+        strain=sixteens_df_records[0]['Strain'],
+        gene=sixteens_df_records[0]['Gene'],
+        percentidentity=sixteens_df_records[0]['PercentIdentity'],
+        genus=sixteens_df_records[0]['Genus'],
+        foldcoverage=sixteens_df_records[0]['FoldCoverage'],
+    )
+
+
+def create_gdcs_chart(gdcs_csv):
+    df = pd.read_csv(gdcs_csv)
+
+    # Drop unnecessary columns
+    to_drop = ['Strain', 'Genus', 'Matches', 'MeanCoverage', 'Pass/Fail']
+    for item in to_drop:
+        df = df.drop(item, 1)
+    df = df.dropna(1)
+
+    # Remove everything after the % character
+    for x in df:
+        df[x] = df[x].apply(lambda x: x.split('%')[0])
+
+    return df
 
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):
     # Read raw result file
     df = pd.read_csv(sendsketch_result_path, sep='\t', skiprows=2)
 
+    # Drop N/A values
+    df = df.dropna(1)
+
     # Sort by ANI
     df = df.sort_values('ANI', ascending=False)
+
+    # Add ranking column
+    df.insert(0, 'Rank', range(1, len(df) + 1))
+
+    # Set Rank to the index
+    df.set_index('Rank')
 
     # Pull records into dictionary
     df_records = df.to_dict('records')
 
     # Create list of model instances for bulk create with a list comprehension
-    model_instances = [SendsketchResults(
-        project=Project.objects.get(id=proj_pk),
-        wkid=record['WKID'],
-        kid=record['KID'],
-        ani=record['ANI'],
-        complt=record['Complt'],
-        contam=record['Contam'],
-        matches=record['Matches'],
-        unique=record['Unique'],
-        nohit=record['noHit'],
-        taxid=record['TaxID'],
-        gsize=record['gSize'],
-        gseqs=record['gSeqs'],
-        taxname=record['taxName']
-    ) for record in df_records]
-
-    # Update model
-    SendsketchResults.objects.bulk_create(model_instances)
-
-
+    for index in range(len(df_records)):
+        if df_records[index]['Rank'] != 'N/A':
+            to_update = SendsketchResults.objects.create(project=Project.objects.get(id=proj_pk))
+            to_update.rank = df_records[index]['Rank']
+            to_update.wkid = df_records[index]['WKID']
+            to_update.kid = df_records[index]['KID']
+            to_update.ani = df_records[index]['ANI']
+            to_update.complt = df_records[index]['Complt']
+            to_update.contam = df_records[index]['Contam']
+            to_update.matches = df_records[index]['Matches']
+            to_update.unique = df_records[index]['Unique']
+            to_update.nohit = df_records[index]['noHit']
+            to_update.taxid = df_records[index]['TaxID']
+            to_update.gsize = df_records[index]['gSize']
+            to_update.gseqs = df_records[index]['gSeqs']
+            to_update.taxname = df_records[index]['taxName']
+            to_update.save()

@@ -22,17 +22,21 @@
 
         {#Table for displaying genesippr results once they are complete#}
         <br>
+        <button class="btn btn-info btn-block" data-toggle="collapse" data-target="#genesippr-table-button">GenesipprV2 results</button>
+        <div id="genesippr-table-button" class="collapse show">
             <div id="genesippr-results-table" class="form-control">
                     {% include 'projects/genesippr_results_table.html' %}
             </div>
-
+        </div>
 
         {#Table for displaying sendsketch results once they are complete#}
         <br>
-        <div id="sendsketch-results-table" class="form-control">
-            {% include 'projects/sendsketch_results_table.html' %}
+        <button class="btn btn-info btn-block" data-toggle="collapse" data-target="#sendsketch-table-button">sendsketch results</button>
+        <div id="sendsketch-table-button" class="collapse show">
+            <div id="sendsketch-results-table" class="form-control">
+                {% include 'projects/sendsketch_results_table.html' %}
+            </div>
         </div>
-
 
     </div>
 

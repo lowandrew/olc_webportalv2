@@ -1,20 +1,35 @@
 import os
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
+from django_pandas.io import read_frame
+
 
 from . import tasks
 from .forms import ProjectForm
-from .models import Project, GenesipprResults, SendsketchResults
-from .table import ProjectTable, GenesipprTable, SendsketchTable
+
+from .models import Project, \
+    GenesipprResults, \
+    SendsketchResults, \
+    GenesipprResultsSixteens, \
+    GenesipprResultsGDCS, \
+    GenesipprResultsSerosippr
+
+from .table import ProjectTable, \
+    GenesipprTable, \
+    SendsketchTable, \
+    GDCSTable, \
+    SixteensTable, \
+    SerosipprTable
 
 
 @login_required
 def projects(request):
-    project_list = Project.objects.all()
+    project_list = Project.objects.filter(user=request.user)
     form = ProjectForm(request.POST, request.FILES)
 
     # Create new project
@@ -40,9 +55,12 @@ def projects(request):
             if 'genesipprv2' in new_entry.requested_jobs:
                 print('\nGenesipprV2 job detected.')
 
-                # Create GenesipprResults entry
+                # Create Genesippr entries entry
                 GenesipprResults.objects.get_or_create(project=Project.objects.get(id=new_entry.pk))
-                print('\nCreated GenesipprResults entry for project {}'.format(new_entry.pk))
+                GenesipprResultsGDCS.objects.get_or_create(project=Project.objects.get(id=new_entry.pk))
+                GenesipprResultsSixteens.objects.get_or_create(project=Project.objects.get(id=new_entry.pk))
+                GenesipprResultsSerosippr.objects.get_or_create(project=Project.objects.get(id=new_entry.pk))
+                print('\nCreated GenesipprV2 table entries for project {}'.format(new_entry.pk))
 
                 # Set file path
                 file_path = os.path.dirname(str(new_entry.file_R1))
@@ -82,7 +100,7 @@ def projects(request):
                   {'project_list': project_list,
                    'form': form,
                    'project_id': Project.pk,
-                   'user': request.user,
+                   'user': request.user
                    }
                   )
 
@@ -102,10 +120,49 @@ def project_detail(request, project_id):
 
 
 @login_required
+def download_genesippr_files(request, project_id):
+    project = Project.objects.get(pk=project_id)
+    filename = os.path.join('olc_webportalv2',
+                            'media',
+                            os.path.dirname(project.file_R1.name),
+                            'reports',
+                            'reports.zip')
+    data = open(filename, "rb").read()
+    response = HttpResponse(data, content_type='application/vnd')
+    response['Content-Length'] = os.path.getsize(filename)
+
+    # Open 'Save As' prompt for user (doesn't appear to work)
+    response['Content-Disposition'] = 'attachment'
+
+    return response
+
+
+@login_required
+def download_genesippr_pdf(request, project_id):
+    project = Project.objects.get(pk=project_id)
+    fs = FileSystemStorage()
+    filename = os.path.join('olc_webportalv2',
+                            'media',
+                            os.path.dirname(project.file_R1.name),
+                            'report',
+                            'report.pdf')
+    if fs.exists(filename):
+        with fs.open(filename) as pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
+            return response
+    else:
+        return HttpResponseNotFound('The requested PDF was not found in our server.')
+
+
+@login_required
 def project_table(request, project_id):
     project_id = Project.objects.get(pk=project_id)
     project_table_ = ProjectTable(Project.objects.all())
-    RequestConfig(request).configure(project_table)
+    try:
+        RequestConfig(request).configure(project_table)
+    except AttributeError:
+        pass
 
     return render(request,
                   'projects/project_table.html',
@@ -117,9 +174,13 @@ def project_table(request, project_id):
 
 @login_required
 def job_status_table(request, project_id):
+
     project_id = Project.objects.get(pk=project_id)
     job_status_table_ = ProjectTable(Project.objects.all())
-    RequestConfig(request).configure(job_status_table_)
+    try:
+        RequestConfig(request).configure(job_status_table_)
+    except AttributeError:
+        pass
 
     return render(request,
                   'projects/job_status_table.html',
@@ -130,21 +191,89 @@ def job_status_table(request, project_id):
 
 
 @login_required
+def genesippr_report(request, project_id):
+    try:
+        # Grab the base project
+        base_project = Project.objects.get(pk=project_id)
+
+        # Get GenesipprResults project
+        genesippr_project = GenesipprResults.objects.get(project=base_project)
+        gdcs_project = GenesipprResultsGDCS.objects.get(project=base_project)
+        sixteens_project = GenesipprResultsSixteens.objects.get(project=base_project)
+        serosippr_project = GenesipprResultsSerosippr.objects.get(project=base_project)
+
+        # Genesippr Multi-table setup
+        genesippr_results_table_ = GenesipprTable(GenesipprResults.objects.all())
+        gdcs_results_table_ = GDCSTable(GenesipprResultsGDCS.objects.all())
+        sixteens_results_table_ = SixteensTable(GenesipprResultsSixteens.objects.all())
+        serosippr_results_table_ = SerosipprTable(GenesipprResultsSerosippr.objects.all())
+
+        # Config tables
+        RequestConfig(request).configure(genesippr_results_table_)
+        RequestConfig(request).configure(gdcs_results_table_)
+        RequestConfig(request).configure(sixteens_results_table_)
+        RequestConfig(request).configure(serosippr_results_table_)
+
+    except ObjectDoesNotExist:
+        genesippr_results_table_ = gdcs_results_table_ = sixteens_results_table_ = serosippr_results_table_ = None
+        genesippr_project = gdcs_project = sixteens_project = serosippr_project = None
+        base_project = None
+
+    return render(request,
+                  'projects/genesippr_report.html',
+                  {'genesippr_results_table': genesippr_results_table_,
+                   'gdcs_results_table': gdcs_results_table_,
+                   'sixteens_results_table': sixteens_results_table_,
+                   'serosippr_results_table': serosippr_results_table_,
+                   'genesippr_project': genesippr_project,
+                   'gdcs_project': gdcs_project,
+                   'sixteens_project': sixteens_project,
+                   'serosippr_project': serosippr_project,
+                   'base_project': base_project
+                   }
+                  )
+
+
+
+@login_required
 def genesippr_results_table(request, project_id):
     try:
-        project = GenesipprResults.objects.get(project=Project.objects.get(pk=project_id))
-        genesippr_results_table_ = GenesipprTable(GenesipprResults.objects.all())
+        # Grab the base project
         base_project = Project.objects.get(pk=project_id)
+
+        # Get GenesipprResults project
+        genesippr_project = GenesipprResults.objects.get(project=base_project)
+        gdcs_project = GenesipprResultsGDCS.objects.get(project=base_project)
+        sixteens_project = GenesipprResultsSixteens.objects.get(project=base_project)
+        serosippr_project = GenesipprResultsSerosippr.objects.get(project=base_project)
+
+        # Genesippr Multi-table setup
+        genesippr_results_table_ = GenesipprTable(GenesipprResults.objects.all())
+        gdcs_results_table_ = GDCSTable(GenesipprResultsGDCS.objects.all())
+        sixteens_results_table_ = SixteensTable(GenesipprResultsSixteens.objects.all())
+        serosippr_results_table_ = SerosipprTable(GenesipprResultsSerosippr.objects.all())
+
+        # Config tables
         RequestConfig(request).configure(genesippr_results_table_)
+        RequestConfig(request).configure(gdcs_results_table_)
+        RequestConfig(request).configure(sixteens_results_table_)
+        RequestConfig(request).configure(serosippr_results_table_)
+
     except ObjectDoesNotExist:
-        genesippr_results_table_ = None
-        project = None
+        genesippr_results_table_ = gdcs_results_table_ = sixteens_results_table_ = serosippr_results_table_ = None
+        genesippr_project = gdcs_project = sixteens_project = serosippr_project = None
         base_project = None
 
     return render(request,
                   'projects/genesippr_results_table.html',
                   {'genesippr_results_table': genesippr_results_table_,
-                   'project': project,
+                   'gdcs_results_table': gdcs_results_table_,
+                   'sixteens_results_table': sixteens_results_table_,
+                   'serosippr_results_table': serosippr_results_table_,
+                   'genesippr_project': genesippr_project,
+                   'gdcs_project': gdcs_project,
+                   'sixteens_project': sixteens_project,
+                   'serosippr_project': serosippr_project,
                    'base_project': base_project
                    }
                   )
@@ -152,10 +281,8 @@ def genesippr_results_table(request, project_id):
 
 @login_required
 def sendsketch_results_table(request, project_id):
-    # TODO: Sort the project queryset by ANI
-
     try:
-        project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id))
+        project = SendsketchResults.objects.filter(project=Project.objects.get(pk=project_id)).exclude(rank='N/A')
         sendsketch_results_table_ = SendsketchTable(SendsketchResults.objects.all())
         base_project = Project.objects.get(pk=project_id)
         RequestConfig(request).configure(sendsketch_results_table_)
