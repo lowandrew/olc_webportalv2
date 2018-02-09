@@ -7,7 +7,7 @@
 <div class="container">
 
 {#    Create new project form#}
-    <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#create-project-button">Create New Project</button>
+    <button type="button" class="btn btn-success btn-block" data-toggle="collapse" data-target="#create-project-button"><strong>Create New Project</strong></button>
      <div id="create-project-button" class="collapse">
         <br>
         <div class="panel border rounded" style="padding: 25px">
@@ -24,11 +24,11 @@
                     </div>
 
                     <div class="form-group">
-                        <p class="h5">File R1{{ form.file_R1 }}</p>
+                        <p class="h5">Forward Reads (<i>*.fastq.gz</i>){{ form.file_R1 }}</p>
                     </div>
 
                     <div class="form-group">
-                        <p class="h5">File R2{{ form.file_R2 }}</p>
+                        <p class="h5">Revese Reads (<i>*.fastq.gz</i>){{ form.file_R2 }}</p>
                     </div>
 
                     <div class="form-group">
@@ -56,6 +56,7 @@
 {#Display existing projects#}
 <div class="page-header">
     <br>
+    <h4><strong>{{ user.name }}'s</strong> Projects</h4>
 </div>
 
 <div class="border rounded" style="padding: 25px">
