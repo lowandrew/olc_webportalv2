@@ -52,6 +52,10 @@
               <a class="nav-link" href="{% url 'multisampleprojects:multisampleprojects' %}">Multisample Projects</a>
             </li>
 
+              <li class="nav-item active">
+                  <a class="nav-link" href="{% url 'new_multisample:new_multisample' %}">New Multisample Projects</a>
+              </li>
+
             {% if request.user.is_authenticated %}
               <li class="nav-item active">
                 {# URL provided by django-allauth/account/urls.py #}
