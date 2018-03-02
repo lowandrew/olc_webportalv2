@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
+{% block content %}
+    <h2>{{ project.project_title }}</h2>
+    {% for sample in project.samples.all %}
+        <p>{{ sample.description|linebreaks }}</p>
+    {% empty %}
+        <p>This project does not have any samples yet.</p>
+    {% endfor %}
+    <h3>You can add more files to your project here.</h3>
+    <form enctype="multipart/form-data" action="" method="post">
+        {% csrf_token %}
+        <input type="file" name="files" multiple>
+        <input type="submit" name="upload" value="Upload">
+    </form>
+{% endblock %}

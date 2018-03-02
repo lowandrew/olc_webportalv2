@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+{#Head container#}
+<div class="container">
+
+{#    Create new project form#}
+    <button type="button" class="btn btn-success btn-block" data-toggle="collapse" data-target="#create-project-button"><strong>Create New Project</strong></button>
+     <div id="create-project-button" class="collapse">
+        <br>
+        <div class="panel border rounded" style="padding: 25px">
+            <form method="post" enctype="multipart/form-data" class="form-horizontal">
+                {% csrf_token %}
+                    <div class="form-group has-success has-feedback">
+                        <label class="h5">Title</label>
+                        {{ form.project_title }}
+                    </div>
+
+                    <div class="form-group has-success has-feedback">
+                        <label class="h5">Description</label>
+                        {{ form.description }}
+                    </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary btn-block">Submit project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+    <div class="page-header">
+    <br>
+    <h4><strong>{{ user.name }}'s</strong> Projects</h4>
+</div>
+
+<div class="border rounded" style="padding: 25px">
+    <table class="table table-hover table-bordered" id="project_table">
+        <tr>
+            <th onclick="sortTable(0)">Project Title <i class="fa fa-fw fa-sort"></i> </th>
+            <th onclick="sortTable(1)">Date Created <i class="fa fa-fw fa-sort"></i></th>
+            <th onclick="sortTable(2)">Description <i class="fa fa-fw fa-sort"></i></th>
+            <th></th>
+        </tr>
+        {% for id in project_list %}
+            <tr>
+                <td>{{ id.project_title }}</td>
+                <td>{{ id.date }}</td>
+                <td>{{ id.description }}</td>
+                <td><a href="{% url 'new_multisample:project_detail' project_id=id.pk %}" class="btn btn-primary btn-block active" role="button" aria-pressed="true">Details</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</div>
+   {#Script for sorting the project table. This is copypasta from w3schools and there is definitely a better solution.#}
+<script>
+    function sortTable(n) {
+      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      table = document.getElementById("project_table");
+      switching = true;
+      //Set the sorting direction to ascending:
+      dir = "asc";
+      /*Make a loop that will continue until
+      no switching has been done:*/
+      while (switching) {
+        //start by saying: no switching is done:
+        switching = false;
+        rows = table.getElementsByTagName("TR");
+        /*Loop through all table rows (except the
+        first, which contains table headers):*/
+        for (i = 1; i < (rows.length - 1); i++) {
+          //start by saying there should be no switching:
+          shouldSwitch = false;
+          /*Get the two elements you want to compare,
+          one from current row and one from the next:*/
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+          /*check if the two rows should switch place,
+          based on the direction, asc or desc:*/
+          if (dir == "asc") {
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              //if so, mark as a switch and break the loop:
+              shouldSwitch= true;
+              break;
+            }
+          } else if (dir == "desc") {
+            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+              //if so, mark as a switch and break the loop:
+              shouldSwitch= true;
+              break;
+            }
+          }
+        }
+        if (shouldSwitch) {
+          /*If a switch has been marked, make the switch
+          and mark that a switch has been done:*/
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          //Each time a switch is done, increase this count by 1:
+          switchcount ++;
+        } else {
+          /*If no switching has been done AND the direction is "asc",
+          set the direction to "desc" and run the while loop again.*/
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
+        }
+      }
+    }
+</script>
+{% endblock %}
