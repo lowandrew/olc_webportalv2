@@ -58,6 +58,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     'olc_webportalv2.projects.apps.ProjectsConfig',
     'olc_webportalv2.jobs.apps.JobsConfig',
+    'olc_webportalv2.multisampleproject.apps.MultisampleprojectConfig',
 
     # Need this to get django-multiselectfield to work
     'multiselectfield',
@@ -69,8 +70,10 @@ LOCAL_APPS = [
     'django_tables2',
 
     # django-background-tasks (alternative to Celery)
-    'background_task'
+    'background_task',
 
+    # Highcharts
+    'highcharts'
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

@@ -363,3 +363,7 @@ olc_webportalv2/media/
 # See issue https://github.com/pydanny/cookiecutter-django/issues/1321
 !/compose/local/
 
+/celerybeat.pid
+/celerybeat-schedule
+!/celerybeat.pid
+!/celerybeat-schedule

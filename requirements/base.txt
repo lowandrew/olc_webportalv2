@@ -50,3 +50,5 @@ django-background-tasks
 pandas
 numpy
 django-pandas
+pandas-highcharts
+django-highcharts
