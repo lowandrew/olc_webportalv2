@@ -58,9 +58,7 @@ def upload_samples(request, project_id):
             if item.name.endswith('.fastq') or item.name.endswith('.fastq.gz'):
                 filenames.append(item.name)
                 file_dict[item.name] = item
-            # TODO: Need to parse through names to try to get samples.
-            # instance = Attachment(attachment=item)
-            # instance.save()
+
         pairs = find_paired_reads(filenames)
         for pair in pairs:
             sample_name = pair[0].split('_R1')[0]
@@ -70,13 +68,7 @@ def upload_samples(request, project_id):
                               project=project)
             instance.save()
 
-        form = JobForm(request.POST)
-        return render(request,
-                      'new_multisample/project_detail.html',
-                      {'project': project,
-                       'form': form,
-                       'user': request.user},
-                      )
+        return redirect('new_multisample:project_detail', project_id=project_id)
     else:
         return render(request,
                       'new_multisample/upload_samples.html',
@@ -86,26 +78,31 @@ def upload_samples(request, project_id):
 @login_required
 def project_detail(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
-    form = JobForm(request.POST)
     # try:
     #     project_id = ProjectMulti.objects.get(pk=project_id)
     # except ProjectMulti.DoesNotExist:
     #     raise Http404("Project ID {} does not exist.".format(project_id))
     if request.method == 'POST':
+        form = JobForm(request.POST)
         # Save the form
         if form.is_valid():
             jobs_to_run = form.cleaned_data.get('jobs')
             print(jobs_to_run)
             if 'sendsketch' in jobs_to_run:
                 for sample in project.samples.all():
-                    file_path = os.path.dirname(str(sample.file_R1))
-                    tasks.run_sendsketch(read1=sample.file_R1.name,
-                                         read2=sample.file_R2.name,
-                                         sample_pk=sample.pk,
-                                         file_path=file_path)
+                    if sample.sendsketch_status != 'Complete':
+                        file_path = os.path.dirname(str(sample.file_R1))
+                        Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
+                        tasks.run_sendsketch(read1=sample.file_R1.name,
+                                             read2=sample.file_R2.name,
+                                             sample_pk=sample.pk,
+                                             file_path=file_path)
+            if 'genesipprv2' in jobs_to_run:
+                print('Found a genesippr job')
+            form = JobForm()
 
-    # else:
-    #     form = SampleForm()
+    else:
+         form = JobForm()
     return render(request,
                   'new_multisample/project_detail.html',
                   {'project': project,

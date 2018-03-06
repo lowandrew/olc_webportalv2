@@ -19,8 +19,8 @@
             <tr>
                 <td>{{ sample.title }}</td>
                 <td>{{ sample.genesippr_status }}</td>
-                <td>{{ sample.sendsketch_status }}</td>
-                <td><a href="{% url 'new_multisample:sample_detail' sample_id=sample.pk %}" class="btn btn-primary btn-block active" role="button" aria-pressed="true">Details</a></td>
+                <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                <td><a href="{% url 'new_multisample:sample_detail' sample_id=sample.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">Details</a></td>
             </tr>
         {% endfor %}
     </tbody>

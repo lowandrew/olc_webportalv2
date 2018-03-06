@@ -14,8 +14,7 @@ from .models import ProjectMulti, Sample, SendsketchResult
 def run_sendsketch(read1, read2, sample_pk, file_path):
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
-    output_filename = '{0}/sample_{1}_sendsketch_results.txt'.format(file_path, sample_pk)
-
+    output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)
     # Run Genesippr
     cmd = 'docker exec ' \
           'olcwebportalv2_bbmap ' \
