@@ -7,18 +7,14 @@ import os
 from subprocess import Popen
 from background_task import background
 
-from .models import ProjectMulti, \
-    GenesipprResults, \
-    GenesipprResultsGDCS, \
-    GenesipprResultsSixteens, \
-    SendsketchResults
+from .models import ProjectMulti, Sample, SendsketchResult
 
 
 @background(schedule=2)
-def run_sendsketch(read1, read2, proj_pk, file_path):
-    print('\nrun_sendsketch() called successfully for project ID {}'.format(proj_pk))
+def run_sendsketch(read1, read2, sample_pk, file_path):
+    print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
-    output_filename = '{0}/project_{1}_sendsketch_results.txt'.format(file_path, proj_pk)
+    output_filename = '{0}/sample_{1}_sendsketch_results.txt'.format(file_path, sample_pk)
 
     # Run Genesippr
     cmd = 'docker exec ' \
@@ -37,170 +33,17 @@ def run_sendsketch(read1, read2, proj_pk, file_path):
         print('sendsketch.sh failed to execute command.')
         quit()
 
-    # sendsketch_result_path = 'olc_webportalv2/media/{}'.format(output_filename)
-
-    # try:
-    # read_sendsketch_results(sendsketch_result_path, proj_pk=proj_pk)
-    # print('Successfully read sendsketch results from {}'.format(sendsketch_result_path))
-    # Project.objects.filter(pk=proj_pk).update(sendsketch_status="Complete")
-    # except:
-    #     print('Failed to read sendsketch results from {}'.format(sendsketch_result_path))
-    #     Project.objects.filter(pk=proj_pk).update(sendsketch_status="Error")
-
-    print('\nsendsketch.sh container actions complete')
-
-
-@background(schedule=5)
-def run_genesippr(file_path, proj_pk):
-
-    print('\nrun_genesippr() called successfully for project ID {}'.format(proj_pk))
-
-    # Run Genesippr
-    cmd = 'docker exec ' \
-          'olcwebportalv2_genesipprv2 ' \
-          'sippr.py ' \
-          '/sequences/{0} ' \
-          '-t /targets ' \
-          '-s /sequences/{0}'.format(file_path)
+    sendsketch_result_path = 'olc_webportalv2/media/{}'.format(output_filename)
 
     try:
-        p = Popen(cmd, shell=True)
-        p.communicate()  # wait until the script completes before resuming the code
+        read_sendsketch_results(sendsketch_result_path, proj_pk=sample_pk)
+        print('Successfully read sendsketch results from {}'.format(sendsketch_result_path))
+        Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Complete")
     except:
-        print('GenesipprV2 failed to execute command.')
-        quit()
+        print('Failed to read sendsketch results from {}'.format(sendsketch_result_path))
+        Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Error")
 
-    print('\nGenesipprV2 container actions complete')
-
-    # genesippr_reports = glob.glob('olc_webportalv2/media/{}/reports/*.csv'.format(file_path))
-    #
-    # print('\nAttempting to read the following:')
-    # for report in genesippr_reports:
-    #     print(report)
-    #
-    # try:
-    #     read_genesippr_results(genesippr_reports, proj_pk)
-    #     Project.objects.filter(pk=proj_pk).update(genesippr_status="Complete")
-        # print('\nReading genesippr results complete.')
-    # except:
-    #     print('\nReading genesippr results failed.')
-
-    # Zip up the reports
-    # zip_files(file_path, genesippr_reports)
-
-    # # Chart stuff
-    # for report in genesippr_reports:
-    #     if 'GDCS.csv' in report:
-    #         gdcs_chart_df = create_gdcs_chart(report)
-    #         print(gdcs_chart_df)
-
-
-"""
-def zip_files(file_path, file_list):
-    # Create zip
-    output_file = os.path.join('olc_webportalv2/media/', file_path, 'reports/reports.zip')
-    report_zip = zipfile.ZipFile(output_file, 'w')
-
-    for file in file_list:
-        report_zip.write(file, os.path.basename(file),
-                         compress_type=zipfile.ZIP_DEFLATED)
-
-    report_zip.close()
-    return output_file
-
-
-def read_genesippr_results(genesippr_reports, proj_pk):
-    # Pull out reports
-    genesippr_csv = gdcs_csv = serosippr_csv = sixteens_csv = None
-
-    # Grab reports from glob list
-    for report in genesippr_reports:
-        if 'genesippr.csv' in report:
-            genesippr_csv = report
-        elif 'GDCS.csv' in report:
-            gdcs_csv = report
-        elif 'serosippr.csv' in report:
-            serosippr_csv = report
-        elif 'sixteens_full' in report:
-            sixteens_csv = report
-
-    # Read raw results files - .fillna method added to prevent 'nan' values from populating db
-    genesippr_df = pd.read_csv(genesippr_csv).fillna('')
-    gdcs_df = pd.read_csv(gdcs_csv).fillna('')
-    sixteens_df = pd.read_csv(sixteens_csv).fillna('')
-
-    # Pull records into dictionaries
-    genesippr_df_records = genesippr_df.to_dict('records')
-    gdcs_df_records = gdcs_df.to_dict('records')
-    sixteens_df_records = sixteens_df.to_dict('records')
-
-    # Parse O45, O103, etc. for serotype
-    serotype = 'N/A'
-    for key, value in genesippr_df_records[0].items():
-        if key[0][0] == 'O':
-            if value == '':
-                pass
-            else:
-                serotype = key
-
-    # genesippr.csv
-    GenesipprResults.objects.filter(project=Project.objects.get(id=proj_pk)).update(
-        strain=genesippr_df_records[0]['Strain'],
-        genus=genesippr_df_records[0]['Genus'],
-        vt1=genesippr_df_records[0]['VT1'],
-        vt2=genesippr_df_records[0]['VT2'],
-        vt2f=genesippr_df_records[0]['VT2f'],
-        serotype=serotype,
-        o26=genesippr_df_records[0]['O26'],
-        o45=genesippr_df_records[0]['O45'],
-        o103=genesippr_df_records[0]['O103'],
-        o111=genesippr_df_records[0]['O111'],
-        o121=genesippr_df_records[0]['O121'],
-        o145=genesippr_df_records[0]['O145'],
-        o157=genesippr_df_records[0]['O157'],
-        uida=genesippr_df_records[0]['uidA'],
-        eae=genesippr_df_records[0]['eae'],
-        eae_1=genesippr_df_records[0]['eae_1'],
-        igs=genesippr_df_records[0]['IGS'],
-        hlya=genesippr_df_records[0]['hlyA'],
-        inlj=genesippr_df_records[0]['inlJ'],
-        inva=genesippr_df_records[0]['invA'],
-        stn=genesippr_df_records[0]['stn']
-    )
-
-    # GDCS.csv
-    GenesipprResultsGDCS.objects.filter(project=Project.objects.get(id=proj_pk)).update(
-        strain=gdcs_df_records[0]['Strain'],
-        genus=gdcs_df_records[0]['Genus'],
-        matches=gdcs_df_records[0]['Matches'],
-        meancoverage=gdcs_df_records[0]['MeanCoverage'],
-        passfail=gdcs_df_records[0]['Pass/Fail'],
-    )
-
-    # sixteens_full.csv
-    GenesipprResultsSixteens.objects.filter(project=Project.objects.get(id=proj_pk)).update(
-        strain=sixteens_df_records[0]['Strain'],
-        gene=sixteens_df_records[0]['Gene'],
-        percentidentity=sixteens_df_records[0]['PercentIdentity'],
-        genus=sixteens_df_records[0]['Genus'],
-        foldcoverage=sixteens_df_records[0]['FoldCoverage'],
-    )
-
-
-def create_gdcs_chart(gdcs_csv):
-    df = pd.read_csv(gdcs_csv)
-
-    # Drop unnecessary columns
-    to_drop = ['Strain', 'Genus', 'Matches', 'MeanCoverage', 'Pass/Fail']
-    for item in to_drop:
-        df = df.drop(item, 1)
-    df = df.dropna(1)
-
-    # Remove everything after the % character
-    for x in df:
-        df[x] = df[x].apply(lambda x: x.split('%')[0])
-
-    return df
+    print('\nsendsketch.sh container actions complete')
 
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):
@@ -225,7 +68,7 @@ def read_sendsketch_results(sendsketch_result_path, proj_pk):
     # Create list of model instances for bulk create with a list comprehension
     for index in range(len(df_records)):
         if df_records[index]['Rank'] != 'N/A':
-            to_update = SendsketchResults.objects.create(project=Project.objects.get(id=proj_pk))
+            to_update = SendsketchResult.objects.create(sample=Sample.objects.get(id=proj_pk))
             to_update.rank = df_records[index]['Rank']
             to_update.wkid = df_records[index]['WKID']
             to_update.kid = df_records[index]['KID']
@@ -240,4 +83,3 @@ def read_sendsketch_results(sendsketch_result_path, proj_pk):
             to_update.gseqs = df_records[index]['gSeqs']
             to_update.taxname = df_records[index]['taxName']
             to_update.save()
-"""

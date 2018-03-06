@@ -16,4 +16,7 @@ urlpatterns = [
 
     url(r'^sample/(?P<sample_id>\d+)/$',
         views.sample_detail, name="sample_detail"),
+
+    url(r'^sample/(?P<sample_id>\d+)/sendsketch_results_table$',
+        views.sendsketch_results_table, name="sendsketch_results_table"),
 ]

@@ -6,5 +6,6 @@
 
     <p>Details on sample will go here.</p>
 
+    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.id %}">See sendsketch results</a></td>
     <td><a href="{% url 'new_multisample:project_detail' project_id=sample.project.id %}">Return to project</a></td>
 {% endblock %}

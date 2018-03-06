@@ -7,9 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
-from .models import ProjectMulti, Attachment, Sample
+from .models import ProjectMulti, Sample, SendsketchResult
 from .forms import ProjectForm, JobForm
 from . import tasks
+from .table import SendsketchTable
 # Create your views here.
 
 
@@ -90,8 +91,8 @@ def project_detail(request, project_id):
     #     project_id = ProjectMulti.objects.get(pk=project_id)
     # except ProjectMulti.DoesNotExist:
     #     raise Http404("Project ID {} does not exist.".format(project_id))
-
     if request.method == 'POST':
+        # Save the form
         if form.is_valid():
             jobs_to_run = form.cleaned_data.get('jobs')
             print(jobs_to_run)
@@ -100,7 +101,7 @@ def project_detail(request, project_id):
                     file_path = os.path.dirname(str(sample.file_R1))
                     tasks.run_sendsketch(read1=sample.file_R1.name,
                                          read2=sample.file_R2.name,
-                                         proj_pk=project_id,
+                                         sample_pk=sample.pk,
                                          file_path=file_path)
 
     # else:
@@ -118,6 +119,26 @@ def sample_detail(request, sample_id):
     return render(request,
                   'new_multisample/sample_detail.html',
                   {'sample': sample},
+                  )
+
+@login_required
+def sendsketch_results_table(request, sample_id):
+    try:
+        sample = SendsketchResult.objects.filter(sample=Sample.objects.get(pk=sample_id)).exclude(rank='N/A')
+        sendsketch_results_table_ = SendsketchTable(SendsketchResult.objects.all())
+        base_project = Sample.objects.get(pk=sample_id)
+        RequestConfig(request).configure(sendsketch_results_table_)
+    except ObjectDoesNotExist:
+        sendsketch_results_table_ = None
+        sample = None
+        base_project = None
+
+    return render(request,
+                  'new_multisample/sendsketch_results_table.html',
+                  {'sendsketch_results_table': sendsketch_results_table_,
+                   'project': sample,
+                   'base_project': base_project
+                   }
                   )
 
 
