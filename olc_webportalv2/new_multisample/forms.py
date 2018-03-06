@@ -23,5 +23,13 @@ class ProjectForm(BootstrapModelForm):
                   'description',)
 
 
+class JobForm(forms.Form):
+     JOB_CHOICES = (
+         ('genesipprv2', 'GeneSipprV2'),
+         ('sendsketch', 'sendsketch'),
+     )
+
+     jobs = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=JOB_CHOICES)
+
 # class SampleForm(forms.Form):
 #     files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))

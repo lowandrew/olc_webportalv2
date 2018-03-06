@@ -2,9 +2,9 @@ from django.db import models
 from olc_webportalv2.users.models import User
 import os
 from django.core.exceptions import ValidationError
+from multiselectfield import MultiSelectField
 
 # Create your models here.
-# TODO: Add some __str__ dunders so that my admin panel gets  nicer names for things
 
 
 def validate_fastq(fieldfile):
@@ -24,14 +24,43 @@ class ProjectMulti(models.Model):
     description = models.CharField(max_length=200, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.project_title
+
 
 class Sample(models.Model):
-    project = models.ForeignKey(ProjectMulti, on_delete=models.CASCADE)
-    file_R1 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
-    file_R2 = models.FileField(upload_to='', blank=True, validators=[validate_fastq])
-    description = models.CharField(max_length=200, blank=True)
+    project = models.ForeignKey(ProjectMulti, on_delete=models.CASCADE, related_name='samples')
+    file_R1 = models.FileField(upload_to='', blank=True)
+    file_R2 = models.FileField(upload_to='', blank=True)
+    title = models.CharField(max_length=200, blank=True)
+
+    genesippr_status = models.CharField(max_length=128,
+                                        default="Unprocessed")
+    sendsketch_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
+
+    def __str__(self):
+        return self.title
 
 
-class Attachment(models.Model):
-    # project = models.ForeignKey(ProjectMulti, on_delete=models.CASCADE)
-    attachment = models.FileField(upload_to='')
+class SendsketchResult(models.Model):
+    class Meta:
+        verbose_name_plural = "Sendsketch Results"
+
+    def __str__(self):
+        return 'pk {}: Rank {}: Sample {}'.format(self.pk, self.rank, self.sample.pk)
+
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    rank = models.CharField(max_length=8, default='N/A')
+    wkid = models.CharField(max_length=256, default='N/A')
+    kid = models.CharField(max_length=256, default='N/A')
+    ani = models.CharField(max_length=256, default='N/A')
+    complt = models.CharField(max_length=256, default='N/A')
+    contam = models.CharField(max_length=256, default='N/A')
+    matches = models.CharField(max_length=256, default='N/A')
+    unique = models.CharField(max_length=256, default='N/A')
+    nohit = models.CharField(max_length=256, default='N/A')
+    taxid = models.CharField(max_length=256, default='N/A')
+    gsize = models.CharField(max_length=256, default='N/A')
+    gseqs = models.CharField(max_length=256, default='N/A')
+    taxname = models.CharField(max_length=256, default='N/A')
