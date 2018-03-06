@@ -113,6 +113,14 @@ def project_detail(request, project_id):
                   )
 
 
+def sample_detail(request, sample_id):
+    sample = get_object_or_404(Sample, pk=sample_id)
+    return render(request,
+                  'new_multisample/sample_detail.html',
+                  {'sample': sample},
+                  )
+
+
 def find_paired_reads(filelist):
     pairs = list()
     for filename in filelist:

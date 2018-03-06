@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+    <p>Details on sample will go here.</p>
+
+    <td><a href="{% url 'new_multisample:project_detail' project_id=sample.project.id %}">Return to project</a></td>
+{% endblock %}

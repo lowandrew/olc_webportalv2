@@ -13,4 +13,7 @@ urlpatterns = [
     # Upload data for project
     url(r'^project/(?P<project_id>\d+)/upload$',
         views.upload_samples, name="upload_samples"),
+
+    url(r'^sample/(?P<sample_id>\d+)/$',
+        views.sample_detail, name="sample_detail"),
 ]

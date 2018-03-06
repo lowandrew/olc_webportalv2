@@ -24,7 +24,6 @@ class ProjectMulti(models.Model):
     description = models.CharField(max_length=200, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
-
     def __str__(self):
         return self.project_title
 
@@ -34,6 +33,11 @@ class Sample(models.Model):
     file_R1 = models.FileField(upload_to='', blank=True)
     file_R2 = models.FileField(upload_to='', blank=True)
     title = models.CharField(max_length=200, blank=True)
+
+    genesippr_status = models.CharField(max_length=128,
+                                        default="Unprocessed")
+    sendsketch_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
 
     def __str__(self):
         return self.title
