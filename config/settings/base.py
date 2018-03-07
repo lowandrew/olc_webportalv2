@@ -74,7 +74,10 @@ LOCAL_APPS = [
     'background_task',
 
     # Highcharts
-    'highcharts'
+    'highcharts',
+
+    # django-widget-tweaks
+    'widget_tweaks',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

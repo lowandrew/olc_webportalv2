@@ -52,3 +52,4 @@ numpy
 django-pandas
 pandas-highcharts
 django-highcharts
+django-widget-tweaks
