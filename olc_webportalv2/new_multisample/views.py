@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 import os
+import pandas as pd
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
@@ -98,7 +99,10 @@ def project_detail(request, project_id):
                                              sample_pk=sample.pk,
                                              file_path=file_path)
             if 'genesipprv2' in jobs_to_run:
-                print('Found a genesippr job')
+                for sample in project.samples.all():
+                    if sample.genesippr_status != 'Complete':
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
+                tasks.run_genesippr(project_id=project.pk)
             form = JobForm()
 
     else:
@@ -137,6 +141,33 @@ def sendsketch_results_table(request, sample_id):
                    'base_project': base_project
                    }
                   )
+
+
+@login_required
+def display_genesippr_results(request, project_id):
+    project = get_object_or_404(ProjectMulti, pk=project_id)
+    if project.results_created == 'True':
+        genesippr_data = pd.read_csv(project.genesippr_file)
+        genesippr_data_html = genesippr_data.to_html()
+        serosippr_data = pd.read_csv(project.serosippr_file)
+        serosippr_data_html = serosippr_data.to_html()
+        gdcs_data = pd.read_csv(project.gdcs_file)
+        gdcs_data_html = gdcs_data.to_html()
+        sixteens_data = pd.read_csv(project.sixteens_file)
+        sixteens_data_html = sixteens_data.to_html()
+        return render(request,
+                      'new_multisample/display_genesippr_results.html',
+                      {'project': project,
+                       'genesippr_data': genesippr_data_html,
+                       'sixteens_data': sixteens_data_html,
+                       'gdcs_data': gdcs_data_html,
+                       'serosippr_data': serosippr_data_html},
+                      )
+    else:
+        return render(request,
+                      'new_multisample/display_genesippr_results.html',
+                      {'project': project},
+                      )
 
 
 def find_paired_reads(filelist):

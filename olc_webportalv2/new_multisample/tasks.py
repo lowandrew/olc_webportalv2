@@ -10,6 +10,47 @@ from background_task import background
 from .models import ProjectMulti, Sample, SendsketchResult
 
 
+@background(schedule=3)
+def run_genesippr(project_id):
+    print('Running GeneSippr')
+    project = ProjectMulti.objects.get(pk=project_id)
+    genesippr_dir = 'olc_webportalv2/media/genesippr_{}'.format(project.pk)
+    if not os.path.isdir(genesippr_dir):
+        os.makedirs(genesippr_dir)
+    for sample in project.samples.all():
+        if sample.genesippr_status != 'Complete':
+            cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+                                                         genesippr_dir=genesippr_dir)
+            os.system(cmd)
+            cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
+                                                         genesippr_dir=genesippr_dir)
+            os.system(cmd)
+
+    # Run Genesippr
+    cmd = 'docker exec ' \
+          'olcwebportalv2_genesipprv2 ' \
+          'sippr.py ' \
+          '/sequences/{0} ' \
+          '-t /targets ' \
+          '-s /sequences/{0}'.format(os.path.split(genesippr_dir)[-1])
+
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+        ProjectMulti.objects.filter(pk=project_id).update(gdcs_file=os.path.join(genesippr_dir, 'reports', 'GDCS.csv'))
+        ProjectMulti.objects.filter(pk=project_id).update(sixteens_file=os.path.join(genesippr_dir, 'reports', 'sixteens_full.csv'))
+        ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
+        ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
+        ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
+        for sample in project.samples.all():
+            Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
+    except:
+        print('GenesipprV2 failed to execute command.')
+        quit()
+
+    print('\nGenesipprV2 container actions complete')
+
+
 @background(schedule=2)
 def run_sendsketch(read1, read2, sample_pk, file_path):
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))

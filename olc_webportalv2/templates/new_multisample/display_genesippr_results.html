@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+    {% if project.results_created == 'True' %}
+        <div class="container">
+            <h2>GeneSippr Results</h2>
+            {{ genesippr_data | safe }}
+            <h2>SeroSippr Results</h2>
+            {{ serosippr_data | safe }}
+            <h2>GDCS Results</h2>
+            {{ gdcs_data | safe }}
+            <h2>SixteenS Results</h2>
+            {{ sixteens_data | safe }}
+        </div>
+    {% else %}
+       <h1>This project does not yet have results</h1>
+    {% endif %}
+    <script src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">
+
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.dataframe').dataTable();
+        });
+    </script>
+{% endblock %}

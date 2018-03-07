@@ -19,4 +19,8 @@ urlpatterns = [
 
     url(r'^sample/(?P<sample_id>\d+)/sendsketch_results_table$',
         views.sendsketch_results_table, name="sendsketch_results_table"),
+
+    # GeneSippr result tables.
+    url(r'^project/(?P<project_id>\d+)/genesippr_results$',
+        views.display_genesippr_results, name="display_genesippr_results"),
 ]
