@@ -3,20 +3,36 @@
 {% load bootstrap %}
 {% load render_table from django_tables2 %}
 {% block content %}
-
+    <h1>GeneSippr Results For Project {{ project.project_title }}</h1>
+    <br>
     {% if project.results_created == 'True' %}
         <div class="container">
-            <h2>GeneSippr Results</h2>
-            {{ genesippr_data | safe }}
-            <h2>SeroSippr Results</h2>
-            {{ serosippr_data | safe }}
-            <h2>GDCS Results</h2>
-            {{ gdcs_data | safe }}
-            <h2>SixteenS Results</h2>
-            {{ sixteens_data | safe }}
+            <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#genesippr-results"><strong>View GeneSippr Results</strong></button>
+            <div id="genesippr-results" class="collapse">
+                <h2>GeneSippr Results</h2>
+                {{ genesippr_data | safe }}
+            </div>
+            <br>
+{#            <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#serosippr-results"><strong>View SeroSippr Results</strong></button>#}
+{#            <div id="serosippr-results" class="collapse">#}
+{#                <h2>SeroSippr Results</h2>#}
+{#                {{ serosippr_data | safe }}#}
+{#            </div>#}
+{#            <br>#}
+            <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#gdcs-results"><strong>View GDCS Results</strong></button>
+            <div id="gdcs-results" class="collapse">
+                <h2>GDCS Results</h2>
+                {{ gdcs_data | safe }}
+            </div>
+            <br>
+            <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#sixteens-results"><strong>View 16S Results</strong></button>
+            <div id="sixteens-results" class="collapse">
+                <h2>SixteenS Results</h2>
+                {{ sixteens_data | safe }}
+            </div>
         </div>
     {% else %}
-       <h1>This project does not yet have results</h1>
+       <h5>This project does not yet have results</h5>
     {% endif %}
     <script src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">

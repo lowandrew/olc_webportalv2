@@ -18,8 +18,24 @@
         {% for sample in project.samples.all %}
             <tr>
                 <td>{{ sample.title }}</td>
-                <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
-                <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                {% if sample.genesippr_status == 'Processing' %}
+                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-warning border-warning" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                {% elif sample.genesippr_status == 'Unprocessed' %}
+                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                {% elif sample.genesippr_status == 'Complete' %}
+                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                {% else %}
+                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                {% endif %}
+                {% if sample.sendsketch_status == 'Processing' %}
+                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-warning border-warning" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                {% elif sample.sendsketch_status == 'Unprocessed' %}
+                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                {% elif sample.sendsketch_status == 'Complete' %}
+                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                {% else %}
+                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                {% endif %}
                 <td><a href="{% url 'new_multisample:sample_detail' sample_id=sample.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">Details</a></td>
             </tr>
         {% endfor %}
@@ -41,6 +57,15 @@
         $(document).ready(function () {
             $('#sample_table').dataTable();
         });
+
+        //Periodically reload the page if a job status == 'Processing'
+        setInterval(function() {
+            {% for sample in project.samples.all %}
+                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' %}
+                    window.location = window.location.href;
+                {% endif %}
+            {% endfor %}
+        }, 5000); // This reloads the <div> every 5 seconds.
     </script>
 
 {% endblock %}

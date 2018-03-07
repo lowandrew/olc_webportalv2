@@ -114,13 +114,14 @@ def project_detail(request, project_id):
                    'user': request.user},
                   )
 
-
+@login_required
 def sample_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
     return render(request,
                   'new_multisample/sample_detail.html',
                   {'sample': sample},
                   )
+
 
 @login_required
 def sendsketch_results_table(request, sample_id):
@@ -147,21 +148,22 @@ def sendsketch_results_table(request, sample_id):
 def display_genesippr_results(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
     if project.results_created == 'True':
-        genesippr_data = pd.read_csv(project.genesippr_file)
-        genesippr_data_html = genesippr_data.to_html()
-        serosippr_data = pd.read_csv(project.serosippr_file)
-        serosippr_data_html = serosippr_data.to_html()
-        gdcs_data = pd.read_csv(project.gdcs_file)
-        gdcs_data_html = gdcs_data.to_html()
-        sixteens_data = pd.read_csv(project.sixteens_file)
-        sixteens_data_html = sixteens_data.to_html()
+        genesippr_data = pd.read_csv(project.genesippr_file).dropna(axis=1, how='all').fillna('')
+        genesippr_data_html = genesippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        # serosippr_data = pd.read_csv(project.serosippr_file).fillna('')
+        # serosippr_data_html = serosippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        gdcs_data = pd.read_csv(project.gdcs_file).fillna('')
+        gdcs_data = gdcs_data[['Strain', 'Genus', 'Matches', 'MeanCoverage', 'Pass/Fail']]
+        gdcs_data_html = gdcs_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        sixteens_data = pd.read_csv(project.sixteens_file).fillna('')
+        sixteens_data_html = sixteens_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
         return render(request,
                       'new_multisample/display_genesippr_results.html',
                       {'project': project,
                        'genesippr_data': genesippr_data_html,
                        'sixteens_data': sixteens_data_html,
-                       'gdcs_data': gdcs_data_html,
-                       'serosippr_data': serosippr_data_html},
+                       'gdcs_data': gdcs_data_html},
+                       # 'serosippr_data': serosippr_data_html},
                       )
     else:
         return render(request,

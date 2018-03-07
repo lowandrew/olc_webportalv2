@@ -4,6 +4,8 @@
 {% load render_table from django_tables2 %}
 {% block content %}
 
+    <h1>SendSketch Results for Sample {{ base_project.title }}</h1>
+    <br>
     {% if base_project.sendsketch_status == 'Processing' %}
         <pre>Processing...</pre>
         <i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i>
