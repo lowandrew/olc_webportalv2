@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 import os
+import pandas as pd
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
@@ -58,9 +59,7 @@ def upload_samples(request, project_id):
             if item.name.endswith('.fastq') or item.name.endswith('.fastq.gz'):
                 filenames.append(item.name)
                 file_dict[item.name] = item
-            # TODO: Need to parse through names to try to get samples.
-            # instance = Attachment(attachment=item)
-            # instance.save()
+
         pairs = find_paired_reads(filenames)
         for pair in pairs:
             sample_name = pair[0].split('_R1')[0]
@@ -70,13 +69,7 @@ def upload_samples(request, project_id):
                               project=project)
             instance.save()
 
-        form = JobForm(request.POST)
-        return render(request,
-                      'new_multisample/project_detail.html',
-                      {'project': project,
-                       'form': form,
-                       'user': request.user},
-                      )
+        return redirect('new_multisample:project_detail', project_id=project_id)
     else:
         return render(request,
                       'new_multisample/upload_samples.html',
@@ -86,26 +79,34 @@ def upload_samples(request, project_id):
 @login_required
 def project_detail(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
-    form = JobForm(request.POST)
     # try:
     #     project_id = ProjectMulti.objects.get(pk=project_id)
     # except ProjectMulti.DoesNotExist:
     #     raise Http404("Project ID {} does not exist.".format(project_id))
     if request.method == 'POST':
+        form = JobForm(request.POST)
         # Save the form
         if form.is_valid():
             jobs_to_run = form.cleaned_data.get('jobs')
             print(jobs_to_run)
             if 'sendsketch' in jobs_to_run:
                 for sample in project.samples.all():
-                    file_path = os.path.dirname(str(sample.file_R1))
-                    tasks.run_sendsketch(read1=sample.file_R1.name,
-                                         read2=sample.file_R2.name,
-                                         sample_pk=sample.pk,
-                                         file_path=file_path)
+                    if sample.sendsketch_status != 'Complete':
+                        file_path = os.path.dirname(str(sample.file_R1))
+                        Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
+                        tasks.run_sendsketch(read1=sample.file_R1.name,
+                                             read2=sample.file_R2.name,
+                                             sample_pk=sample.pk,
+                                             file_path=file_path)
+            if 'genesipprv2' in jobs_to_run:
+                for sample in project.samples.all():
+                    if sample.genesippr_status != 'Complete':
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
+                tasks.run_genesippr(project_id=project.pk)
+            form = JobForm()
 
-    # else:
-    #     form = SampleForm()
+    else:
+         form = JobForm()
     return render(request,
                   'new_multisample/project_detail.html',
                   {'project': project,
@@ -113,13 +114,14 @@ def project_detail(request, project_id):
                    'user': request.user},
                   )
 
-
+@login_required
 def sample_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
     return render(request,
                   'new_multisample/sample_detail.html',
                   {'sample': sample},
                   )
+
 
 @login_required
 def sendsketch_results_table(request, sample_id):
@@ -140,6 +142,34 @@ def sendsketch_results_table(request, sample_id):
                    'base_project': base_project
                    }
                   )
+
+
+@login_required
+def display_genesippr_results(request, project_id):
+    project = get_object_or_404(ProjectMulti, pk=project_id)
+    if project.results_created == 'True':
+        genesippr_data = pd.read_csv(project.genesippr_file).dropna(axis=1, how='all').fillna('')
+        genesippr_data_html = genesippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        # serosippr_data = pd.read_csv(project.serosippr_file).fillna('')
+        # serosippr_data_html = serosippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        gdcs_data = pd.read_csv(project.gdcs_file).fillna('')
+        gdcs_data = gdcs_data[['Strain', 'Genus', 'Matches', 'MeanCoverage', 'Pass/Fail']]
+        gdcs_data_html = gdcs_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        sixteens_data = pd.read_csv(project.sixteens_file).fillna('')
+        sixteens_data_html = sixteens_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
+        return render(request,
+                      'new_multisample/display_genesippr_results.html',
+                      {'project': project,
+                       'genesippr_data': genesippr_data_html,
+                       'sixteens_data': sixteens_data_html,
+                       'gdcs_data': gdcs_data_html},
+                       # 'serosippr_data': serosippr_data_html},
+                      )
+    else:
+        return render(request,
+                      'new_multisample/display_genesippr_results.html',
+                      {'project': project},
+                      )
 
 
 def find_paired_reads(filelist):

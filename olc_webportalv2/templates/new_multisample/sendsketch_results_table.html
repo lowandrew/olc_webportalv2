@@ -1,11 +1,17 @@
+{% extends 'base.html' %}
+
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
 {% block content %}
 
-<div class="container" id="sendsketch_result">
+    <h1>SendSketch Results for Sample {{ base_project.title }}</h1>
+    <br>
     {% if base_project.sendsketch_status == 'Processing' %}
         <pre>Processing...</pre>
         <i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i>
     {% elif base_project.sendsketch_status == 'Complete' %}
-        <table class="table table-hover table-sm table-responsive table-bordered">
+        <table id="sendsketch_results" class="table table-hover table-sm table-responsive table-bordered">
+        <thead>
             <tr>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Rank according to ANI.">Rank</button></th>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Weighted Kmer IDentity, which is the kmer identity compensating for differences in size.  So, comparing human chr1 to the full human genome would yield 100% WKID but approximately 10% KID.">WKID</button></th>
@@ -21,6 +27,9 @@
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="Number of sequences used in the sketch.">gSeqs</button></th>
                 <th><button class="btn btn-secondary btn-sm btn-block" data-toggle="tooltip" title="NCBI's name for that taxID.  If there is no taxID, the sequence name will be used.">taxName</button></th>
             </tr>
+        </thead>
+
+        <tbody>
             {% for item in project %}
                 <tr align="center">
                     <td>{{ item.rank }}</td>
@@ -48,11 +57,20 @@
                     <td>{{ item.taxname }}</td>
                 </tr>
             {% endfor %}
+        </tbody>
         </table>
+        <script src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">
+
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('#sendsketch_results').dataTable();
+            });
+        </script>
         <pre>*Hover your cursor over the column names to display a full description.</pre>
         {% else %}
         <pre>Not available</pre>
 {% endif %}
-</div>
 
-{% endblock content %}
+{% endblock %}
