@@ -2,15 +2,16 @@
 {#Head container#}
 {% load bootstrap %}
 {% load render_table from django_tables2 %}
+{% load i18n widget_tweaks %}
 {% block content %}
     <h2>{{ project.project_title }}</h2>
-    <table class="table table-hover table-bordered" id="sample_table">
+    <hr>
+    <table class="table table-hover" id="sample_table">
     <thead>
         <tr>
             <th>Sample<i class="fa fa-fw fa-sort"></i> </th>
             <th>GeneSippr Status<i class="fa fa-fw fa-sort"></i></th>
             <th>SendSketch Status<i class="fa fa-fw fa-sort"></i></th>
-            <th></th>
         </tr>
     </thead>
 
@@ -18,36 +19,78 @@
         {% for sample in project.samples.all %}
             <tr>
                 <td>{{ sample.title }}</td>
+
+                {# GENESIPPR #}
                 {% if sample.genesippr_status == 'Processing' %}
-                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-warning border-warning" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                    <td>
+                        <div class="progress">
+                            <button class="btn progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width:100%" >
+                                <span class="justify-content-center d-flex position-absolute w-100" style="font-size: 12pt">
+                                    {{ sample.genesippr_status }}
+                                </span>
+                            </button>
+                        </div>
+                    </td>
+
                 {% elif sample.genesippr_status == 'Unprocessed' %}
-                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                    <td><button class="btn btn-primary" disabled>{{ sample.genesippr_status }}</button></td>
                 {% elif sample.genesippr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
                 {% else %}
                     <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
                 {% endif %}
+
+                {# SENDSKETCH #}
                 {% if sample.sendsketch_status == 'Processing' %}
-                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-warning border-warning" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                    <td>
+                        <div class="progress">
+                            <button class="btn progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width:100%" >
+                                <span class="justify-content-center d-flex position-absolute w-100" style="font-size: 12pt">
+                                    {{ sample.sendsketch_status }}
+                                </span>
+                            </button>
+                        </div>
+                    </td>
+
                 {% elif sample.sendsketch_status == 'Unprocessed' %}
-                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                    <td><button class="btn btn-primary" disabled>{{ sample.sendsketch_status }}</button></td>
                 {% elif sample.sendsketch_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% else %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% endif %}
-                <td><a href="{% url 'new_multisample:sample_detail' sample_id=sample.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">Details</a></td>
             </tr>
+
         {% endfor %}
     </tbody>
     </table>
-    <form method='post'>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type='submit' value='Run Jobs'>
-    </form>
 
-    <td><a href="{% url 'new_multisample:upload_samples' project_id=project.pk %}" class="btn btn-primary btn-block active" role="button" aria-pressed="true">Upload Samples</a></td>
+    <hr>
+
+    {# JOB SELECTION FORM #}
+    <h5>Select Jobs</h5>
+    <div class="form-group">
+        <form class="form-horizontal" role="form" action="." method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <p>{{ field }}</p>
+            {% endfor %}
+
+            {# Submit button #}
+            <div>
+                <button type="submit" class="btn btn-outline-primary ">{% trans "Run selected jobs" %}</button>
+            </div>
+
+        </form>
+    </div>
+
+    <hr>
+
+    <td>
+        <a href="{% url 'new_multisample:upload_samples' project_id=project.pk %}" class="btn btn-primary" role="button" aria-pressed="true">
+            Upload samples
+        </a>
+    </td>
 
     <script src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">

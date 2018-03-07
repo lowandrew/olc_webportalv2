@@ -9,6 +9,7 @@
     <form enctype="multipart/form-data" action="" method="post">
         {% csrf_token %}
         <input type="file" name="files" multiple>
+        <br><br>
         <input type="submit" name="upload" value="Upload">
     </form>
 {% endblock %}
