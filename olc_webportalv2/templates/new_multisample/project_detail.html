@@ -12,6 +12,7 @@
             <th>Sample<i class="fa fa-fw fa-sort"></i> </th>
             <th>GeneSippr Status<i class="fa fa-fw fa-sort"></i></th>
             <th>SendSketch Status<i class="fa fa-fw fa-sort"></i></th>
+            <th></th>
         </tr>
     </thead>
 
@@ -59,6 +60,9 @@
                 {% else %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% endif %}
+
+                {#  Sample delete #}
+                <td><a href="{% url 'new_multisample:sample_remove_confirm' sample_id=sample.pk %}" class="btn btn-danger" role="button" aria-pressed="true">Delete Sample</a></td>
             </tr>
 
         {% endfor %}

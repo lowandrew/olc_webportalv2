@@ -23,4 +23,20 @@ urlpatterns = [
     # GeneSippr result tables.
     url(r'^project/(?P<project_id>\d+)/genesippr_results$',
         views.display_genesippr_results, name="display_genesippr_results"),
+
+    # Remove project
+    url(r'^project/(?P<project_id>\d+)/remove$',
+        views.project_remove, name="project_remove"),
+
+    # Project remove confirm
+    url(r'^project/(?P<project_id>\d+)/remove_confirm$',
+        views.project_remove_confirm, name="project_remove_confirm"),
+
+    # Remove sample
+    url(r'^sample/(?P<sample_id>\d+)/remove$',
+        views.sample_remove, name="sample_remove"),
+
+    # Sample remove confirm
+    url(r'^sample/(?P<sample_id>\d+)/remove_confirm$',
+        views.sample_remove_confirm, name="sample_remove_confirm"),
 ]

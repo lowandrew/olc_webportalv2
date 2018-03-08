@@ -44,6 +44,7 @@
             <th>Date Created <i class="fa fa-fw fa-sort"></i></th>
             <th>Description <i class="fa fa-fw fa-sort"></i></th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
 
@@ -53,7 +54,8 @@
                 <td>{{ id.project_title }}</td>
                 <td>{{ id.date }}</td>
                 <td>{{ id.description }}</td>
-                <td><a href="{% url 'new_multisample:project_detail' project_id=id.pk %}" class="btn btn-primary btn-block active" role="button" aria-pressed="true">Details</a></td>
+                <td><a href="{% url 'new_multisample:project_detail' project_id=id.pk %}" class="btn btn-primary active" role="button" aria-pressed="true">Details</a></td>
+                <td><a href="{% url 'new_multisample:project_remove_confirm' project_id=id.pk %}" class="btn btn-danger active" role="button" aria-pressed="true">Delete Project</a></td>
             </tr>
         {% endfor %}
     </tbody>
