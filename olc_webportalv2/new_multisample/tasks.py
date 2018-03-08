@@ -7,7 +7,7 @@ import os
 from subprocess import Popen
 from background_task import background
 
-from .models import ProjectMulti, Sample, SendsketchResult
+from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, GenesipprResultsSixteens
 
 
 @background(schedule=3)
@@ -42,8 +42,14 @@ def run_genesippr(project_id):
         ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
         ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
         ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
+        genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
         for sample in project.samples.all():
-            Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
+            try:
+                print('Reading GeneSippr result for sample ' + sample.title)
+                read_genesippr_results(genesippr_reports, sample.id)
+                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
+            except:
+                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
     except:
         print('GenesipprV2 failed to execute command.')
         quit()
@@ -123,3 +129,84 @@ def read_sendsketch_results(sendsketch_result_path, proj_pk):
             to_update.gseqs = df_records[index]['gSeqs']
             to_update.taxname = df_records[index]['taxName']
             to_update.save()
+
+
+def read_genesippr_results(genesippr_reports, proj_pk):
+    # Pull out reports
+    genesippr_csv = gdcs_csv = serosippr_csv = sixteens_csv = None
+    # Grab reports from glob list
+    for report in genesippr_reports:
+        if 'genesippr.csv' in report:
+            genesippr_csv = report
+        elif 'GDCS.csv' in report:
+            gdcs_csv = report
+        elif 'serosippr.csv' in report:
+            serosippr_csv = report
+        elif 'sixteens_full' in report:
+            sixteens_csv = report
+
+    # Read raw results files - .fillna method added to prevent 'nan' values from populating db
+    genesippr_df = pd.read_csv(genesippr_csv).fillna('')
+    gdcs_df = pd.read_csv(gdcs_csv).fillna('')
+    sixteens_df = pd.read_csv(sixteens_csv).fillna('')
+
+    # Pull records into dictionaries
+    genesippr_df_records = genesippr_df.to_dict('records')
+    gdcs_df_records = gdcs_df.to_dict('records')
+    sixteens_df_records = sixteens_df.to_dict('records')
+
+    # Parse O45, O103, etc. for serotype
+
+    sample = Sample.objects.get(id=proj_pk)
+    # genesippr.csv
+    for i in range(len(genesippr_df_records)):
+        if genesippr_df_records[i]['Strain'] in sample.title:
+            serotype = 'N/A'
+            for key, value in genesippr_df_records[i].items():
+                if key[0][0] == 'O':
+                    if value == '':
+                        pass
+                    else:
+                        serotype = key
+            GenesipprResults.objects.update_or_create(sample=Sample.objects.get(id=proj_pk),
+                strain=genesippr_df_records[i]['Strain'],
+                genus=genesippr_df_records[i]['Genus'],
+                vt1=genesippr_df_records[i]['VT1'],
+                vt2=genesippr_df_records[i]['VT2'],
+                vt2f=genesippr_df_records[i]['VT2f'],
+                serotype=serotype,
+                o26=genesippr_df_records[i]['O26'],
+                o45=genesippr_df_records[i]['O45'],
+                o103=genesippr_df_records[i]['O103'],
+                o111=genesippr_df_records[i]['O111'],
+                o121=genesippr_df_records[i]['O121'],
+                o145=genesippr_df_records[i]['O145'],
+                o157=genesippr_df_records[i]['O157'],
+                uida=genesippr_df_records[i]['uidA'],
+                eae=genesippr_df_records[i]['eae'],
+                eae_1=genesippr_df_records[i]['eae_1'],
+                igs=genesippr_df_records[i]['IGS'],
+                hlya=genesippr_df_records[i]['hlyA'],
+                inlj=genesippr_df_records[i]['inlJ'],
+                inva=genesippr_df_records[i]['invA'],
+                stn=genesippr_df_records[i]['stn'])
+
+    # GDCS.csv
+    for i in range(len(gdcs_df_records)):
+        if gdcs_df_records[i]['Strain'] in sample.title:
+            GenesipprResultsGDCS.objects.update_or_create(sample=Sample.objects.get(id=proj_pk),
+                strain=gdcs_df_records[i]['Strain'],
+                genus=gdcs_df_records[i]['Genus'],
+                matches=gdcs_df_records[i]['Matches'],
+                meancoverage=gdcs_df_records[i]['MeanCoverage'],
+                passfail=gdcs_df_records[i]['Pass/Fail'])
+
+    # sixteens_full.csv
+    for i in range(len(sixteens_df_records)):
+        if sixteens_df_records[i]['Strain'] in sample.title:
+            GenesipprResultsSixteens.objects.update_or_create(sample=Sample.objects.get(id=proj_pk),
+                strain=sixteens_df_records[i]['Strain'],
+                gene=sixteens_df_records[i]['Gene'],
+                percentidentity=sixteens_df_records[i]['PercentIdentity'],
+                genus=sixteens_df_records[i]['Genus'],
+                foldcoverage=sixteens_df_records[i]['FoldCoverage'])

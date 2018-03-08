@@ -171,6 +171,40 @@ def display_genesippr_results(request, project_id):
                       {'project': project},
                       )
 
+@login_required
+def project_remove(request, project_id):
+    project = get_object_or_404(ProjectMulti, pk=project_id)
+    project.delete()
+    return redirect('new_multisample:new_multisample')
+
+
+@login_required
+def project_remove_confirm(request, project_id):
+    project = get_object_or_404(ProjectMulti, pk=project_id)
+    return render(request,
+                  'new_multisample/confirm_project_delete.html',
+                  {'project': project},
+                  )
+
+
+@login_required
+def sample_remove(request, sample_id):
+    sample = get_object_or_404(Sample, pk=sample_id)
+    project = get_object_or_404(ProjectMulti, pk=sample.project.id)
+    sample.delete()
+    return redirect('new_multisample:project_detail', project_id=project.id)
+
+
+@login_required
+def sample_remove_confirm(request, sample_id):
+    sample = get_object_or_404(Sample, pk=sample_id)
+    project = get_object_or_404(ProjectMulti, pk=sample.project.id)
+    return render(request,
+                  'new_multisample/confirm_sample_delete.html',
+                  {'sample': sample,
+                   'project': project},
+                  )
+
 
 def find_paired_reads(filelist):
     pairs = list()
