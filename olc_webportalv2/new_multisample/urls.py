@@ -24,6 +24,10 @@ urlpatterns = [
     url(r'^project/(?P<project_id>\d+)/genesippr_results$',
         views.display_genesippr_results, name="display_genesippr_results"),
 
+    # Confindr result tables.
+    url(r'^project/(?P<project_id>\d+)/confindr_results$',
+        views.confindr_results_table, name="confindr_results_table"),
+
     # Remove project
     url(r'^project/(?P<project_id>\d+)/remove$',
         views.project_remove, name="project_remove"),

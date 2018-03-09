@@ -79,5 +79,15 @@ services:
       - ./olc_webportalv2/media/:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
 
+  confindr:
+    ports:
+      - "8003:8003"
+    image: "confindr:v0.2"
+    container_name: olcwebportalv2_confindr
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./olc_webportalv2/media/:/sequences
+      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
 
 

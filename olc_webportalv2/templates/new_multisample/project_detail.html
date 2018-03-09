@@ -12,6 +12,7 @@
             <th>Sample<i class="fa fa-fw fa-sort"></i> </th>
             <th>GeneSippr Status<i class="fa fa-fw fa-sort"></i></th>
             <th>SendSketch Status<i class="fa fa-fw fa-sort"></i></th>
+            <th>ConFindr Status<i class="fa fa-fw fa-sort"></i></th>
             <th></th>
         </tr>
     </thead>
@@ -59,6 +60,26 @@
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% else %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                {% endif %}
+
+                {# CONFINDR #}
+                {% if sample.confindr_status == 'Processing' %}
+                    <td>
+                        <div class="progress">
+                            <button class="btn progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width:100%" >
+                                <span class="justify-content-center d-flex position-absolute w-100" style="font-size: 12pt">
+                                    {{ sample.confindr_status }}
+                                </span>
+                            </button>
+                        </div>
+                    </td>
+
+                {% elif sample.confindr_status == 'Unprocessed' %}
+                    <td><button class="btn btn-primary" disabled>{{ sample.confindr_status }}</button></td>
+                {% elif sample.confindr_status == 'Complete' %}
+                    <td><a href="{% url 'new_multisample:confindr_results_table' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.confindr_status }}</a></td>
+                {% else %}
+                    <td>class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true"></td>
                 {% endif %}
 
                 {#  Sample delete #}

@@ -7,7 +7,8 @@ import os
 from subprocess import Popen
 from background_task import background
 
-from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, GenesipprResultsSixteens
+from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, \
+    GenesipprResultsSixteens, ConFindrResults
 
 
 @background(schedule=3)
@@ -90,6 +91,61 @@ def run_sendsketch(read1, read2, sample_pk, file_path):
         Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Error")
 
     print('\nsendsketch.sh container actions complete')
+
+
+@background(schedule=2)
+def run_confindr(project_id):
+    print('Running ConFindr')
+    project = ProjectMulti.objects.get(pk=project_id)
+    confindr_dir = 'olc_webportalv2/media/confindr_{}'.format(project.pk)
+    if not os.path.isdir(confindr_dir):
+        os.makedirs(confindr_dir)
+    # Create a folder with links to the samples we want to run things on.
+    for sample in project.samples.all():
+        if sample.confindr_status != 'Complete':
+            cmd = 'ln -s -r {r1} {confindr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+                                                        confindr_dir=confindr_dir)
+            os.system(cmd)
+            cmd = 'ln -s -r {r2} {confindr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
+                                                        confindr_dir=confindr_dir)
+            os.system(cmd)
+
+    # Will then need to run ConFindr here using docker exec.
+    cmd = 'docker exec ' \
+          'olcwebportalv2_confindr ' \
+          'confindr.py ' \
+          '-i /sequences/confindr_{project_id} ' \
+          '-o /sequences/confindr_results_{project_id} ' \
+          '-d /home/databases'.format(project_id=project_id)
+
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+    except:
+        print('confindr failed to execute command.')
+        quit()
+    # Once it's run, need to read the results.
+    for sample in project.samples.all():
+        try:
+            read_confindr_results(sample_id=sample.id,
+                                  confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
+            Sample.objects.filter(pk=sample.id).update(confindr_status="Complete")
+        except:
+            Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
+    print('ConFindr run complete')
+
+
+def read_confindr_results(sample_id, confindr_csv):
+    sample = Sample.objects.get(pk=sample_id)
+    df = pd.read_csv(confindr_csv)
+    df_records = df.to_dict('records')
+    for i in range(len(df_records)):
+        if df_records[i]['Sample'] in sample.title:
+            ConFindrResults.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
+                                                     strain=df_records[i]['Sample'],
+                                                     genera_present=df_records[i]['Genus'],
+                                                     contam_snvs=df_records[i]['NumContamSNVs'],
+                                                     contaminated=df_records[i]['ContamStatus'])
 
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):

@@ -103,6 +103,12 @@ def project_detail(request, project_id):
                     if sample.genesippr_status != 'Complete':
                         Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
                 tasks.run_genesippr(project_id=project.pk)
+
+            if 'confindr' in jobs_to_run:
+                for sample in project.samples.all():
+                    if sample.confindr_status != 'Complete':
+                        Sample.objects.filter(pk=sample.pk).update(confindr_status="Processing")
+                tasks.run_confindr(project_id=project.pk)
             form = JobForm()
 
     else:
@@ -141,6 +147,15 @@ def sendsketch_results_table(request, sample_id):
                    'project': sample,
                    'base_project': base_project
                    }
+                  )
+
+
+@login_required
+def confindr_results_table(request, project_id):
+    project = get_object_or_404(ProjectMulti, pk=project_id)
+    return render(request,
+                  'new_multisample/confindr_results_table.html',
+                  {'project': project},
                   )
 
 
