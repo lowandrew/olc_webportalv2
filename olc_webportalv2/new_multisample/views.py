@@ -45,24 +45,24 @@ def new_multisample(request):
 @login_required
 def upload_samples(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
-    # try:
-    #     project_id = ProjectMulti.objects.get(pk=project_id)
-    # except ProjectMulti.DoesNotExist:
-    #     raise Http404("Project ID {} does not exist.".format(project_id))
 
     if request.method == 'POST':
         # form = SampleForm(request.POST)
         files = request.FILES.getlist('files')
         filenames = list()
         file_dict = dict()
+        forward_id = request.POST['Forward_ID']
+        reverse_id = request.POST['Reverse_ID']
+        ProjectMulti.objects.filter(pk=project_id).update(forward_id=forward_id)
+        ProjectMulti.objects.filter(pk=project_id).update(reverse_id=forward_id)
         for item in files:
             if item.name.endswith('.fastq') or item.name.endswith('.fastq.gz'):
                 filenames.append(item.name)
                 file_dict[item.name] = item
 
-        pairs = find_paired_reads(filenames)
+        pairs = find_paired_reads(filenames, forward_id=forward_id, reverse_id=reverse_id)
         for pair in pairs:
-            sample_name = pair[0].split('_R1')[0]
+            sample_name = pair[0].split(forward_id)[0]
             instance = Sample(file_R1=file_dict[pair[0]],
                               file_R2=file_dict[pair[1]],
                               title=sample_name,
@@ -73,8 +73,9 @@ def upload_samples(request, project_id):
     else:
         return render(request,
                       'new_multisample/upload_samples.html',
-                      {'project': project}
-                       )
+                      {'project': project},
+                      )
+
 
 @login_required
 def project_detail(request, project_id):
@@ -221,9 +222,9 @@ def sample_remove_confirm(request, sample_id):
                   )
 
 
-def find_paired_reads(filelist):
+def find_paired_reads(filelist, forward_id='_R1', reverse_id='_R2'):
     pairs = list()
     for filename in filelist:
-        if '_R1' in filename and filename.replace('_R1', '_R2') in filelist:
-            pairs.append([filename, filename.replace('_R1', '_R2')])
+        if forward_id in filename and filename.replace(forward_id, reverse_id) in filelist:
+            pairs.append([filename, filename.replace(forward_id, reverse_id)])
     return pairs

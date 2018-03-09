@@ -29,6 +29,8 @@ class ProjectMulti(models.Model):
     serosippr_file = models.CharField(max_length=256, default='')
     sixteens_file = models.CharField(max_length=256, default='')
     results_created = models.CharField(max_length=10, default='False')
+    forward_id = models.CharField(max_length=256, default='_R1')
+    reverse_id = models.CharField(max_length=256, default='_R2')
 
     def __str__(self):
         return self.project_title
