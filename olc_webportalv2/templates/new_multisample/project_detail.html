@@ -35,11 +35,11 @@
                     </td>
 
                 {% elif sample.genesippr_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary" disabled>{{ sample.genesippr_status }}</button></td>
+                    <td><button class="btn btn-primary">{{ sample.genesippr_status }}</button></td>
                 {% elif sample.genesippr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
                 {% else %}
-                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.genesippr_status }}</button></td>
+                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.genesippr_status }}</button></td>
                 {% endif %}
 
                 {# SENDSKETCH #}
@@ -55,11 +55,11 @@
                     </td>
 
                 {% elif sample.sendsketch_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary" disabled>{{ sample.sendsketch_status }}</button></td>
+                    <td><button class="btn btn-primary">{{ sample.sendsketch_status }}</button></td>
                 {% elif sample.sendsketch_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% else %}
-                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.sendsketch_status }}</button></td>
+                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.sendsketch_status }}</button></td>
                 {% endif %}
 
                 {# CONFINDR #}
@@ -75,11 +75,11 @@
                     </td>
 
                 {% elif sample.confindr_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary" disabled>{{ sample.confindr_status }}</button></td>
+                    <td><button class="btn btn-primary">{{ sample.confindr_status }}</button></td>
                 {% elif sample.confindr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:confindr_results_table' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.confindr_status }}</a></td>
                 {% else %}
-                    <td>class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true"></td>
+                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.confindr_status }}</button></td>
                 {% endif %}
 
                 {#  Sample delete #}
