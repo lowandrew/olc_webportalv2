@@ -44,6 +44,8 @@ class Sample(models.Model):
                                         default="Unprocessed")
     sendsketch_status = models.CharField(max_length=128,
                                          default="Unprocessed")
+    confindr_status = models.CharField(max_length=128,
+                                       default="Unprocessed")
 
     def __str__(self):
         return self.title
@@ -172,6 +174,20 @@ class GenesipprResultsGDCS(models.Model):
     matches = models.CharField(max_length=256, default="N/A")
     meancoverage = models.CharField(max_length=128, default="N/A")
     passfail = models.CharField(max_length=16, default="N/A")
+
+
+class ConFindrResults(models.Model):
+    class Meta:
+        verbose_name_plural = 'Confindr Results'
+
+    def __str__(self):
+        return '{}'.format(self.sample)
+
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE, related_name='confindr_results')
+    strain = models.CharField(max_length=256, default="N/A")
+    genera_present = models.CharField(max_length=256, default="N/A")
+    contam_snvs = models.CharField(max_length=256, default="N/A")
+    contaminated = models.CharField(max_length=256, default="N/A")
 
 
 class GenesipprResultsSerosippr(models.Model):
