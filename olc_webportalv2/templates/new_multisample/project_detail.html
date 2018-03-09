@@ -129,7 +129,7 @@
         //Periodically reload the page if a job status == 'Processing'
         setInterval(function() {
             {% for sample in project.samples.all %}
-                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' %}
+                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' or sample.confindr_status == 'Processing'%}
                     window.location = window.location.href;
                 {% endif %}
             {% endfor %}
