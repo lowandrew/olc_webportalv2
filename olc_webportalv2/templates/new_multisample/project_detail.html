@@ -39,7 +39,7 @@
                 {% elif sample.genesippr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
                 {% else %}
-                    <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
+                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.genesippr_status }}</button></td>
                 {% endif %}
 
                 {# SENDSKETCH #}
@@ -59,7 +59,7 @@
                 {% elif sample.sendsketch_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% else %}
-                    <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-danger border-danger" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
+                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.sendsketch_status }}</button></td>
                 {% endif %}
 
                 {# CONFINDR #}
