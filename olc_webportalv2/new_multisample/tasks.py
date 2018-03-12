@@ -11,6 +11,33 @@ from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, Ge
     GenesipprResultsSixteens, ConFindrResults
 
 
+@background(schedule=1)
+def run_geneseekr(fasta_file, sample_pk):
+    print('Running GeneSeekr')
+    output_folder = 'olc_webportalv2/media/sample_{}_geneseekr'.format(sample_pk)
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+
+    cmd = 'ln -s -r {fasta} {output_folder}'.format(fasta=os.path.join('olc_webportalv2/media', fasta_file),
+                                                    output_folder=output_folder)
+    os.system(cmd)
+
+    cmd = 'docker exec ' \
+          'olcwebportalv2_geneseekr ' \
+          'python -m spadespipeline.GeneSeekr ' \
+          '-s /sequences/{output_folder} ' \
+          '-t home ' \
+          '-r /sequences/{output_folder}'.format(output_folder=os.path.split(output_folder)[-1])
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+        Sample.objects.filter(pk=sample_pk).update(genesippr_status="Complete")
+    except:
+        print('GeneSeekr failed to execute command.')
+        Sample.objects.filter(pk=sample_pk).update(genesippr_status="Error")
+        quit()
+
+
 @background(schedule=3)
 def run_genesippr(project_id):
     print('Running GeneSippr')
@@ -18,14 +45,17 @@ def run_genesippr(project_id):
     genesippr_dir = 'olc_webportalv2/media/genesippr_{}'.format(project.pk)
     if not os.path.isdir(genesippr_dir):
         os.makedirs(genesippr_dir)
+    fastq_count = 0
     for sample in project.samples.all():
-        if sample.genesippr_status != 'Complete':
-            cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+        if not sample.file_fasta:
+            if sample.genesippr_status != 'Complete':
+                fastq_count += 1
+                cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+                                                             genesippr_dir=genesippr_dir)
+                os.system(cmd)
+                cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
                                                          genesippr_dir=genesippr_dir)
-            os.system(cmd)
-            cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
-                                                         genesippr_dir=genesippr_dir)
-            os.system(cmd)
+                os.system(cmd)
 
     # Run Genesippr
     cmd = 'docker exec ' \
@@ -36,21 +66,23 @@ def run_genesippr(project_id):
           '-s /sequences/{0}'.format(os.path.split(genesippr_dir)[-1])
 
     try:
-        p = Popen(cmd, shell=True)
-        p.communicate()  # wait until the script completes before resuming the code
-        ProjectMulti.objects.filter(pk=project_id).update(gdcs_file=os.path.join(genesippr_dir, 'reports', 'GDCS.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(sixteens_file=os.path.join(genesippr_dir, 'reports', 'sixteens_full.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
-        genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
-        for sample in project.samples.all():
-            try:
-                print('Reading GeneSippr result for sample ' + sample.title)
-                read_genesippr_results(genesippr_reports, sample.id)
-                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
-            except:
-                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
+        if fastq_count > 0:
+            p = Popen(cmd, shell=True)
+            p.communicate()  # wait until the script completes before resuming the code
+            ProjectMulti.objects.filter(pk=project_id).update(gdcs_file=os.path.join(genesippr_dir, 'reports', 'GDCS.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(sixteens_file=os.path.join(genesippr_dir, 'reports', 'sixteens_full.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
+            genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
+            for sample in project.samples.all():
+                if not sample.file_fasta:
+                    try:
+                        print('Reading GeneSippr result for sample ' + sample.title)
+                        read_genesippr_results(genesippr_reports, sample.id)
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
+                    except:
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
     except:
         print('GenesipprV2 failed to execute command.')
         quit()
@@ -63,7 +95,7 @@ def run_sendsketch(read1, read2, sample_pk, file_path):
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
     output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)
-    # Run Genesippr
+    # Run Sendsketch
     cmd = 'docker exec ' \
           'olcwebportalv2_bbmap ' \
           'sendsketch.sh ' \
@@ -102,7 +134,7 @@ def run_confindr(project_id):
         os.makedirs(confindr_dir)
     # Create a folder with links to the samples we want to run things on.
     for sample in project.samples.all():
-        if sample.confindr_status != 'Complete':
+        if sample.confindr_status != 'Complete' and not sample.file_fasta:
             cmd = 'ln -s -r {r1} {confindr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
                                                         confindr_dir=confindr_dir)
             os.system(cmd)
@@ -126,13 +158,48 @@ def run_confindr(project_id):
         quit()
     # Once it's run, need to read the results.
     for sample in project.samples.all():
-        try:
-            read_confindr_results(sample_id=sample.id,
-                                  confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
-            Sample.objects.filter(pk=sample.id).update(confindr_status="Complete")
-        except:
-            Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
+        if not sample.file_fasta:
+            try:
+                read_confindr_results(sample_id=sample.id,
+                                      confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
+                Sample.objects.filter(pk=sample.id).update(confindr_status="Complete")
+            except:
+                Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
     print('ConFindr run complete')
+
+
+@background(schedule=2)
+def run_sendsketch_fasta(fasta_file, sample_pk):
+    print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
+
+    output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)
+    # Run Sendsketch
+    cmd = 'docker exec ' \
+          'olcwebportalv2_bbmap ' \
+          'sendsketch.sh ' \
+          'in=/sequences/{0} ' \
+          'out=/sequences/{1} ' \
+          'reads=400k ' \
+          'overwrite=true'.format(fasta_file, output_filename)
+
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+    except:
+        print('sendsketch.sh failed to execute command.')
+        quit()
+
+    sendsketch_result_path = 'olc_webportalv2/media/{}'.format(output_filename)
+
+    try:
+        read_sendsketch_results(sendsketch_result_path, proj_pk=sample_pk)
+        print('Successfully read sendsketch results from {}'.format(sendsketch_result_path))
+        Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Complete")
+    except:
+        print('Failed to read sendsketch results from {}'.format(sendsketch_result_path))
+        Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Error")
+
+    print('\nsendsketch.sh container actions complete')
 
 
 def read_confindr_results(sample_id, confindr_csv):

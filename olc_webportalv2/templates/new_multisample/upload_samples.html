@@ -50,7 +50,7 @@
         var reverse_id = document.getElementsByName('Reverse_ID')[0].value;
         if(!e.target.files) return;
 
-        selDiv.innerHTML = "<h4> Read Pairings </h4>";
+        selDiv.innerHTML = "<h4> Read Pairings: </h4>";
         var filenames = [];
         var paired_files = [];
         var files = e.target.files;
@@ -69,15 +69,21 @@
                 }
             }
         }
-        selDiv.innerHTML += "</br> <h4>Unpaired Reads</h4>";
+        selDiv.innerHTML += "</br> <h4>Unpaired Reads:</h4>";
         for(var k=0; k<filenames.length;k++) {
             var a = filenames[k];
             var in_array = paired_files.indexOf(a);
-            if(in_array < 0) {
+            if(in_array < 0 && !filenames[k].includes('.fasta')) {
                 selDiv.innerHTML += "<b>" + a + "</b> <br/>";
             }
         }
 
+        selDiv.innerHTML += "</br> <h4>FASTA Files:</h4>";
+        for(var k=0; k<filenames.length;k++){
+            if(filenames[k].endsWith('.fasta') || filenames[k].endsWith('.fa')){
+                selDiv.innerHTML += "<b>" + filenames[k] + "</b> <br/>";
+            }
+        }
 
     }
     </script>

@@ -51,6 +51,8 @@ def upload_samples(request, project_id):
         files = request.FILES.getlist('files')
         filenames = list()
         file_dict = dict()
+        fasta_filenames = list()
+        fasta_file_dict = dict()
         forward_id = request.POST['Forward_ID']
         reverse_id = request.POST['Reverse_ID']
         ProjectMulti.objects.filter(pk=project_id).update(forward_id=forward_id)
@@ -60,11 +62,23 @@ def upload_samples(request, project_id):
                 filenames.append(item.name)
                 file_dict[item.name] = item
 
+            elif item.name.endswith('.fasta') or item.name.endswith('.fa'):  # TODO: Add more extensions
+                fasta_filenames.append(item.name)
+                fasta_file_dict[item.name] = item
+
         pairs = find_paired_reads(filenames, forward_id=forward_id, reverse_id=reverse_id)
         for pair in pairs:
             sample_name = pair[0].split(forward_id)[0]
             instance = Sample(file_R1=file_dict[pair[0]],
                               file_R2=file_dict[pair[1]],
+                              title=sample_name,
+                              project=project)
+            instance.save()
+
+        # Also upload FASTA files.
+        for fasta in fasta_filenames:
+            sample_name = fasta.split('.')[0]
+            instance = Sample(file_fasta=fasta_file_dict[fasta],
                               title=sample_name,
                               project=project)
             instance.save()
@@ -93,21 +107,32 @@ def project_detail(request, project_id):
             if 'sendsketch' in jobs_to_run:
                 for sample in project.samples.all():
                     if sample.sendsketch_status != 'Complete':
-                        file_path = os.path.dirname(str(sample.file_R1))
-                        Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
-                        tasks.run_sendsketch(read1=sample.file_R1.name,
-                                             read2=sample.file_R2.name,
-                                             sample_pk=sample.pk,
-                                             file_path=file_path)
+                        if sample.file_fasta:
+                            Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
+                            tasks.run_sendsketch_fasta(fasta_file=sample.file_fasta.name,
+                                                       sample_pk=sample.pk)
+                        else:
+                            file_path = os.path.dirname(str(sample.file_R1))
+                            Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
+                            tasks.run_sendsketch(read1=sample.file_R1.name,
+                                                 read2=sample.file_R2.name,
+                                                 sample_pk=sample.pk,
+                                                 file_path=file_path)
+
             if 'genesipprv2' in jobs_to_run:
                 for sample in project.samples.all():
                     if sample.genesippr_status != 'Complete':
                         Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
                 tasks.run_genesippr(project_id=project.pk)
+                # Also get GeneSeekr going.
+                for sample in project.samples.all():
+                    if sample.file_fasta:
+                        tasks.run_geneseekr(fasta_file=sample.file_fasta.name,
+                                            sample_pk=sample.pk)
 
             if 'confindr' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.confindr_status != 'Complete':
+                    if sample.confindr_status != 'Complete' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(confindr_status="Processing")
                 tasks.run_confindr(project_id=project.pk)
             form = JobForm()

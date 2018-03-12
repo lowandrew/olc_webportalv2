@@ -90,4 +90,16 @@ services:
       - ./olc_webportalv2/media/:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
 
+  geneseekr:
+    ports:
+      - "8004:8004"
+    image: "olcwebportalv2_geneseekr:v0.1"
+    container_name: olcwebportalv2_geneseekr
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./olc_webportalv2/media/:/sequences
+      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
+
+
 

@@ -40,6 +40,7 @@ class Sample(models.Model):
     project = models.ForeignKey(ProjectMulti, on_delete=models.CASCADE, related_name='samples')
     file_R1 = models.FileField(upload_to='', blank=True)
     file_R2 = models.FileField(upload_to='', blank=True)
+    file_fasta = models.FileField(upload_to='', blank=True)
     title = models.CharField(max_length=200, blank=True)
 
     genesippr_status = models.CharField(max_length=128,
