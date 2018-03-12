@@ -36,7 +36,8 @@ def run_geneseekr(fasta_file, sample_pk):
         print('GeneSeekr failed to execute command.')
         Sample.objects.filter(pk=sample_pk).update(genesippr_status="Error")
         quit()
-
+    read_geneseekr_results(sample_id=sample_pk,
+                           output_folder=output_folder)
 
 @background(schedule=3)
 def run_genesippr(project_id):
@@ -202,12 +203,70 @@ def run_sendsketch_fasta(fasta_file, sample_pk):
     print('\nsendsketch.sh container actions complete')
 
 
+def read_geneseekr_results(sample_id, output_folder):
+    geneseekr_csv = glob.glob(os.path.join(output_folder, '*csv'))[0]
+
+    gene_presence_dict = dict()
+    with open(geneseekr_csv) as infile:
+        lines = infile.readlines()
+    for line in lines:
+        x = line.split()
+        gene = x[1].split('_')[0]
+        matches = float(x[2])
+        gaps = float(x[4])
+        length = float(x[7])
+        percent_id = 100.0 * ((matches - gaps)/(length))
+        if gene.upper() not in gene_presence_dict:
+            gene_presence_dict[gene.upper()] = percent_id
+    escherichia_genes = ['EAE', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2', 'VT2F', 'UIDA']
+    listeria_genes = ['HLYA', 'IGS', 'INLJ']
+    salmonella_genes = ['INVA', 'STN']
+    sample_genus = 'Unknown'
+    # Figure out what genes are present and at what percent identity.
+    for gene in gene_presence_dict:
+        if gene.upper() in escherichia_genes:
+            sample_genus = 'Escherichia'
+        elif gene.upper() in listeria_genes:
+            sample_genus = 'Listeria'
+        elif gene.upper() in salmonella_genes:
+            sample_genus = 'Salmonella'
+
+    model_fields_to_update = ['SEROTYPE', 'O26', 'O45', 'O103',
+                              'O111', 'O121', 'O145', 'O157',
+                              'UIDA', 'EAE', 'EAE_1', 'VT1', 'VT2', 'VT2F', 'IGS', 'HLYA', 'INLJ', 'INVA', 'STN']
+    for field in model_fields_to_update:
+        if field not in gene_presence_dict:
+            gene_presence_dict[field] = 'N/A'
+    sample = Sample.objects.get(id=sample_id)
+    GenesipprResults.objects.update_or_create(sample=Sample.objects.get(id=sample_id),
+                strain=sample.title,
+                genus=sample_genus,
+                vt1=gene_presence_dict['VT1'],
+                vt2=gene_presence_dict['VT2'],
+                vt2f=gene_presence_dict['VT2F'],
+                o26=gene_presence_dict['O26'],
+                o45=gene_presence_dict['O45'],
+                o103=gene_presence_dict['O103'],
+                o111=gene_presence_dict['O111'],
+                o121=gene_presence_dict['O121'],
+                o145=gene_presence_dict['O145'],
+                o157=gene_presence_dict['O157'],
+                uida=gene_presence_dict['UIDA'],
+                eae=gene_presence_dict['EAE'],
+                eae_1=gene_presence_dict['EAE_1'],
+                igs=gene_presence_dict['IGS'],
+                hlya=gene_presence_dict['HLYA'],
+                inlj=gene_presence_dict['INLJ'],
+                inva=gene_presence_dict['INVA'],
+                stn=gene_presence_dict['STN'])
+
+
 def read_confindr_results(sample_id, confindr_csv):
     sample = Sample.objects.get(pk=sample_id)
     df = pd.read_csv(confindr_csv)
     df_records = df.to_dict('records')
     for i in range(len(df_records)):
-        if df_records[i]['Sample'] in sample.title:
+        if sample.title in df_records[i]['Sample']:
             ConFindrResults.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
                                                      strain=df_records[i]['Sample'],
                                                      genera_present=df_records[i]['Genus'],
@@ -292,7 +351,7 @@ def read_genesippr_results(genesippr_reports, proj_pk):
                     else:
                         serotype = key
             GenesipprResults.objects.update_or_create(sample=Sample.objects.get(id=proj_pk),
-                strain=genesippr_df_records[i]['Strain'],
+                strain=sample.title,
                 genus=genesippr_df_records[i]['Genus'],
                 vt1=genesippr_df_records[i]['VT1'],
                 vt2=genesippr_df_records[i]['VT2'],
