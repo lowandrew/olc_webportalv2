@@ -23,9 +23,6 @@
     </form>
     <br>
     <br>
-
-
-
      {# Javascript to display the files you're going to upload, as shown at #}
      {# https://www.raymondcamden.com/2013/09/10/Adding-a-file-display-list-to-a-multifile-upload-HTML-control/ #}
     <script type="text/javascript">
@@ -65,7 +62,12 @@
                 if(index > -1 && f != potential_reverse){
                     paired_files.push(f);
                     paired_files.push(potential_reverse);
-                    selDiv.innerHTML += "<b>" + filenames[j] + "</b> is paired with <b>" + potential_reverse + "</b><br/>";
+                    if(files[j].size < 5000000 || files[index].size < 5000000) {
+                        selDiv.innerHTML += "<b style=\"color:red\">" + filenames[j] + "</b> is paired with <b style=\"color:red\">" + potential_reverse + "</b><br/>";
+                    }
+                    else{
+                        selDiv.innerHTML += "<b style=\"color:green\">" + filenames[j] + "</b> is paired with <b style=\"color:green\">" + potential_reverse + "</b><br/>";
+                    }
                 }
             }
         }
@@ -74,17 +76,19 @@
             var a = filenames[k];
             var in_array = paired_files.indexOf(a);
             if(in_array < 0 && !filenames[k].includes('.fasta')) {
-                selDiv.innerHTML += "<b>" + a + "</b> <br/>";
+                selDiv.innerHTML += "<b style=\"color:red\">" + a + "</b> <br/>";
             }
         }
 
         selDiv.innerHTML += "</br> <h4>FASTA Files:</h4>";
         for(var k=0; k<filenames.length;k++){
             if(filenames[k].endsWith('.fasta') || filenames[k].endsWith('.fa')){
-                selDiv.innerHTML += "<b>" + filenames[k] + "</b> <br/>";
+                selDiv.innerHTML += "<b style=\"color:green\">" + filenames[k] + "</b> <br/>";
             }
         }
-
+        selDiv.innerHTML += " <br>Filenames in <b style=\"color:green\"> green </b>  will be uploaded. Files in " +
+            " <b style=\"color:red\"> red </b> are either too small to be valid FASTQ files or unpaired, and will not be uploaded."
+        {# TODO: This color coding works, but is very ugly. Make this into a nice pretty table at some point. #}
     }
     </script>
 {% endblock %}

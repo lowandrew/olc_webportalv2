@@ -31,13 +31,17 @@ def run_geneseekr(fasta_file, sample_pk):
     try:
         p = Popen(cmd, shell=True)
         p.communicate()  # wait until the script completes before resuming the code
-        Sample.objects.filter(pk=sample_pk).update(genesippr_status="Complete")
+        if len(glob.glob(os.path.join(output_folder, '*csv'))) > 0:
+            Sample.objects.filter(pk=sample_pk).update(genesippr_status="Complete")
+        else:
+            Sample.objects.filter(pk=sample_pk).update(genesippr_status="Error")
     except:
         print('GeneSeekr failed to execute command.')
         Sample.objects.filter(pk=sample_pk).update(genesippr_status="Error")
         quit()
     read_geneseekr_results(sample_id=sample_pk,
                            output_folder=output_folder)
+
 
 @background(schedule=3)
 def run_genesippr(project_id):
@@ -163,7 +167,6 @@ def run_confindr(project_id):
             try:
                 read_confindr_results(sample_id=sample.id,
                                       confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
-                Sample.objects.filter(pk=sample.id).update(confindr_status="Complete")
             except:
                 Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
     print('ConFindr run complete')
@@ -259,6 +262,12 @@ def read_geneseekr_results(sample_id, output_folder):
                 inlj=gene_presence_dict['INLJ'],
                 inva=gene_presence_dict['INVA'],
                 stn=gene_presence_dict['STN'])
+    GenesipprResultsGDCS.objects.update_or_create(sample=Sample.objects.get(id=sample_id),
+                                                  strain=sample.title,
+                                                  genus='GDCS analysis not available for FASTA files.')
+    GenesipprResultsSixteens.objects.update_or_create(sample=Sample.objects.get(id=sample_id),
+                                                      strain=sample.title,
+                                                      genus='16S analysis not available for FASTA files.')
 
 
 def read_confindr_results(sample_id, confindr_csv):
@@ -267,11 +276,15 @@ def read_confindr_results(sample_id, confindr_csv):
     df_records = df.to_dict('records')
     for i in range(len(df_records)):
         if sample.title in df_records[i]['Sample']:
-            ConFindrResults.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
-                                                     strain=df_records[i]['Sample'],
-                                                     genera_present=df_records[i]['Genus'],
-                                                     contam_snvs=df_records[i]['NumContamSNVs'],
-                                                     contaminated=df_records[i]['ContamStatus'])
+            if df_records[i]['Genus'] == 'Error processing sample':
+                Sample.objects.filter(pk=sample_id).update(confindr_status="Error")
+            else:
+                ConFindrResults.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
+                                                         strain=df_records[i]['Sample'],
+                                                         genera_present=df_records[i]['Genus'],
+                                                         contam_snvs=df_records[i]['NumContamSNVs'],
+                                                         contaminated=df_records[i]['ContamStatus'])
+                Sample.objects.filter(pk=sample_id).update(confindr_status="Complete")
 
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):

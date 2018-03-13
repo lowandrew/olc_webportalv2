@@ -39,24 +39,6 @@ services:
   redis:
     image: redis:3.0
 
-  celeryworker:
-#     https://github.com/docker/compose/issues/3220
-    <<: *django
-    depends_on:
-      - redis
-      - postgres
-    ports: []
-    command: /start-celeryworker.sh
-
-  celerybeat:
-#     https://github.com/docker/compose/issues/3220
-    <<: *django
-    depends_on:
-      - redis
-      - postgres
-    ports: []
-    command: /start-celerybeat.sh
-
   genesippr:
     ports:
       - "8001:8001"

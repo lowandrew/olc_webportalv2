@@ -45,7 +45,6 @@ def new_multisample(request):
 @login_required
 def upload_samples(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
-
     if request.method == 'POST':
         # form = SampleForm(request.POST)
         files = request.FILES.getlist('files')
@@ -73,7 +72,8 @@ def upload_samples(request, project_id):
                               file_R2=file_dict[pair[1]],
                               title=sample_name,
                               project=project)
-            instance.save()
+            if instance.file_R1.size >= 5000000 and instance.file_R2.size >= 5000000:
+                instance.save()
 
         # Also upload FASTA files.
         for fasta in fasta_filenames:
