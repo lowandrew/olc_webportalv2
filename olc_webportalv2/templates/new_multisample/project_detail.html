@@ -13,6 +13,7 @@
             <th>GeneSippr Status<i class="fa fa-fw fa-sort"></i></th>
             <th>SendSketch Status<i class="fa fa-fw fa-sort"></i></th>
             <th>ConFindr Status<i class="fa fa-fw fa-sort"></i></th>
+            <th>Data Type<i class="fa fa-fw fa-sort"></i></th>
             <th></th>
         </tr>
     </thead>
@@ -63,7 +64,9 @@
                 {% endif %}
 
                 {# CONFINDR #}
-                {% if sample.confindr_status == 'Processing' %}
+                {% if sample.file_fasta %}
+                    <td><button class="btn btn-secondary">Unavailable</button></td>
+                {% elif sample.confindr_status == 'Processing' %}
                     <td>
                         <div class="progress">
                             <button class="btn progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width:100%" >
@@ -82,6 +85,12 @@
                     <td><button class="btn btn-primary bg-danger border-danger">{{ sample.confindr_status }}</button></td>
                 {% endif %}
 
+                {# Data type #}
+                {% if sample.file_fasta %}
+                    <td><button class="btn btn-secondary">FASTA</button></td>
+                {% else %}
+                    <td><button class="btn btn-dark">FASTQ</button></td>
+                {% endif %}
                 {#  Sample delete #}
                 <td><a href="{% url 'new_multisample:sample_remove_confirm' sample_id=sample.pk %}" class="btn btn-danger" role="button" aria-pressed="true">Delete Sample</a></td>
             </tr>
@@ -129,7 +138,7 @@
         //Periodically reload the page if a job status == 'Processing'
         setInterval(function() {
             {% for sample in project.samples.all %}
-                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' %}
+                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' or sample.confindr_status == 'Processing'%}
                     window.location = window.location.href;
                 {% endif %}
             {% endfor %}

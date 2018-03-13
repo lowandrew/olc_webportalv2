@@ -11,6 +11,38 @@ from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, Ge
     GenesipprResultsSixteens, ConFindrResults
 
 
+@background(schedule=1)
+def run_geneseekr(fasta_file, sample_pk):
+    print('Running GeneSeekr')
+    output_folder = 'olc_webportalv2/media/sample_{}_geneseekr'.format(sample_pk)
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+
+    cmd = 'ln -s -r {fasta} {output_folder}'.format(fasta=os.path.join('olc_webportalv2/media', fasta_file),
+                                                    output_folder=output_folder)
+    os.system(cmd)
+
+    cmd = 'docker exec ' \
+          'olcwebportalv2_geneseekr ' \
+          'python -m spadespipeline.GeneSeekr ' \
+          '-s /sequences/{output_folder} ' \
+          '-t home ' \
+          '-r /sequences/{output_folder}'.format(output_folder=os.path.split(output_folder)[-1])
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+        if len(glob.glob(os.path.join(output_folder, '*csv'))) > 0:
+            Sample.objects.filter(pk=sample_pk).update(genesippr_status="Complete")
+        else:
+            Sample.objects.filter(pk=sample_pk).update(genesippr_status="Error")
+    except:
+        print('GeneSeekr failed to execute command.')
+        Sample.objects.filter(pk=sample_pk).update(genesippr_status="Error")
+        quit()
+    read_geneseekr_results(sample_id=sample_pk,
+                           output_folder=output_folder)
+
+
 @background(schedule=3)
 def run_genesippr(project_id):
     print('Running GeneSippr')
@@ -18,14 +50,17 @@ def run_genesippr(project_id):
     genesippr_dir = 'olc_webportalv2/media/genesippr_{}'.format(project.pk)
     if not os.path.isdir(genesippr_dir):
         os.makedirs(genesippr_dir)
+    fastq_count = 0
     for sample in project.samples.all():
-        if sample.genesippr_status != 'Complete':
-            cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+        if not sample.file_fasta:
+            if sample.genesippr_status != 'Complete':
+                fastq_count += 1
+                cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+                                                             genesippr_dir=genesippr_dir)
+                os.system(cmd)
+                cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
                                                          genesippr_dir=genesippr_dir)
-            os.system(cmd)
-            cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
-                                                         genesippr_dir=genesippr_dir)
-            os.system(cmd)
+                os.system(cmd)
 
     # Run Genesippr
     cmd = 'docker exec ' \
@@ -36,21 +71,23 @@ def run_genesippr(project_id):
           '-s /sequences/{0}'.format(os.path.split(genesippr_dir)[-1])
 
     try:
-        p = Popen(cmd, shell=True)
-        p.communicate()  # wait until the script completes before resuming the code
-        ProjectMulti.objects.filter(pk=project_id).update(gdcs_file=os.path.join(genesippr_dir, 'reports', 'GDCS.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(sixteens_file=os.path.join(genesippr_dir, 'reports', 'sixteens_full.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
-        ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
-        genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
-        for sample in project.samples.all():
-            try:
-                print('Reading GeneSippr result for sample ' + sample.title)
-                read_genesippr_results(genesippr_reports, sample.id)
-                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
-            except:
-                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
+        if fastq_count > 0:
+            p = Popen(cmd, shell=True)
+            p.communicate()  # wait until the script completes before resuming the code
+            ProjectMulti.objects.filter(pk=project_id).update(gdcs_file=os.path.join(genesippr_dir, 'reports', 'GDCS.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(sixteens_file=os.path.join(genesippr_dir, 'reports', 'sixteens_full.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
+            ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
+            genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
+            for sample in project.samples.all():
+                if not sample.file_fasta:
+                    try:
+                        print('Reading GeneSippr result for sample ' + sample.title)
+                        read_genesippr_results(genesippr_reports, sample.id)
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
+                    except:
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
     except:
         print('GenesipprV2 failed to execute command.')
         quit()
@@ -63,7 +100,7 @@ def run_sendsketch(read1, read2, sample_pk, file_path):
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
     output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)
-    # Run Genesippr
+    # Run Sendsketch
     cmd = 'docker exec ' \
           'olcwebportalv2_bbmap ' \
           'sendsketch.sh ' \
@@ -102,7 +139,7 @@ def run_confindr(project_id):
         os.makedirs(confindr_dir)
     # Create a folder with links to the samples we want to run things on.
     for sample in project.samples.all():
-        if sample.confindr_status != 'Complete':
+        if sample.confindr_status != 'Complete' and not sample.file_fasta:
             cmd = 'ln -s -r {r1} {confindr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
                                                         confindr_dir=confindr_dir)
             os.system(cmd)
@@ -126,13 +163,111 @@ def run_confindr(project_id):
         quit()
     # Once it's run, need to read the results.
     for sample in project.samples.all():
-        try:
-            read_confindr_results(sample_id=sample.id,
-                                  confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
-            Sample.objects.filter(pk=sample.id).update(confindr_status="Complete")
-        except:
-            Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
+        if not sample.file_fasta:
+            try:
+                read_confindr_results(sample_id=sample.id,
+                                      confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
+            except:
+                Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
     print('ConFindr run complete')
+
+
+@background(schedule=2)
+def run_sendsketch_fasta(fasta_file, sample_pk):
+    print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
+
+    output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)
+    # Run Sendsketch
+    cmd = 'docker exec ' \
+          'olcwebportalv2_bbmap ' \
+          'sendsketch.sh ' \
+          'in=/sequences/{0} ' \
+          'out=/sequences/{1} ' \
+          'reads=400k ' \
+          'overwrite=true'.format(fasta_file, output_filename)
+
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+    except:
+        print('sendsketch.sh failed to execute command.')
+        quit()
+
+    sendsketch_result_path = 'olc_webportalv2/media/{}'.format(output_filename)
+
+    try:
+        read_sendsketch_results(sendsketch_result_path, proj_pk=sample_pk)
+        print('Successfully read sendsketch results from {}'.format(sendsketch_result_path))
+        Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Complete")
+    except:
+        print('Failed to read sendsketch results from {}'.format(sendsketch_result_path))
+        Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Error")
+
+    print('\nsendsketch.sh container actions complete')
+
+
+def read_geneseekr_results(sample_id, output_folder):
+    geneseekr_csv = glob.glob(os.path.join(output_folder, '*csv'))[0]
+
+    gene_presence_dict = dict()
+    with open(geneseekr_csv) as infile:
+        lines = infile.readlines()
+    for line in lines:
+        x = line.split()
+        gene = x[1].split('_')[0]
+        matches = float(x[2])
+        gaps = float(x[4])
+        length = float(x[7])
+        percent_id = 100.0 * ((matches - gaps)/(length))
+        if gene.upper() not in gene_presence_dict:
+            gene_presence_dict[gene.upper()] = percent_id
+    escherichia_genes = ['EAE', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2', 'VT2F', 'UIDA']
+    listeria_genes = ['HLYA', 'IGS', 'INLJ']
+    salmonella_genes = ['INVA', 'STN']
+    sample_genus = 'Unknown'
+    # Figure out what genes are present and at what percent identity.
+    for gene in gene_presence_dict:
+        if gene.upper() in escherichia_genes:
+            sample_genus = 'Escherichia'
+        elif gene.upper() in listeria_genes:
+            sample_genus = 'Listeria'
+        elif gene.upper() in salmonella_genes:
+            sample_genus = 'Salmonella'
+
+    model_fields_to_update = ['SEROTYPE', 'O26', 'O45', 'O103',
+                              'O111', 'O121', 'O145', 'O157',
+                              'UIDA', 'EAE', 'EAE_1', 'VT1', 'VT2', 'VT2F', 'IGS', 'HLYA', 'INLJ', 'INVA', 'STN']
+    for field in model_fields_to_update:
+        if field not in gene_presence_dict:
+            gene_presence_dict[field] = 'N/A'
+    sample = Sample.objects.get(id=sample_id)
+    GenesipprResults.objects.update_or_create(sample=Sample.objects.get(id=sample_id),
+                strain=sample.title,
+                genus=sample_genus,
+                vt1=gene_presence_dict['VT1'],
+                vt2=gene_presence_dict['VT2'],
+                vt2f=gene_presence_dict['VT2F'],
+                o26=gene_presence_dict['O26'],
+                o45=gene_presence_dict['O45'],
+                o103=gene_presence_dict['O103'],
+                o111=gene_presence_dict['O111'],
+                o121=gene_presence_dict['O121'],
+                o145=gene_presence_dict['O145'],
+                o157=gene_presence_dict['O157'],
+                uida=gene_presence_dict['UIDA'],
+                eae=gene_presence_dict['EAE'],
+                eae_1=gene_presence_dict['EAE_1'],
+                igs=gene_presence_dict['IGS'],
+                hlya=gene_presence_dict['HLYA'],
+                inlj=gene_presence_dict['INLJ'],
+                inva=gene_presence_dict['INVA'],
+                stn=gene_presence_dict['STN'])
+    GenesipprResultsGDCS.objects.update_or_create(sample=Sample.objects.get(id=sample_id),
+                                                  strain=sample.title,
+                                                  genus='GDCS analysis not available for FASTA files.')
+    GenesipprResultsSixteens.objects.update_or_create(sample=Sample.objects.get(id=sample_id),
+                                                      strain=sample.title,
+                                                      genus='16S analysis not available for FASTA files.')
 
 
 def read_confindr_results(sample_id, confindr_csv):
@@ -140,12 +275,16 @@ def read_confindr_results(sample_id, confindr_csv):
     df = pd.read_csv(confindr_csv)
     df_records = df.to_dict('records')
     for i in range(len(df_records)):
-        if df_records[i]['Sample'] in sample.title:
-            ConFindrResults.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
-                                                     strain=df_records[i]['Sample'],
-                                                     genera_present=df_records[i]['Genus'],
-                                                     contam_snvs=df_records[i]['NumContamSNVs'],
-                                                     contaminated=df_records[i]['ContamStatus'])
+        if sample.title in df_records[i]['Sample']:
+            if df_records[i]['Genus'] == 'Error processing sample':
+                Sample.objects.filter(pk=sample_id).update(confindr_status="Error")
+            else:
+                ConFindrResults.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
+                                                         strain=df_records[i]['Sample'],
+                                                         genera_present=df_records[i]['Genus'],
+                                                         contam_snvs=df_records[i]['NumContamSNVs'],
+                                                         contaminated=df_records[i]['ContamStatus'])
+                Sample.objects.filter(pk=sample_id).update(confindr_status="Complete")
 
 
 def read_sendsketch_results(sendsketch_result_path, proj_pk):
@@ -225,7 +364,7 @@ def read_genesippr_results(genesippr_reports, proj_pk):
                     else:
                         serotype = key
             GenesipprResults.objects.update_or_create(sample=Sample.objects.get(id=proj_pk),
-                strain=genesippr_df_records[i]['Strain'],
+                strain=sample.title,
                 genus=genesippr_df_records[i]['Genus'],
                 vt1=genesippr_df_records[i]['VT1'],
                 vt2=genesippr_df_records[i]['VT2'],

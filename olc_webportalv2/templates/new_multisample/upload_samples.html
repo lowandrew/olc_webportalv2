@@ -8,8 +8,87 @@
     <h6>You can add more files to your project here.</h6>
     <form enctype="multipart/form-data" action="" method="post">
         {% csrf_token %}
-        <input type="file" name="files" multiple>
+        <input type="file" name="files" multiple id="files">
         <br><br>
-        <input type="submit" name="upload" value="Upload">
+        <div class="container" id="selectedFiles"></div>
+        <br>
+        <label for="Forward_ID">Forward ID</label>
+        <input type="text" name="Forward_ID" value="_R1" id="Forward_ID" onchange="simulateEvent()">
+        <br>
+        <label for="Reverse_ID">Reverse ID</label>
+        <input type="text" name="Reverse_ID" value="_R2" id="Reverse_ID" onchange="simulateEvent()">
+        <br>
+        <br>
+        <button type="submit" class="btn btn-outline-primary" name="upload" value="Upload">Upload</button>
     </form>
+    <br>
+    <br>
+     {# Javascript to display the files you're going to upload, as shown at #}
+     {# https://www.raymondcamden.com/2013/09/10/Adding-a-file-display-list-to-a-multifile-upload-HTML-control/ #}
+    <script type="text/javascript">
+         var selDiv = "Read Pairings <br/>";
+
+    document.addEventListener("DOMContentLoaded", init, false);
+
+    function init() {
+        document.querySelector('#files').addEventListener('change', handleFileSelect, false);
+        selDiv = document.querySelector("#selectedFiles");
+    }
+
+    function simulateEvent(){
+        var event = new Event('change');
+        var handle = document.querySelector('#files');
+        handle.dispatchEvent(event);
+    }
+
+    function handleFileSelect(e) {
+
+        var forward_id = document.getElementsByName('Forward_ID')[0].value;
+        var reverse_id = document.getElementsByName('Reverse_ID')[0].value;
+        if(!e.target.files) return;
+
+        selDiv.innerHTML = "<h4> Read Pairings: </h4>";
+        var filenames = [];
+        var paired_files = [];
+        var files = e.target.files;
+        for(var i=0; i<files.length; i++) {
+            filenames.push(files[i].name);
+        }
+        for(var j=0; j<filenames.length;j++){
+            var f = filenames[j];
+            if(f.includes(forward_id)){
+                var potential_reverse = f.replace(forward_id, reverse_id);
+                var index = filenames.indexOf(potential_reverse);
+                if(index > -1 && f != potential_reverse){
+                    paired_files.push(f);
+                    paired_files.push(potential_reverse);
+                    if(files[j].size < 5000000 || files[index].size < 5000000) {
+                        selDiv.innerHTML += "<b style=\"color:red\">" + filenames[j] + "</b> is paired with <b style=\"color:red\">" + potential_reverse + "</b><br/>";
+                    }
+                    else{
+                        selDiv.innerHTML += "<b style=\"color:green\">" + filenames[j] + "</b> is paired with <b style=\"color:green\">" + potential_reverse + "</b><br/>";
+                    }
+                }
+            }
+        }
+        selDiv.innerHTML += "</br> <h4>Unpaired Reads:</h4>";
+        for(var k=0; k<filenames.length;k++) {
+            var a = filenames[k];
+            var in_array = paired_files.indexOf(a);
+            if(in_array < 0 && !filenames[k].includes('.fasta')) {
+                selDiv.innerHTML += "<b style=\"color:red\">" + a + "</b> <br/>";
+            }
+        }
+
+        selDiv.innerHTML += "</br> <h4>FASTA Files:</h4>";
+        for(var k=0; k<filenames.length;k++){
+            if(filenames[k].endsWith('.fasta') || filenames[k].endsWith('.fa')){
+                selDiv.innerHTML += "<b style=\"color:green\">" + filenames[k] + "</b> <br/>";
+            }
+        }
+        selDiv.innerHTML += " <br>Filenames in <b style=\"color:green\"> green </b>  will be uploaded. Files in " +
+            " <b style=\"color:red\"> red </b> are either too small to be valid FASTQ files or unpaired, and will not be uploaded."
+        {# TODO: This color coding works, but is very ugly. Make this into a nice pretty table at some point. #}
+    }
+    </script>
 {% endblock %}

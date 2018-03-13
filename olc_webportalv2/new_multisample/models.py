@@ -29,6 +29,8 @@ class ProjectMulti(models.Model):
     serosippr_file = models.CharField(max_length=256, default='')
     sixteens_file = models.CharField(max_length=256, default='')
     results_created = models.CharField(max_length=10, default='False')
+    forward_id = models.CharField(max_length=256, default='_R1')
+    reverse_id = models.CharField(max_length=256, default='_R2')
 
     def __str__(self):
         return self.project_title
@@ -36,8 +38,9 @@ class ProjectMulti(models.Model):
 
 class Sample(models.Model):
     project = models.ForeignKey(ProjectMulti, on_delete=models.CASCADE, related_name='samples')
-    file_R1 = models.FileField(upload_to='', blank=True)
-    file_R2 = models.FileField(upload_to='', blank=True)
+    file_R1 = models.FileField(upload_to='%Y%m%d%s', blank=True)
+    file_R2 = models.FileField(upload_to='%Y%m%d%s', blank=True)
+    file_fasta = models.FileField(upload_to='%Y%m%d%s', blank=True)
     title = models.CharField(max_length=200, blank=True)
 
     genesippr_status = models.CharField(max_length=128,
@@ -131,6 +134,15 @@ class GenesipprResults(models.Model):
 
     def eae_1_number(self):
         return float(self.eae_1.split('%')[0])
+
+    def hlya_number(self):
+        return float(self.hlya.split('%')[0])
+
+    def igs_number(self):
+        return float(self.igs.split('%')[0])
+
+    def inlj_number(self):
+        return float(self.inlj.split('%')[0])
 
     class Meta:
         verbose_name_plural = "Genesippr Results"

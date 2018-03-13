@@ -59,9 +59,35 @@
 
                 {% elif genesippr_project.genus == 'Listeria' %}
                     <td>{{ genesippr_project.genus }}</td>
-                    <td>{{ genesippr_project.igs }}</td>
-                    <td>{{ genesippr_project.hlya }}</td>
-                    <td>{{ genesippr_project.inlj }}</td>
+                    {% if genesippr_project.igs_number >= 90 %}
+                        <td align="center" class="table-success">
+                            <i class="fa fa-check-circle fa-1x"></i>
+                        </td>
+                    {% elif genesippr_project.igs_number < 90 %}
+                        <td align="center" class="table-warning">
+                            <i class="fa fa-ban fa-1x"></i>
+                        </td>
+                    {% endif %}
+
+                    {% if genesippr_project.hlya_number >= 90 %}
+                        <td align="center" class="table-success">
+                            <i class="fa fa-check-circle fa-1x"></i>
+                        </td>
+                    {% elif genesippr_project.hlya_number < 90 %}
+                        <td align="center" class="table-warning">
+                            <i class="fa fa-ban fa-1x"></i>
+                        </td>
+                    {% endif %}
+
+                    {% if genesippr_project.inlj_number >= 90 %}
+                        <td align="center" class="table-success">
+                            <i class="fa fa-check-circle fa-1x"></i>
+                        </td>
+                    {% elif genesippr_project.inlj_number < 90 %}
+                        <td align="center" class="table-warning">
+                            <i class="fa fa-ban fa-1x"></i>
+                        </td>
+                    {% endif %}
 
                 {% elif genesippr_project.genus == 'Escherichia' %}
                     <td>{{ genesippr_project.genus }}</td>
