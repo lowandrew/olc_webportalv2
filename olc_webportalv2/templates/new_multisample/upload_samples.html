@@ -9,8 +9,43 @@
     <form enctype="multipart/form-data" action="" method="post">
         {% csrf_token %}
         <input type="file" name="files" multiple id="files">
-        <br><br>
+        <br>
+        <table class="table table-hover table-sm table-responsive table-bordered" id="read-pairing-table">
+            <caption>Read Pairings</caption>
+            <thead>
+            <tr>
+                <th>Forward Read File</th>
+                <th>Reverse Read File</th>
+                <th>Will Be Uploaded?</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <table class="table table-hover table-sm table-responsive table-bordered" id="read-unpaired-table">
+            <caption>Unpaired Reads</caption>
+            <thead>
+            <tr>
+                <th>Read File</th>
+                <th>Will Be Uploaded?</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <table class="table table-hover table-sm table-responsive table-bordered" id="fasta-table">
+            <caption>Fasta Files</caption>
+            <thead>
+            <tr>
+                <th>Fasta File</th>
+                <th>Will Be Uploaded?</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
         <div class="container" id="selectedFiles"></div>
+{#        <div class="container" id="selectedFiles"></div>#}
         <br>
         <label for="Forward_ID">Forward ID</label>
         <input type="text" name="Forward_ID" value="_R1" id="Forward_ID" onchange="simulateEvent()">
@@ -23,6 +58,16 @@
     </form>
     <br>
     <br>
+    <style>
+        caption{
+            display: table-caption;
+            text-align: center;
+            caption-side: top;
+            font-size: 20px;
+            color: black;
+            font-family: Impact, Charcoal, sans-serif;
+        }
+    </style>
      {# Javascript to display the files you're going to upload, as shown at #}
      {# https://www.raymondcamden.com/2013/09/10/Adding-a-file-display-list-to-a-multifile-upload-HTML-control/ #}
     <script type="text/javascript">
@@ -32,6 +77,9 @@
 
     function init() {
         document.querySelector('#files').addEventListener('change', handleFileSelect, false);
+        document.getElementById('read-pairing-table').style.visibility = "hidden";
+        document.getElementById('read-unpaired-table').style.visibility = "hidden";
+        document.getElementById('fasta-table').style.visibility = "hidden";
         selDiv = document.querySelector("#selectedFiles");
     }
 
@@ -42,18 +90,25 @@
     }
 
     function handleFileSelect(e) {
-
+        document.getElementById('read-pairing-table').style.visibility = "hidden";
+        document.getElementById('read-unpaired-table').style.visibility = "hidden";
+        document.getElementById('fasta-table').style.visibility = "hidden";
         var forward_id = document.getElementsByName('Forward_ID')[0].value;
         var reverse_id = document.getElementsByName('Reverse_ID')[0].value;
         if(!e.target.files) return;
 
-        selDiv.innerHTML = "<h4> Read Pairings: </h4>";
+{#        selDiv.innerHTML = "<h4> Read Pairings: </h4>";#}
         var filenames = [];
         var paired_files = [];
         var files = e.target.files;
         for(var i=0; i<files.length; i++) {
             filenames.push(files[i].name);
         }
+        var readPairingTable = document.getElementById("read-pairing-table");
+        for(var i = 1; i < readPairingTable.rows.length;)
+            {
+               readPairingTable.deleteRow(i);
+            }
         for(var j=0; j<filenames.length;j++){
             var f = filenames[j];
             if(f.includes(forward_id)){
@@ -62,33 +117,64 @@
                 if(index > -1 && f != potential_reverse){
                     paired_files.push(f);
                     paired_files.push(potential_reverse);
+                    var row = readPairingTable.insertRow();
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    readPairingTable.style.visibility = "visible";
+                    cell3.align = 'center';
+                    cell1.innerHTML = filenames[j];
+                    cell2.innerHTML = potential_reverse;
                     if(files[j].size < 5000000 || files[index].size < 5000000) {
-                        selDiv.innerHTML += "<b style=\"color:red\">" + filenames[j] + "</b> is paired with <b style=\"color:red\">" + potential_reverse + "</b><br/>";
+                        cell3.classList.add('table-danger');
+                        cell3.innerHTML =  '<i class=\"fa fa-ban fa-1x\"></i>';
                     }
                     else{
-                        selDiv.innerHTML += "<b style=\"color:green\">" + filenames[j] + "</b> is paired with <b style=\"color:green\">" + potential_reverse + "</b><br/>";
+                        cell3.classList.add('table-success');
+                        cell3.innerHTML =  '<i class=\"fa fa-check-circle fa-1x\"></i>';
                     }
                 }
             }
         }
-        selDiv.innerHTML += "</br> <h4>Unpaired Reads:</h4>";
+{#        selDiv.innerHTML += "</br> <h4>Unpaired Reads:</h4>";#}
+        var unpairedReadTable = document.getElementById("read-unpaired-table");
+        for(var i = 1; i < unpairedReadTable.rows.length;)
+        {
+            unpairedReadTable.deleteRow(i);
+        }
         for(var k=0; k<filenames.length;k++) {
             var a = filenames[k];
             var in_array = paired_files.indexOf(a);
             if(in_array < 0 && !filenames[k].includes('.fasta')) {
-                selDiv.innerHTML += "<b style=\"color:red\">" + a + "</b> <br/>";
+                var row = unpairedReadTable.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                unpairedReadTable.style.visibility = "visible";
+                cell1.innerHTML = filenames[k];
+                cell2.classList.add('table-danger');
+                cell2.align = 'center';
+                cell2.innerHTML = '<i class=\"fa fa-ban fa-1x\"></i>';
             }
         }
 
-        selDiv.innerHTML += "</br> <h4>FASTA Files:</h4>";
+{#        selDiv.innerHTML += "</br> <h4>FASTA Files:</h4>";#}
+        var FastaTable = document.getElementById("fasta-table");
+        for(var i = 1; i < FastaTable.rows.length;)
+        {
+            FastaTable.deleteRow(i);
+        }
         for(var k=0; k<filenames.length;k++){
             if(filenames[k].endsWith('.fasta') || filenames[k].endsWith('.fa')){
-                selDiv.innerHTML += "<b style=\"color:green\">" + filenames[k] + "</b> <br/>";
+                FastaTable.style.visibility = "visible";
+                var row = FastaTable.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                cell1.innerHTML = filenames[k];
+                cell2.classList.add('table-success');
+                cell2.align = 'center';
+                cell2.innerHTML = '<i class=\"fa fa-check-circle fa-1x\"></i>';
             }
         }
-        selDiv.innerHTML += " <br>Filenames in <b style=\"color:green\"> green </b>  will be uploaded. Files in " +
-            " <b style=\"color:red\"> red </b> are either too small to be valid FASTQ files or unpaired, and will not be uploaded."
-        {# TODO: This color coding works, but is very ugly. Make this into a nice pretty table at some point. #}
     }
     </script>
 {% endblock %}
