@@ -394,7 +394,8 @@ def read_genesippr_results(genesippr_reports, proj_pk):
                 genus=gdcs_df_records[i]['Genus'],
                 matches=gdcs_df_records[i]['Matches'],
                 meancoverage=gdcs_df_records[i]['MeanCoverage'],
-                passfail=gdcs_df_records[i]['Pass/Fail'])
+                passfail=gdcs_df_records[i]['Pass/Fail'],
+                allele_dict=gdcs_df_records[i])
 
     # sixteens_full.csv
     for i in range(len(sixteens_df_records)):

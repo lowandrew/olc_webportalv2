@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
+{% load i18n widget_tweaks %}
+{% block content %}
+    <h2>GDCS Detail for Sample {{ sample.title }}</h2>
+    <p>GDCS Detail visualization will go here.</p>
+    {% for gdcs_project in sample.gdcs_results.all %}
+    <p>{{ gdcs_project.allele_dict }}</p>
+    {% endfor %}
+{% endblock %}

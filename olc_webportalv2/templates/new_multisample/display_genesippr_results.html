@@ -167,6 +167,7 @@
                 <th>Matches</th>
                 <th>Mean Coverage</th>
                 <th>Pass/Fail</th>
+                <th></th>
             </tr>
             <tr>
                 {% for sample in project.samples.all %}
@@ -190,6 +191,7 @@
                 {% else %}
                     <td>{{ gdcs_project.passfail }}</td>
                 {% endif %}
+                    <td align="center"><a href={% url 'new_multisample:gdcs_detail' sample_id=sample.pk %} class="btn btn-primary" role="button" aria-pressed="true">Details</a></td>
             </tr>
                     {% endfor %}
                 {% endfor %}

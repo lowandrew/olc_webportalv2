@@ -43,4 +43,7 @@ urlpatterns = [
     # Sample remove confirm
     url(r'^sample/(?P<sample_id>\d+)/remove_confirm$',
         views.sample_remove_confirm, name="sample_remove_confirm"),
+
+    url(r'^sample/(?P<sample_id>\d+)/gdcs_detail$',
+        views.gdcs_detail, name="gdcs_detail"),
 ]
