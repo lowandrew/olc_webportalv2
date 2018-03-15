@@ -367,3 +367,4 @@ olc_webportalv2/media/
 /celerybeat-schedule
 !/celerybeat.pid
 !/celerybeat-schedule
+/.env

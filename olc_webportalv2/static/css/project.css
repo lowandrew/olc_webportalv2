@@ -1,3 +1,13 @@
+ul#id_jobs {
+  list-style-type: none;
+  padding: 0; }
+
+label.col-sm-2.control-label {
+  font-size: 0;
+  text-indent: 100%;
+  white-space: nowrap;
+  overflow: hidden; }
+
 .navbar {
   background-color: #0e4164; }
   .navbar .navbar-brand {

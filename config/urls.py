@@ -17,9 +17,6 @@ urlpatterns = [
     url(r'^accounts/', include('allauth.urls')),
 
     # Your stuff: custom urls includes go here
-    url(r'^projects/', include('olc_webportalv2.projects.urls', namespace='projects')),
-    url(r'^jobs/', include('olc_webportalv2.jobs.urls', namespace='jobs')),
-    # url(r'^multiprojects/', include('olc_webportalv2.multisampleproject.urls', namespace='multisampleprojects')),
     url(r'^newmultiprojects/', include('olc_webportalv2.new_multisample.urls', namespace='new_multisample')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
