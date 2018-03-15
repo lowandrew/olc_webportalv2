@@ -1,8 +1,8 @@
 from django.db import models
 from olc_webportalv2.users.models import User
+from django.contrib.postgres.fields import HStoreField
 import os
 from django.core.exceptions import ValidationError
-from multiselectfield import MultiSelectField
 
 # Create your models here.
 
@@ -186,6 +186,7 @@ class GenesipprResultsGDCS(models.Model):
     matches = models.CharField(max_length=256, default="N/A")
     meancoverage = models.CharField(max_length=128, default="N/A")
     passfail = models.CharField(max_length=16, default="N/A")
+    allele_dict = HStoreField()
 
 
 class ConFindrResults(models.Model):

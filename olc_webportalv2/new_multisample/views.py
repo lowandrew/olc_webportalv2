@@ -247,6 +247,15 @@ def sample_remove_confirm(request, sample_id):
                   )
 
 
+@login_required
+def gdcs_detail(request, sample_id):
+    sample = get_object_or_404(Sample, pk=sample_id)
+    return render(request,
+                  'new_multisample/gdcs_detail.html',
+                  {'sample': sample},
+                  )
+
+
 def find_paired_reads(filelist, forward_id='_R1', reverse_id='_R2'):
     pairs = list()
     for filename in filelist:
