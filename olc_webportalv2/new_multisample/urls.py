@@ -28,6 +28,10 @@ urlpatterns = [
     url(r'^project/(?P<project_id>\d+)/confindr_results$',
         views.confindr_results_table, name="confindr_results_table"),
 
+    # GenomeQAML result tables.
+    url(r'^project/(?P<project_id>\d+)/genomeqaml_results$',
+        views.genomeqaml_results, name="genomeqaml_results"),
+
     # Remove project
     url(r'^project/(?P<project_id>\d+)/remove$',
         views.project_remove, name="project_remove"),
@@ -44,6 +48,11 @@ urlpatterns = [
     url(r'^sample/(?P<sample_id>\d+)/remove_confirm$',
         views.sample_remove_confirm, name="sample_remove_confirm"),
 
+    # GDCS detail
     url(r'^sample/(?P<sample_id>\d+)/gdcs_detail$',
         views.gdcs_detail, name="gdcs_detail"),
+
+    # Genomeqaml detail
+    url(r'^sample/(?P<sample_id>\d+)/genomeqaml_detail$',
+        views.genomeqaml_detail, name="genomeqaml_detail"),
 ]

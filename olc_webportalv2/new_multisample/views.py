@@ -135,6 +135,13 @@ def project_detail(request, project_id):
                     if sample.confindr_status != 'Complete' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(confindr_status="Processing")
                 tasks.run_confindr(project_id=project.pk)
+
+            if 'genomeqaml' in jobs_to_run:
+                for sample in project.samples.all():
+                    if sample.genomeqaml_status != 'Complete' and sample.file_fasta:
+                        Sample.objects.filter(pk=sample.pk).update(genomeqaml_status="Processing")
+                        tasks.run_genomeqaml(fasta_file=sample.file_fasta.name,
+                                             sample_pk=sample.pk)
             form = JobForm()
 
     else:
@@ -151,6 +158,14 @@ def sample_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
     return render(request,
                   'new_multisample/sample_detail.html',
+                  {'sample': sample},
+                  )
+
+@login_required
+def genomeqaml_detail(request, sample_id):
+    sample = get_object_or_404(Sample, pk=sample_id)
+    return render(request,
+                  'new_multisample/genomeqaml_detail.html',
                   {'sample': sample},
                   )
 
@@ -183,6 +198,16 @@ def confindr_results_table(request, project_id):
                   'new_multisample/confindr_results_table.html',
                   {'project': project},
                   )
+
+
+@login_required
+def genomeqaml_results(request, project_id):
+    project = get_object_or_404(ProjectMulti, pk=project_id)
+    return render(request,
+                  'new_multisample/genomeqaml_results.html',
+                  {'project': project},
+                  )
+
 
 
 @login_required

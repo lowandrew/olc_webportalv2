@@ -177,15 +177,15 @@
                 <td>{{ gdcs_project.matches }}</td>
                 <td>{{ gdcs_project.meancoverage }}</td>
                 {% if gdcs_project.passfail == '+' %}
-                    <td class="table-success" align="center">
+                    <td class="table-success" align="center" style="vertical-align: middle">
                         <i class="fa fa-check-circle fa-1x" ></i>
                     </td>
                 {% elif gdcs_project.passfail == '-' %}
-                    <td class="table-danger" align="center">
+                    <td class="table-danger" align="center" style="vertical-align: middle">
                         <i class="fa fa-ban fa-1x" ></i>
                     </td>
                 {% elif gdcs_project.passfail == '?' %}
-                    <td class="table-warning" align="center">
+                    <td class="table-warning" align="center" style="vertical-align: middle">
                         <i class="fa fa-question-circle fa-1x" ></i>
                     </td>
                 {% else %}

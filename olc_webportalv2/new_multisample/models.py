@@ -49,9 +49,24 @@ class Sample(models.Model):
                                          default="Unprocessed")
     confindr_status = models.CharField(max_length=128,
                                        default="Unprocessed")
+    genomeqaml_status = models.CharField(max_length=128,
+                                         default="Unprocessed")
 
     def __str__(self):
         return self.title
+
+
+class GenomeQamlResult(models.Model):
+    class Meta:
+        verbose_name_plural = "GenomeQAML Results"
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE, related_name='genomeqaml_result')
+    predicted_class = models.CharField(max_length=128, default='N/A')
+    percent_fail = models.CharField(max_length=128, default='N/A')
+    percent_pass = models.CharField(max_length=128, default='N/A')
+    percent_reference = models.CharField(max_length=118, default='N/A')
+
+    def __str__(self):
+        return '{}'.format(self.sample)
 
 
 class SendsketchResult(models.Model):
