@@ -11,6 +11,30 @@ from background_task import background
 from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, \
     GenesipprResultsSixteens, ConFindrResults
 
+@background(schedule=1)
+def run_genomeqaml(fasta_file, sample_pk):
+    print('Running GenomeQAML.')
+    output_folder = 'olc_webportalv2/media/sample_{}_genomeqaml'.format(sample_pk)
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+    cmd = 'ln -s -r {fasta} {output_folder}'.format(fasta=os.path.join('olc_webportalv2/media', fasta_file),
+                                                    output_folder=output_folder)
+    os.system(cmd)
+
+    cmd = 'docker exec ' \
+          'olcwebportalv2_confindr ' \
+          'classify.py ' \
+          '-t /sequences/{output_folder} ' \
+          '-r /sequences/{output_folder}/QAMLreport.csv'.format(output_folder=output_folder)
+    os.system(cmd)
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+        Sample.objects.filter(pk=sample_pk).update(genomeqaml_status="Complete")
+    except:
+        Sample.objects.filter(pk=sample_pk).update(genomeqaml_status="Error")
+
+
 
 @background(schedule=1)
 def run_geneseekr(fasta_file, sample_pk):
