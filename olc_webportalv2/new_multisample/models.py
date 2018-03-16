@@ -65,6 +65,9 @@ class GenomeQamlResult(models.Model):
     percent_pass = models.CharField(max_length=128, default='N/A')
     percent_reference = models.CharField(max_length=118, default='N/A')
 
+    def __str__(self):
+        return '{}'.format(self.sample)
+
 
 class SendsketchResult(models.Model):
     class Meta:

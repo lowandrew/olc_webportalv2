@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load bootstrap %}
+{% load render_table from django_tables2 %}
+{% block content %}
+    <h1>GenomeQAML Results For Project {{ project.project_title }}</h1>
+    <br>
+        <table class="table table-hover table-sm table-responsive table-bordered" id="genomeqaml-results">
+            <thead>
+                <tr>
+                    <th>Sample<i class="fa fa-fw fa-sort"></i> </th>
+                    <th>Quality<i class="fa fa-fw fa-sort"></i> </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for sample in project.samples.all %}
+                {% for genomeqaml_result in sample.genomeqaml_result.all %}
+                      <tr>
+                          <td>{{ sample.title }}</td>
+                          {% if genomeqaml_result.predicted_class == 'Reference' %}
+                                <td align="center" class="table-success" style="vertical-align: middle">
+                                    <i class="fa fa-check-circle fa-1x"></i>
+                                </td>
+                          {% elif genomeqaml_result.predicted_class == 'Pass' %}
+                              <td align="center" class="table-success" style="vertical-align: middle">
+                                  <i class="fa fa-check-circle fa-1x"></i>
+                              </td>
+                          {% else %}
+                              <td align="center" class="table-danger" style="vertical-align: middle">
+                                  <i class="fa fa-ban fa-1x"></i>
+                              </td>
+                          {% endif %}
+                          <td align="center"><a href={% url 'new_multisample:genomeqaml_detail' sample_id=sample.pk %} class="btn btn-primary" role="button" aria-pressed="true">Details</a></td>
+                      </tr>
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+            {# TODO: Add legend here, and figure out why bottom of datatable looks bad. #}
+        </table>
+      <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function () {
+            $('#genomeqaml-results').dataTable();
+        });
+        </script>
+{% endblock %}

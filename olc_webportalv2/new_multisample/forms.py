@@ -28,6 +28,7 @@ class JobForm(forms.Form):
          ('genesipprv2', 'GeneSippr'),
          ('sendsketch', 'SendSketch'),
          ('confindr', 'ConFindr'),
+         ('genomeqaml', 'GenomeQAML'),
      )
 
      jobs = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=JOB_CHOICES)

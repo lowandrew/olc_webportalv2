@@ -9,7 +9,7 @@ from subprocess import Popen
 from background_task import background
 
 from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, \
-    GenesipprResultsSixteens, ConFindrResults
+    GenesipprResultsSixteens, ConFindrResults, GenomeQamlResult
 
 @background(schedule=1)
 def run_genomeqaml(fasta_file, sample_pk):
@@ -25,11 +25,13 @@ def run_genomeqaml(fasta_file, sample_pk):
           'olcwebportalv2_confindr ' \
           'classify.py ' \
           '-t /sequences/{output_folder} ' \
-          '-r /sequences/{output_folder}/QAMLreport.csv'.format(output_folder=output_folder)
+          '-r /sequences/{output_folder}/QAMLreport.csv'.format(output_folder=os.path.split(output_folder)[-1])
     os.system(cmd)
     try:
         p = Popen(cmd, shell=True)
         p.communicate()  # wait until the script completes before resuming the code
+        read_genomeqaml_results(sample_id=sample_pk,
+                                genomeqaml_csv=os.path.join(output_folder, 'QAMLreport.csv'))
         Sample.objects.filter(pk=sample_pk).update(genomeqaml_status="Complete")
     except:
         Sample.objects.filter(pk=sample_pk).update(genomeqaml_status="Error")
@@ -298,6 +300,18 @@ def read_geneseekr_results(sample_id, output_folder):
                                                       strain=sample.title,
                                                       genus='16S analysis not available for FASTA files.')
 
+
+def read_genomeqaml_results(sample_id, genomeqaml_csv):
+    sample = Sample.objects.get(pk=sample_id)
+    df = pd.read_csv(genomeqaml_csv)
+    df_records = df.to_dict('records')
+    for i in range(len(df_records)):
+        if sample.title in df_records[i]['Sample']:
+            GenomeQamlResult.objects.update_or_create(sample=Sample.objects.get(pk=sample_id),
+                                                      predicted_class=df_records[i]['Predicted_Class'],
+                                                      percent_fail=df_records[i]['Percent_Fail'],
+                                                      percent_pass=df_records[i]['Percent_Pass'],
+                                                      percent_reference=df_records[i]['Percent_Ref'])
 
 def read_confindr_results(sample_id, confindr_csv):
     sample = Sample.objects.get(pk=sample_id)
