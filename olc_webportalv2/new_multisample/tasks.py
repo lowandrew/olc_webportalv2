@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import pandas as pd
 import pandas_highcharts
 import zipfile
@@ -389,13 +390,21 @@ def read_genesippr_results(genesippr_reports, proj_pk):
     # GDCS.csv
     for i in range(len(gdcs_df_records)):
         if gdcs_df_records[i]['Strain'] in sample.title:
+            coverage_dict = dict()
+            for key in gdcs_df_records[i]:
+                if 'BACT' in key and gdcs_df_records[i][key] != 'X':
+                    coverage_dict[key] = gdcs_df_records[i][key].split('+')[0]
+                    if coverage_dict[key] != '-':
+                        coverage_dict[key] = coverage_dict[key].split('(')[1]
+                    else:
+                        coverage_dict[key] = '0'
             GenesipprResultsGDCS.objects.update_or_create(sample=Sample.objects.get(id=proj_pk),
                 strain=gdcs_df_records[i]['Strain'],
                 genus=gdcs_df_records[i]['Genus'],
                 matches=gdcs_df_records[i]['Matches'],
                 meancoverage=gdcs_df_records[i]['MeanCoverage'],
                 passfail=gdcs_df_records[i]['Pass/Fail'],
-                allele_dict=gdcs_df_records[i])
+                allele_dict=coverage_dict)
 
     # sixteens_full.csv
     for i in range(len(sixteens_df_records)):
