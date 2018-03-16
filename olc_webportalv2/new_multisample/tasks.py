@@ -154,7 +154,11 @@ def run_confindr(project_id):
           'confindr.py ' \
           '-i /sequences/confindr_{project_id} ' \
           '-o /sequences/confindr_results_{project_id} ' \
-          '-d /home/databases'.format(project_id=project_id)
+          '-d /home/databases ' \
+          '-fid {forward_id} ' \
+          '-rid {reverse_id}'.format(project_id=project_id,
+                                     forward_id=ProjectMulti.objects.get(pk=project_id).forward_id,
+                                     reverse_id=ProjectMulti.objects.get(pk=project_id).reverse_id)
 
     try:
         p = Popen(cmd, shell=True)
