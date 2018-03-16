@@ -12,10 +12,10 @@
         <br>
         <br>
         <label for="Forward_ID">Forward ID</label>
-        <input type="text" name="Forward_ID" value="_R1" id="Forward_ID" onchange="simulateEvent()">
+        <input type="text" name="Forward_ID" value="_R1" id="Forward_ID" onkeyup="simulateEvent()" onchange="simulateEvent()">
         <br>
         <label for="Reverse_ID">Reverse ID</label>
-        <input type="text" name="Reverse_ID" value="_R2" id="Reverse_ID" onchange="simulateEvent()">
+        <input type="text" name="Reverse_ID" value="_R2" id="Reverse_ID" onkeyup="simulateEvent()" onchange="simulateEvent()">
         <br>
         <br>
         <button type="submit" class="btn btn-outline-primary" name="upload" value="Upload">Upload</button>
@@ -44,10 +44,10 @@
         </tbody>
     </table>
     <table class="table table-hover table-sm table-responsive table-bordered" id="fasta-table">
-        <caption>Fasta Files</caption>
+        <caption>FASTA Files</caption>
         <thead>
         <tr>
-            <th>Fasta File</th>
+            <th>FASTA File</th>
             <th>Will Be Uploaded?</th>
         </tr>
         </thead>
@@ -73,7 +73,9 @@
 
     document.addEventListener("DOMContentLoaded", init, false);
 
+
     function init() {
+        document.querySelector('#files').addEventListener('onkeyup', handleFileSelect, false);
         document.querySelector('#files').addEventListener('change', handleFileSelect, false);
         document.getElementById('read-pairing-table').style.visibility = "hidden";
         document.getElementById('read-unpaired-table').style.visibility = "hidden";
@@ -82,9 +84,11 @@
     }
 
     function simulateEvent(){
-        var event = new Event('change');
+        var event_keypress = new Event('onkeyup');
+        var event_change = new Event('change');
         var handle = document.querySelector('#files');
-        handle.dispatchEvent(event);
+        handle.dispatchEvent(event_keypress);
+        handle.dispatchEvent(event_change);
     }
 
     function handleFileSelect(e) {
@@ -95,18 +99,21 @@
         var reverse_id = document.getElementsByName('Reverse_ID')[0].value;
         if(!e.target.files) return;
 
-{#        selDiv.innerHTML = "<h4> Read Pairings: </h4>";#}
         var filenames = [];
         var paired_files = [];
         var files = e.target.files;
-        for(var i=0; i<files.length; i++) {
+
+        for(var i = 0; i<files.length; i++) {
             filenames.push(files[i].name);
         }
+
         var readPairingTable = document.getElementById("read-pairing-table");
+
         for(var i = 1; i < readPairingTable.rows.length;)
             {
                readPairingTable.deleteRow(i);
             }
+
         for(var j=0; j<filenames.length;j++){
             var f = filenames[j];
             if(f.includes(forward_id)){
