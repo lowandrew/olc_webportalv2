@@ -4,17 +4,17 @@
 {% load render_table from django_tables2 %}
 {% load i18n widget_tweaks %}
 {% block content %}
-    <h2>{{ project.project_title }}</h2>
+    <h4>{{ project.project_title }}</h4>
     <hr>
-    <table class="table table-hover" id="sample_table">
+    <table class="display compact" id="sample_table">
     <thead>
         <tr>
-            <th>Sample<i class="fa fa-fw fa-sort"></i> </th>
-            <th>GeneSippr Status<i class="fa fa-fw fa-sort"></i></th>
-            <th>SendSketch Status<i class="fa fa-fw fa-sort"></i></th>
-            <th>ConFindr Status<i class="fa fa-fw fa-sort"></i></th>
-            <th>GenomeQAML Status<i class="fa fa-fw fa-sort"></i></th>
-            <th>Data Type<i class="fa fa-fw fa-sort"></i></th>
+            <th style="text-align: center">Sample</th>
+            <th style="text-align: center">GeneSippr</th>
+            <th style="text-align: center">SendSketch</th>
+            <th style="text-align: center">ConFindr</th>
+            <th style="text-align: center">GenomeQAML</th>
+            <th style="text-align: center">Data Type</th>
             <th></th>
         </tr>
     </thead>
@@ -22,7 +22,7 @@
     <tbody>
         {% for sample in project.samples.all %}
             <tr align="center">
-                <td>{{ sample.title }}</td>
+                <td style="white-space: nowrap">{{ sample.title }}</td>
 
                 {# GENESIPPR #}
                 {% if sample.genesippr_status == 'Processing' %}
@@ -66,7 +66,7 @@
 
                 {# CONFINDR #}
                 {% if sample.file_fasta %}
-                    <td><button class="btn btn-secondary">Unavailable</button></td>
+                    <td>Unavailable</td>
                 {% elif sample.confindr_status == 'Processing' %}
                     <td>
                         <div class="progress">
@@ -106,7 +106,7 @@
                         <td><button class="btn btn-danger">{{ sample.genomeqaml_status }}</button></td>
                     {% endif %}
                 {% else %}
-                    <td><button class="btn btn-secondary">Unavailable</button></td>
+                    <td>N/A</td>
                 {% endif %}
 
                 {# Data type #}
@@ -156,7 +156,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
              $('#sample_table').dataTable({
-                 stateSave: true
+                 stateSave: true,
              });
         });
         //Periodically reload the page if a job status == 'Processing'

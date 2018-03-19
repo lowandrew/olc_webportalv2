@@ -3,13 +3,13 @@
 {% load bootstrap %}
 {% load render_table from django_tables2 %}
 {% block content %}
-    <h1>GenomeQAML Results For Project {{ project.project_title }}</h1>
+    <h4>GenomeQAML Results For Project {{ project.project_title }}</h4>
     <br>
-        <table class="table table-hover table-sm table-responsive table-bordered" id="genomeqaml-results">
+        <table class="display compact" id="genomeqaml-results">
             <thead>
                 <tr>
-                    <th>Sample<i class="fa fa-fw fa-sort"></i> </th>
-                    <th>Quality<i class="fa fa-fw fa-sort"></i> </th>
+                    <th>Sample</th>
+                    <th>Quality</th>
                     <th></th>
                 </tr>
             </thead>
@@ -20,15 +20,15 @@
                           <td>{{ sample.title }}</td>
                           {% if genomeqaml_result.predicted_class == 'Reference' %}
                                 <td align="center" class="table-success" style="vertical-align: middle">
-                                    <i class="fa fa-check-circle fa-1x"></i>
+                                    <i class="fa fa-check-circle fa-2x"></i>
                                 </td>
                           {% elif genomeqaml_result.predicted_class == 'Pass' %}
                               <td align="center" class="table-success" style="vertical-align: middle">
-                                  <i class="fa fa-check-circle fa-1x"></i>
+                                  <i class="fa fa-check-circle fa-2x"></i>
                               </td>
                           {% else %}
                               <td align="center" class="table-danger" style="vertical-align: middle">
-                                  <i class="fa fa-ban fa-1x"></i>
+                                  <i class="fa fa-ban fa-2x"></i>
                               </td>
                           {% endif %}
                           <td align="center"><a href={% url 'new_multisample:genomeqaml_detail' sample_id=sample.pk %} class="btn btn-primary" role="button" aria-pressed="true">Details</a></td>
@@ -38,11 +38,8 @@
             </tbody>
         </table>
     <div style="width:15%; margin:0 auto;" class="alert alert-info" align="center">
-        <p>
-            <i class="fa fa-check-circle fa-1x" >: Pass     </i>
-            <br>
-            <i class="fa fa-ban fa-1x" >: Fail     </i>
-        </p>
+            <i class="fa fa-check-circle fa-1x" >: Pass</i>
+            <i class="fa fa-ban fa-1x" >: Fail</i>
     </div>
       <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
         <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">

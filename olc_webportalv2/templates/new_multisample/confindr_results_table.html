@@ -3,20 +3,18 @@
 {% load bootstrap %}
 {% load render_table from django_tables2 %}
 {% block content %}
-    <h1>ConFindr Results For Project {{ project.project_title }}</h1>
+    <h4>ConFindr Results For {{ project.project_title }}</h4>
     <br>
-        {#Genesippr Table#}
-    <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#confindr-results"><strong>View ConFindr Results</strong></button>
-    <br>
-    <div id="confindr-results" class="collapse">
-        <table class="table table-hover table-sm table-responsive table-bordered" id="confindr-table">
+    {#Confindr Table#}
+    <div id="confindr-results">
+        <table class="display compact" id="confindr-table">
             {#Table headers#}
         <thead>
             <tr>
                 <th>Sample</th>
                 <th>Genera Present</th>
                 <th>Contaminating SNVs</th>
-                <th>Status</th>
+                <th style="text-align: center">Status</th>
             </tr>
         </thead>
         <tbody>

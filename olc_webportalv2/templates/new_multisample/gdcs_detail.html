@@ -4,11 +4,13 @@
 {% load render_table from django_tables2 %}
 {% load i18n widget_tweaks %}
 {% block content %}
-    <h2>GDCS Detail for Sample {{ sample.title }}</h2>
+    <h4>GDCS Detail for Sample {{ sample.title }}</h4>
     <div id="container" style="height: 1000px"></div>
+    <hr>
     <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#gdcs-results"><strong>View Table</strong></button>
+    <br>
     <div id="gdcs-results" class="collapse">
-    <table id="datatable" class="table table-hover">
+    <table id="datatable" class="display compact">
     <thead>
         <tr>
             <th>Gene</th>
@@ -30,6 +32,7 @@
     </tbody>
     </table>
     </div>
+  <br>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/data.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
