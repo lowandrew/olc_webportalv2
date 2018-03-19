@@ -152,13 +152,13 @@
 
     <script src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">
-
     <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#sample_table').dataTable();
+             $('#sample_table').dataTable({
+                 stateSave: true
+             });
         });
-
         //Periodically reload the page if a job status == 'Processing'
         setInterval(function() {
             {% for sample in project.samples.all %}
