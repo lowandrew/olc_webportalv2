@@ -36,12 +36,21 @@
                 {% endfor %}
             {% endfor %}
             </tbody>
-            {# TODO: Add legend here, and figure out why bottom of datatable looks bad. #}
         </table>
+    <div style="width:15%; margin:0 auto;" class="alert alert-info" align="center">
+        <p>
+            <i class="fa fa-check-circle fa-1x" >: Pass     </i>
+            <br>
+            <i class="fa fa-ban fa-1x" >: Fail     </i>
+        </p>
+    </div>
       <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">
         <script type="text/javascript">
         $(document).ready(function () {
-            $('#genomeqaml-results').dataTable();
+            $('#genomeqaml-results').dataTable({
+                stateSave: true
+            });
         });
         </script>
 {% endblock %}
