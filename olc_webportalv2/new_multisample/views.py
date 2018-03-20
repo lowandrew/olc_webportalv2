@@ -55,7 +55,7 @@ def upload_samples(request, project_id):
         forward_id = request.POST['Forward_ID']
         reverse_id = request.POST['Reverse_ID']
         ProjectMulti.objects.filter(pk=project_id).update(forward_id=forward_id)
-        ProjectMulti.objects.filter(pk=project_id).update(reverse_id=forward_id)
+        ProjectMulti.objects.filter(pk=project_id).update(reverse_id=reverse_id)
         for item in files:
             if item.name.endswith('.fastq') or item.name.endswith('.fastq.gz'):
                 filenames.append(item.name)

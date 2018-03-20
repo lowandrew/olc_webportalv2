@@ -15,9 +15,23 @@ framework.
 """
 import os
 import sys
+import environ
 
 from django.core.wsgi import get_wsgi_application
 
+env = environ.Env()
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
+ROOT_DIR = environ.Path(__file__) - 1  # (olc_webportalv2/config/settings/base.py - 3 = olc_webportalv2/)
+
+if READ_DOT_ENV_FILE:
+    # Operating System Environment variables have precedence over variables defined in the .env file,
+    # that is to say variables from the .env files will only be used if not defined
+    # as environment variables.
+    env_file = str(ROOT_DIR.path('env'))
+    print('Loading : {}'.format(env_file))
+    env.read_env(env_file)
+    print('The .env file has been loaded. See base.py for more information')
+SECRET_KEY = env('SECRET_KEY')
 # This allows easy placement of apps within the interior
 # olc_webportalv2 directory.
 app_path = os.path.dirname(os.path.abspath(__file__)).replace('/config', '')
@@ -30,7 +44,7 @@ if os.environ.get('DJANGO_SETTINGS_MODULE') == 'config.settings.production':
 # if running multiple sites in the same mod_wsgi process. To fix this, use
 # mod_wsgi daemon mode with each site in its own daemon process, or use
 # os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.production"
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.prod")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
