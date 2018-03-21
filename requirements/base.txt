@@ -53,3 +53,7 @@ django-pandas
 pandas-highcharts
 django-highcharts
 django-widget-tweaks
+gunicorn==19.7.1
+uwsgi
+django-extensions
+django-debug-toolbar
