@@ -1,9 +1,5 @@
 version: '2'
 
-volumes:
-  postgres_data_local: {}
-  postgres_backup_local: {}
-
 services:
   web:
     restart: always
@@ -27,7 +23,6 @@ services:
     ports:
       - "8000:8000"
     command: gunicorn config.wsgi:application -w 2 -b :8000
-#    command: /run.sh
 
   nginx:
     restart: always
@@ -39,26 +34,13 @@ services:
     links:
       - web:web
 
-#  postgres:
-#    restart: always
-#    image: postgres:9.6
-#    volumes:
-#      - postgres_data_local:/var/lib/postgresql/data
-#      - postgres_backup_local:/backups
-#      - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
-#    environment:
-#      - POSTGRES_USER=olc_webportalv2
-#    expose:
-#      - "5432"
-
   postgres:
     restart: always
     image: postgres:9.6
-    volumes_from:
-      - data
     volumes:
       - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./backups/postgresql:/backup
+      - ./postgres-data:/var/lib/postgresql/data
     env_file:
       - env
     expose:
@@ -69,13 +51,6 @@ services:
     image: redis:latest
     expose:
       - "6379"
-
-  data:
-    restart: always
-    image: alpine
-    volumes:
-      - /var/lib/postgresql
-    command: "true"
 
   genesippr:
     ports:
