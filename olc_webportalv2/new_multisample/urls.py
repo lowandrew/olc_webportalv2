@@ -55,4 +55,8 @@ urlpatterns = [
     # Genomeqaml detail
     url(r'^sample/(?P<sample_id>\d+)/genomeqaml_detail$',
         views.genomeqaml_detail, name="genomeqaml_detail"),
+
+    # AMR detail
+    url(r'^sample/(?P<sample_id>\d+)/amr_detail$',
+        views.amr_detail, name="amr_detail"),
 ]

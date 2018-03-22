@@ -14,6 +14,7 @@
             <th style="text-align: center">SendSketch</th>
             <th style="text-align: center">ConFindr</th>
             <th style="text-align: center">GenomeQAML</th>
+            <th style="text-align: center">AMR Detection</th>
             <th style="text-align: center">Data Type</th>
             <th></th>
         </tr>
@@ -109,6 +110,27 @@
                     <td>N/A</td>
                 {% endif %}
 
+                {# AMR Detection #}
+                {% if sample.file_fasta %}
+                    <td>Unavailable</td>
+                {% elif sample.amr_status == 'Processing' %}
+                    <td>
+                        <div class="progress">
+                            <button class="btn progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width:100%" >
+                                <span class="justify-content-center d-flex position-absolute w-100" style="font-size: 12pt">
+                                    {{ sample.amr_status }}
+                                </span>
+                            </button>
+                        </div>
+                    </td>
+
+                {% elif sample.amr_status == 'Unprocessed' %}
+                    <td><button class="btn btn-primary">{{ sample.confindr_status }}</button></td>
+                {% elif sample.amr_status == 'Complete' %}
+                    <td><a href="{% url 'new_multisample:amr_detail' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.amr_status }}</a></td>
+                {% else %}
+                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.amr_status }}</button></td>
+                {% endif %}
                 {# Data type #}
                 {% if sample.file_fasta %}
                     <td><button class="btn btn-secondary">FASTA</button></td>
@@ -162,7 +184,7 @@
         //Periodically reload the page if a job status == 'Processing'
         setInterval(function() {
             {% for sample in project.samples.all %}
-                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' or sample.confindr_status == 'Processing' or sample.genomeqaml_status == 'Processing'%}
+                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' or sample.confindr_status == 'Processing' or sample.genomeqaml_status == 'Processing' or sample.amr_status == 'Processing' %}
                     window.location = window.location.href;
                 {% endif %}
             {% endfor %}
