@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
-from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResultsGDCS
+from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResultsGDCS, AMRResult
 from .forms import ProjectForm, JobForm
 from . import tasks
 from .table import SendsketchTable
@@ -142,6 +142,13 @@ def project_detail(request, project_id):
                         Sample.objects.filter(pk=sample.pk).update(genomeqaml_status="Processing")
                         tasks.run_genomeqaml(fasta_file=sample.file_fasta.name,
                                              sample_pk=sample.pk)
+
+            if 'amrdetect' in jobs_to_run:
+                for sample in project.samples.all():
+                    if sample.amr_status != 'Complete' and not sample.file_fasta:
+                        Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
+                        tasks.run_amr(sample_pk=sample.pk)
+
             form = JobForm()
 
     else:
@@ -278,6 +285,19 @@ def gdcs_detail(request, sample_id):
     return render(request,
                   'new_multisample/gdcs_detail.html',
                   {'sample': sample},
+                  )
+
+@login_required
+def amr_detail(request, sample_id):
+    sample = get_object_or_404(Sample, pk=sample_id)
+    for amr_result in sample.amr_results.all():
+        result_dict = amr_result.results_dict
+    caption = [sample.title, 'To Be Added']
+    return render(request,
+                  'new_multisample/amr_detail.html',
+                  {'sample': sample,
+                   'results': result_dict,
+                   'caption': caption},
                   )
 
 

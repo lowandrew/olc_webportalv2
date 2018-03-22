@@ -1,6 +1,6 @@
 from django.db import models
 from olc_webportalv2.users.models import User
-from django.contrib.postgres.fields import HStoreField
+from django.contrib.postgres.fields.jsonb import JSONField
 import os
 from django.core.exceptions import ValidationError
 
@@ -51,6 +51,8 @@ class Sample(models.Model):
                                        default="Unprocessed")
     genomeqaml_status = models.CharField(max_length=128,
                                          default="Unprocessed")
+    amr_status = models.CharField(max_length=128,
+                                  default="Unprocessed")
 
     def __str__(self):
         return self.title
@@ -201,7 +203,7 @@ class GenesipprResultsGDCS(models.Model):
     matches = models.CharField(max_length=256, default="N/A")
     meancoverage = models.CharField(max_length=128, default="N/A")
     passfail = models.CharField(max_length=16, default="N/A")
-    allele_dict = HStoreField()
+    allele_dict = JSONField(blank=True, null=True, default=dict)
 
 
 class ConFindrResults(models.Model):
@@ -226,3 +228,14 @@ class GenesipprResultsSerosippr(models.Model):
         return '{}'.format(self.sample)
 
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+
+
+class AMRResult(models.Model):
+    class Meta:
+        verbose_name_plural = 'AMR Results'
+
+    def __str__(self):
+        return '{}'.format(self.sample)
+
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE, related_name='amr_results')
+    results_dict = JSONField(blank=True, null=True, default=dict)

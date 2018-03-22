@@ -95,3 +95,14 @@ services:
     volumes:
       - ./olc_webportalv2/media/:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
+
+  srst2:
+    ports:
+      - "8005:8005"
+    image: "olcwebportalv2_srst2:latest"
+    container_name: olcwebportalv2_srst2
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./olc_webportalv2/media/:/sequences
+      - /var/run/docker.sock:/var/run/docker.sock
