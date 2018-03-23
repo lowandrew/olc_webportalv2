@@ -38,11 +38,11 @@
                     </td>
 
                 {% elif sample.genesippr_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary">{{ sample.genesippr_status }}</button></td>
+                    <td><button class="btn btn-primary" disabled>{{ sample.genesippr_status }}</button></td>
                 {% elif sample.genesippr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:display_genesippr_results' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.genesippr_status }}</a></td>
                 {% else %}
-                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.genesippr_status }}</button></td>
+                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.genesippr_status }}</button></td>
                 {% endif %}
 
                 {# SENDSKETCH #}
@@ -58,11 +58,11 @@
                     </td>
 
                 {% elif sample.sendsketch_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary">{{ sample.sendsketch_status }}</button></td>
+                    <td><button class="btn btn-primary" disabled>{{ sample.sendsketch_status }}</button></td>
                 {% elif sample.sendsketch_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:sendsketch_results_table' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.sendsketch_status }}</a></td>
                 {% else %}
-                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.sendsketch_status }}</button></td>
+                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.sendsketch_status }}</button></td>
                 {% endif %}
 
                 {# CONFINDR #}
@@ -80,17 +80,17 @@
                     </td>
 
                 {% elif sample.confindr_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary">{{ sample.confindr_status }}</button></td>
+                    <td><button class="btn btn-primary" disabled>{{ sample.confindr_status }}</button></td>
                 {% elif sample.confindr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:confindr_results_table' project_id=project.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.confindr_status }}</a></td>
                 {% else %}
-                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.confindr_status }}</button></td>
+                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.confindr_status }}</button></td>
                 {% endif %}
 
                 {# GenomeQAML #}
                 {% if sample.file_fasta %}
                     {% if sample.genomeqaml_status == 'Unprocessed' %}
-                        <td><button class="btn btn-primary">{{ sample.genomeqaml_status }}</button></td>
+                        <td><button class="btn btn-primary" disabled>{{ sample.genomeqaml_status }}</button></td>
                     {% elif sample.genomeqaml_status == 'Processing' %}
                         <td>
                             <div class="progress">
@@ -104,16 +104,14 @@
                     {% elif sample.genomeqaml_status == 'Complete' %}
                         <td><a href="{% url 'new_multisample:genomeqaml_results' project_id=project.pk %}" class="btn btn-success">{{ sample.genomeqaml_status }}</a></td>
                     {% else %}
-                        <td><button class="btn btn-danger">{{ sample.genomeqaml_status }}</button></td>
+                        <td><button class="btn btn-danger" disabled>{{ sample.genomeqaml_status }}</button></td>
                     {% endif %}
                 {% else %}
-                    <td>N/A</td>
+                    <td>Unavailable</td>
                 {% endif %}
 
                 {# AMR Detection #}
-                {% if sample.file_fasta %}
-                    <td>Unavailable</td>
-                {% elif sample.amr_status == 'Processing' %}
+                {% if sample.amr_status == 'Processing' %}
                     <td>
                         <div class="progress">
                             <button class="btn progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width:100%" >
@@ -125,17 +123,17 @@
                     </td>
 
                 {% elif sample.amr_status == 'Unprocessed' %}
-                    <td><button class="btn btn-primary">{{ sample.confindr_status }}</button></td>
+                    <td><button class="btn btn-primary" disabled>{{ sample.amr_status }}</button></td>
                 {% elif sample.amr_status == 'Complete' %}
                     <td><a href="{% url 'new_multisample:amr_detail' sample_id=sample.pk %}" class="btn btn-primary bg-success border-success" role="button" aria-pressed="true">{{ sample.amr_status }}</a></td>
                 {% else %}
-                    <td><button class="btn btn-primary bg-danger border-danger">{{ sample.amr_status }}</button></td>
+                    <td><button class="btn btn-primary bg-danger border-danger" disabled>{{ sample.amr_status }}</button></td>
                 {% endif %}
                 {# Data type #}
                 {% if sample.file_fasta %}
-                    <td><button class="btn btn-secondary">FASTA</button></td>
+                    <td><button class="btn btn-secondary" disabled>FASTA</button></td>
                 {% else %}
-                    <td><button class="btn btn-dark">FASTQ</button></td>
+                    <td><button class="btn btn-dark" disabled>FASTQ</button></td>
                 {% endif %}
                 {#  Sample delete #}
                 <td><a href="{% url 'new_multisample:sample_remove_confirm' sample_id=sample.pk %}" class="btn btn-danger" role="button" aria-pressed="true">Delete Sample</a></td>

@@ -28,7 +28,11 @@
                     <td>{{ key }}</td>
                     <td><a href="https://www.ncbi.nlm.nih.gov/nuccore/{{ k }}">{{ k }}</a></td>
                     <td>{{ v.identity }}</td>
-                    <td>{{ v.rarity }}</td>
+                    {% if v.rarity == 9000 %}
+                        <td>Unknown</td>
+                    {% else %}
+                        <td>{{ v.rarity }}</td>
+                    {% endif %}
                     <td>{{ v.annotation }}</td>
                 </tr>
             {% endfor %}
@@ -87,6 +91,9 @@
                         colourRarity = '#d3d232';
                     } else if (value < 0.5) {
                         colourRarity = '#ff9127';
+                    } else if (value == 9000) {
+                        colourRarity = '#2d3317';
+                        value = 'Unknown';
                     } else {
                         colourRarity = '#ff171a';
                     }

@@ -145,7 +145,10 @@ def project_detail(request, project_id):
 
             if 'amrdetect' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.amr_status != 'Complete' and not sample.file_fasta:
+                    if sample.amr_status != 'Complete' and sample.file_fasta:
+                        Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
+                        tasks.run_amr_fasta(sample_pk=sample.pk)
+                    elif sample.amr_status != 'Complete' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
                         tasks.run_amr(sample_pk=sample.pk)
 
@@ -292,7 +295,8 @@ def amr_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
     for amr_result in sample.amr_results.all():
         result_dict = amr_result.results_dict
-    caption = [sample.title, 'To Be Added']
+        species = amr_result.species
+    caption = [sample.title, species]
     return render(request,
                   'new_multisample/amr_detail.html',
                   {'sample': sample,

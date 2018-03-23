@@ -1,4 +1,5 @@
 import pandas as pd
+import csv
 import pandas_highcharts
 import zipfile
 import glob
@@ -13,10 +14,144 @@ from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, Ge
 
 
 @background(schedule=1)
+def run_amr_fasta(sample_pk):
+    sample = Sample.objects.get(pk=sample_pk)
+    project = ProjectMulti.objects.get(pk=sample.project.pk)
+    print('Running AMR via GeneSeekr')
+    output_folder = 'olc_webportalv2/media/sample_{}_amr'.format(sample_pk)
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+    # Link the fasta file to our output folder.
+    cmd = 'ln -s -r {fasta_file} {output_folder}'.format(fasta_file=os.path.join('olc_webportalv2/media', sample.file_fasta.name),
+                                                         output_folder=output_folder)
+    os.system(cmd)
+
+    # Mash to figure out what genus we're dealing with.
+    cmd = 'docker exec ' \
+          'olcwebportalv2_srst2 ' \
+          'mash dist -d 0.1 ' \
+          '/sequences/{output_folder}/{fasta} ' \
+          '/home/ubuntu/refseq.msh'.format(output_folder=os.path.split(output_folder)[-1],
+                                           fasta=os.path.split(sample.file_fasta.name)[-1])
+    try:
+        p = check_output(cmd, shell=True)
+    except:
+        print('MASH ERROR')
+        Sample.objects.filter(pk=sample_pk).update(amr_status='Error')
+        return
+    distances = p.decode().split('\n')
+    closest_species = ''
+    closest_species_distance = 1.0
+    for distance in distances:
+        x = distance.split('\t')
+        if len(x) > 1:
+            if float(x[2]) < closest_species_distance:
+                closest_species_distance = float(x[2])
+                closest_species = x[1].split('/')[-2]
+
+    # Now run GeneSeekr to find AMR genes. This will create a virulence.csv in our output folder,
+    # since that report is easier to parse than the standard one.
+    cmd = 'docker exec ' \
+          'olcwebportalv2_geneseekr ' \
+          'python -m spadespipeline.GeneSeekr ' \
+          '-s /sequences/{output_folder} ' \
+          '-t /home/amr ' \
+          '-r /sequences/{output_folder} ' \
+          '-v'.format(output_folder=os.path.split(output_folder)[-1])
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()
+    except:
+        print('GENESEEKR ERROR')
+        Sample.objects.filter(pk=sample_pk).update(amr_status='Error')
+        return
+    with open(os.path.join(output_folder, 'virulence.csv')) as csvfile:
+        reader = csv.DictReader(csvfile)
+        result = dict()
+        for row in reader:
+            result[row['Gene']] = row['PercentIdentity']
+
+    # Now copy paste a bunch of code over from previous AMR task. This is BAD PRACTICE, merge these methods
+    # at some point in the near future.
+
+    # Get the rarity dict copied over temporarily so that it can be loaded.
+    cmd = 'docker exec ' \
+          'olcwebportalv2_srst2 cp ' \
+          '/home/ubuntu/AMR_Data.json ' \
+          '/sequences/sample_{sample_id}_amr'.format(sample_id=sample_pk)
+    try:
+        p = Popen(cmd, shell=True)
+        p.communicate()
+    except:
+        print('JSON COPY ERROR')
+        Sample.objects.filter(pk=sample_pk).update(amr_status='Error')
+        return
+    # Load the JSON dict.
+    with open(os.path.join(output_folder, 'AMR_Data.json')) as f:
+        json_dict = json.loads(f.read())
+    cmd = 'rm {output_folder}/AMR_Data.json'.format(output_folder=output_folder)
+    os.system(cmd)
+    # Now some more Jackson code to get everything into one giant dictionary that highcharts will be able
+    # to use to make a pretty graph.
+    display_dict = {}
+    if "Escherichia_coli" == closest_species:
+        rarity_name = "ECOLI"
+    elif "Listeria_monocytogenes" == closest_species:
+        rarity_name = "LISTERIA"
+    elif "Salmonella_enterica" == closest_species:
+        rarity_name = "SALMONELLA"
+    elif "Shigella_boydii" == closest_species:
+        rarity_name = "SHIGELLA_B"
+    elif "Shigella_sonnei" == closest_species:
+        rarity_name = "SHIGELLA_S"
+    elif "Shigella_flexneri" == closest_species:
+        rarity_name = "SHIGELLA_F"
+    elif "Shigella_dysenteriae" == closest_species:
+        rarity_name = "SHIGELLA_D"
+    elif "Vibrio_parahaemolyticus" == closest_species:
+        rarity_name = "VIBRIO"
+    elif "Yersinia_enterocolitica" == closest_species:
+        rarity_name = "YERSINIA"
+    elif "Campylobacter_coli" == closest_species:
+        rarity_name = "CAMPY_COLI"
+    elif "Campylobacter_jejuni" == closest_species:
+        rarity_name = "CAMPY_JEJUNI"
+    else:
+        rarity_name = "OTHER"
+
+    for key, value in result.items():
+        if rarity_name in json_dict[key]:
+            rarity = json_dict[key][rarity_name]
+        else:
+            rarity = 9000
+        display_dict[key] = {"identity": value,
+                             "class": json_dict[key]["class"],
+                             "antibiotic": json_dict[key]["antibiotic"],
+                             "rarity": rarity,
+                             "annotation": json_dict[key]["annotation"]}
+
+        classes = set()
+        results_dict = {}
+        for key, value in display_dict.items():
+            classes.add(value["class"])
+        for item in classes:
+            results_dict[item] = {}
+        for item in classes:
+            for key, value in display_dict.items():
+                if value["class"] == item:
+                    results_dict[item][key] = value
+    AMRResult.objects.update_or_create(sample=Sample.objects.get(id=sample_pk),
+                                       results_dict=results_dict,
+                                       species=closest_species)
+    Sample.objects.filter(pk=sample_pk).update(amr_status='Complete')
+    print('AMR Results complete!')
+
+
+@background(schedule=1)
 def run_amr(sample_pk):
     sample = Sample.objects.get(pk=sample_pk)
     project = ProjectMulti.objects.get(pk=sample.project.pk)
-    print('Running AMR')
+    print('Running AMR via SRST2')
     # Make the output folder that we'll use.
     output_folder = 'olc_webportalv2/media/sample_{}_amr'.format(sample_pk)
     if not os.path.isdir(output_folder):
@@ -138,7 +273,7 @@ def run_amr(sample_pk):
         if rarity_name in json_dict[key]:
             rarity = json_dict[key][rarity_name]
         else:
-            rarity = 0
+            rarity = 9000
         display_dict[key] = {"identity": value,
                              "class": json_dict[key]["class"],
                              "antibiotic": json_dict[key]["antibiotic"],
@@ -156,7 +291,8 @@ def run_amr(sample_pk):
                 if value["class"] == item:
                     results_dict[item][key] = value
     AMRResult.objects.update_or_create(sample=Sample.objects.get(id=sample_pk),
-                                       results_dict=results_dict)
+                                       results_dict=results_dict,
+                                       species=closest_species)
     Sample.objects.filter(pk=sample_pk).update(amr_status='Complete')
     print('AMR Results complete!')
 

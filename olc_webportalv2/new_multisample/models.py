@@ -239,3 +239,4 @@ class AMRResult(models.Model):
 
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE, related_name='amr_results')
     results_dict = JSONField(blank=True, null=True, default=dict)
+    species = models.CharField(max_length=88, default='N/A')
