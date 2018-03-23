@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {#Head container#}
+{% load staticfiles %}
 {% load bootstrap %}
 {% load render_table from django_tables2 %}
 {% load i18n widget_tweaks %}
@@ -40,8 +41,8 @@
     </tbody>
      </table>
     </div>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="{% static 'js/highcharts.js' %}"></script>
+    <script src="{% static 'js/modules/exporting.js' %}"></script>
     <script type="text/javascript">
                 var categories = [{% for key in results %}"{{ key }}",{% endfor %}],
                 data = [
@@ -175,8 +176,9 @@
                 }]
             });
     </script>
-    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/datatables.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
     <script type="text/javascript">
         $(document).ready(function () {
             $('#amr-results-table').dataTable();
