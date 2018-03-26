@@ -114,13 +114,17 @@
 
     function progressSpinner() {
         var spinnerdiv = document.getElementById('upload-div');
-        var div = document.createElement('div');
-        var text = document.createElement('H4');
-        var message = document.createTextNode('File upload in progress...');
-        text.appendChild(message);
-        div.setAttribute('class', 'loader');
-        spinnerdiv.appendChild(text);
-        spinnerdiv.appendChild(div);
+        var ele = document.getElementById('spindiv');
+        if (ele === null){
+            var div = document.createElement('div');
+            div.setAttribute('class', 'loader');
+            div.id = 'spindiv';
+            var text = document.createElement('H4');
+            var message = document.createTextNode('File upload in progress...');
+            text.appendChild(message);
+            spinnerdiv.appendChild(text);
+            spinnerdiv.appendChild(div);
+        }
     }
 
     function handleFileSelect(e) {
