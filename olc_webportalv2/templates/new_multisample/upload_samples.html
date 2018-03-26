@@ -18,8 +18,10 @@
         <input type="text" name="Reverse_ID" value="_R2" id="Reverse_ID" onkeyup="simulateEvent()" onchange="simulateEvent()">
         <br>
         <br>
-        <button type="submit" class="btn btn-outline-primary" name="upload" value="Upload">Upload</button>
+        <button onclick="progressSpinner()" type="submit" class="btn btn-outline-primary" name="upload" value="Upload">Upload</button>
     </form>
+    <div id="upload-div" class="center" style="width: 300px;"></div>
+    <br>
     <table class="table table-hover table-sm table-responsive table-bordered" id="read-pairing-table">
         <caption>Read Pairings</caption>
         <thead>
@@ -54,6 +56,7 @@
         <tbody>
         </tbody>
     </table>
+
     <br>
     <br>
     <style>
@@ -64,6 +67,24 @@
             font-size: 20px;
             color: black;
             font-family: Impact, Charcoal, sans-serif;
+        }
+
+        .loader {
+            border: 12px solid rgba(243, 243, 243, 0.47); /* Light grey */
+            border-top: 12px solid #0e4164; /* Blue */
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 4s linear infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .center {
+            margin: auto;
         }
     </style>
      {# Javascript to display the files you're going to upload, as shown at #}
@@ -89,6 +110,17 @@
         var handle = document.querySelector('#files');
         handle.dispatchEvent(event_keypress);
         handle.dispatchEvent(event_change);
+    }
+
+    function progressSpinner() {
+        var spinnerdiv = document.getElementById('upload-div');
+        var div = document.createElement('div');
+        var text = document.createElement('H4');
+        var message = document.createTextNode('File upload in progress...');
+        text.appendChild(message);
+        div.setAttribute('class', 'loader');
+        spinnerdiv.appendChild(text);
+        spinnerdiv.appendChild(div);
     }
 
     function handleFileSelect(e) {

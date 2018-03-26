@@ -1,5 +1,8 @@
 from django import forms
 from .models import ProjectMulti
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
+from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 
 
 class BootstrapModelForm(forms.ModelForm):
@@ -24,16 +27,25 @@ class ProjectForm(BootstrapModelForm):
 
 
 class JobForm(forms.Form):
-     JOB_CHOICES = (
+    JOB_CHOICES = (
          ('genesipprv2', 'GeneSippr'),
          ('sendsketch', 'SendSketch'),
          ('confindr', 'ConFindr'),
          ('genomeqaml', 'GenomeQAML'),
          ('amrdetect', 'AMR Detection'),
-     )
+    )
 
-     jobs = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=JOB_CHOICES)
-
+    jobs = forms.MultipleChoiceField(choices=JOB_CHOICES,
+                                     widget=forms.CheckboxSelectMultiple)
+    helper = FormHelper()
+    helper.form_class = 'form-horizontal'
+    helper.form_show_labels = False
+    helper.layout = Layout(
+        Field('jobs', style="background: #FAFAFA; padding: 10px;", css_class="checkbox-primary"),
+        FormActions(
+           Submit('submit', 'Submit Jobs', css_class="btn-outline-primary"),
+        )
+    )
 
 # class SampleForm(forms.Form):
 #     files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
