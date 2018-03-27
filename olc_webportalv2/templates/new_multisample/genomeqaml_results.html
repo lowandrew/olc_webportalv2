@@ -4,6 +4,7 @@
 {% load bootstrap %}
 {% load render_table from django_tables2 %}
 {% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom_bootstrap_vars.css' %}"/>
     <h4>GenomeQAML Results For Project {{ project.project_title }}</h4>
     <br>
         <table class="display compact" id="genomeqaml-results">
@@ -42,6 +43,8 @@
             <i class="fa fa-check-circle fa-1x" >: Pass</i>
             <i class="fa fa-ban fa-1x" >: Fail</i>
     </div>
+    <br><br>
+    <a href="{% url 'new_multisample:project_detail' project_id=project.pk %}" class="btn btn-sample" role="button" aria-pressed="true">Return to Project {{ project.project_title }}</a>
         <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
         <script src="{% static 'js/datatables.min.js' %}"></script>
         <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>

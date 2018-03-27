@@ -5,11 +5,13 @@
 {% load render_table from django_tables2 %}
 {% load i18n widget_tweaks %}
 {% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom_bootstrap_vars.css' %}"/>
     <h4>AMR Detail for Sample {{ sample.title }}</h4>
     <div id="container" style="width: 750px; height: 600px; margin: 0 auto"></div>
     <br><br>
     <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#amr-results"><strong>View Table</strong></button>
-
+    <br><br>
+    <a href="{% url 'new_multisample:project_detail' project_id=sample.project.pk %}" class="btn btn-sample" role="button" aria-pressed="true">Return to Project {{ sample.project.project_title }}</a>
     <div id="amr-results" class="collapse">
      <table id="amr-results-table" class="display compact">
         <thead>
@@ -41,6 +43,7 @@
     </tbody>
      </table>
     </div>
+
     <script src="{% static 'js/highcharts.js' %}"></script>
     <script src="{% static 'js/modules/exporting.js' %}"></script>
     <script type="text/javascript">

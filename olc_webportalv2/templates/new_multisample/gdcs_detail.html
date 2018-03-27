@@ -6,6 +6,7 @@
 {% load i18n widget_tweaks %}
 {% block content %}
     <h4>GDCS Detail for Sample {{ sample.title }}</h4>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom_bootstrap_vars.css' %}"/>
     <div id="container" style="height: 1000px"></div>
     <hr>
     <button type="button" class="btn btn-info btn-block" data-toggle="collapse" data-target="#gdcs-results"><strong>View Table</strong></button>
@@ -33,6 +34,7 @@
     </tbody>
     </table>
     </div>
+    <a href="{% url 'new_multisample:display_genesippr_results' project_id=sample.project.pk %}" class="btn btn-sample" role="button" aria-pressed="true">Return to GeneSippr Results</a>
   <br>
     <script src="{% static 'js/highcharts.js' %}"></script>
     <script src="{% static 'js/modules/data.js' %}"></script>

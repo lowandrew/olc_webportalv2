@@ -4,6 +4,7 @@
 {% load render_table from django_tables2 %}
 {% block content %}
 
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom_bootstrap_vars.css' %}"/>
     <h4>SendSketch Results for {{ base_project.title }}</h4>
     <br>
     {% if base_project.sendsketch_status == 'Processing' %}
@@ -79,5 +80,7 @@
 
         <pre>Not available</pre>
 {% endif %}
+    <br><br>
+    <a href="{% url 'new_multisample:project_detail' project_id=base_project.project.pk %}" class="btn btn-sample" role="button" aria-pressed="true">Return to Project {{ base_project.project.project_title }}</a>
 
 {% endblock %}
