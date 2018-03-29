@@ -9,7 +9,7 @@ import multiprocessing
 from subprocess import Popen, check_output
 from background_task import background
 
-from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, \
+from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, SendsketchResult, GenesipprResults, GenesipprResultsGDCS, \
     GenesipprResultsSixteens, ConFindrResults, GenomeQamlResult, AMRResult
 
 

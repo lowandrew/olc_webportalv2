@@ -1,4 +1,4 @@
-from . import views
+from olc_webportalv2.new_multisample import views
 from django.conf.urls import url, include
 
 

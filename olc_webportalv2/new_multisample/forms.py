@@ -1,5 +1,5 @@
 from django import forms
-from .models import ProjectMulti
+from olc_webportalv2.new_multisample.models import ProjectMulti
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions

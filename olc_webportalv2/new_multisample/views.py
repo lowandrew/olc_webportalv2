@@ -8,10 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
-from .models import ProjectMulti, Sample, SendsketchResult, GenesipprResultsGDCS, AMRResult
-from .forms import ProjectForm, JobForm
-from . import tasks
-from .table import SendsketchTable
+from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, SendsketchResult, GenesipprResultsGDCS, AMRResult
+from olc_webportalv2.new_multisample.forms import ProjectForm, JobForm
+from olc_webportalv2.new_multisample import tasks
+from olc_webportalv2.new_multisample.table import SendsketchTable
 # Create your views here.
 
 

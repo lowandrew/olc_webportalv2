@@ -57,3 +57,4 @@ gunicorn==19.7.1
 uwsgi
 django-extensions
 django-debug-toolbar
+django-test-plus
