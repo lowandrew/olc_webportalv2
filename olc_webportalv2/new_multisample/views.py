@@ -4,7 +4,7 @@ import pandas as pd
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import Http404, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django_tables2 import RequestConfig
@@ -45,6 +45,8 @@ def new_multisample(request):
 @login_required
 def upload_samples(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     if request.method == 'POST':
         # form = SampleForm(request.POST)
         files = request.FILES.getlist('files')
@@ -94,10 +96,8 @@ def upload_samples(request, project_id):
 @login_required
 def project_detail(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
-    # try:
-    #     project_id = ProjectMulti.objects.get(pk=project_id)
-    # except ProjectMulti.DoesNotExist:
-    #     raise Http404("Project ID {} does not exist.".format(project_id))
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     if request.method == 'POST':
         form = JobForm(request.POST)
         # Save the form
@@ -163,17 +163,12 @@ def project_detail(request, project_id):
                    'user': request.user},
                   )
 
-@login_required
-def sample_detail(request, sample_id):
-    sample = get_object_or_404(Sample, pk=sample_id)
-    return render(request,
-                  'new_multisample/sample_detail.html',
-                  {'sample': sample},
-                  )
 
 @login_required
 def genomeqaml_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
+    if request.user != sample.project.user:
+        return redirect('new_multisample:forbidden')
     return render(request,
                   'new_multisample/genomeqaml_detail.html',
                   {'sample': sample},
@@ -184,6 +179,8 @@ def genomeqaml_detail(request, sample_id):
 def sendsketch_results_table(request, sample_id):
     try:
         sample = SendsketchResult.objects.filter(sample=Sample.objects.get(pk=sample_id)).exclude(rank='N/A')
+        if request.user != sample.project.user:
+            return redirect('new_multisample:forbidden')
         sendsketch_results_table_ = SendsketchTable(SendsketchResult.objects.all())
         base_project = Sample.objects.get(pk=sample_id)
         RequestConfig(request).configure(sendsketch_results_table_)
@@ -204,6 +201,8 @@ def sendsketch_results_table(request, sample_id):
 @login_required
 def confindr_results_table(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     return render(request,
                   'new_multisample/confindr_results_table.html',
                   {'project': project},
@@ -213,6 +212,8 @@ def confindr_results_table(request, project_id):
 @login_required
 def genomeqaml_results(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     return render(request,
                   'new_multisample/genomeqaml_results.html',
                   {'project': project},
@@ -223,6 +224,8 @@ def genomeqaml_results(request, project_id):
 @login_required
 def display_genesippr_results(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     if project.results_created == 'True':
         genesippr_data = pd.read_csv(project.genesippr_file).dropna(axis=1, how='all').fillna('')
         genesippr_data_html = genesippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
@@ -250,6 +253,8 @@ def display_genesippr_results(request, project_id):
 @login_required
 def project_remove(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     project.delete()
     return redirect('new_multisample:new_multisample')
 
@@ -257,6 +262,8 @@ def project_remove(request, project_id):
 @login_required
 def project_remove_confirm(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     return render(request,
                   'new_multisample/confirm_project_delete.html',
                   {'project': project},
@@ -267,6 +274,8 @@ def project_remove_confirm(request, project_id):
 def sample_remove(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
     project = get_object_or_404(ProjectMulti, pk=sample.project.id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     sample.delete()
     return redirect('new_multisample:project_detail', project_id=project.id)
 
@@ -275,6 +284,8 @@ def sample_remove(request, sample_id):
 def sample_remove_confirm(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
     project = get_object_or_404(ProjectMulti, pk=sample.project.id)
+    if request.user != project.user:
+        return redirect('new_multisample:forbidden')
     return render(request,
                   'new_multisample/confirm_sample_delete.html',
                   {'sample': sample,
@@ -285,14 +296,19 @@ def sample_remove_confirm(request, sample_id):
 @login_required
 def gdcs_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
+    if request.user != sample.project.user:
+        return redirect('new_multisample:forbidden')
     return render(request,
                   'new_multisample/gdcs_detail.html',
                   {'sample': sample},
                   )
 
+
 @login_required
 def amr_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
+    if request.user != sample.project.user:
+        return redirect('new_multisample:forbidden')
     for amr_result in sample.amr_results.all():
         result_dict = amr_result.results_dict
         species = amr_result.species
@@ -305,9 +321,16 @@ def amr_detail(request, sample_id):
                   )
 
 
+def forbidden(request):
+    return render(request,
+                  'new_multisample/forbidden.html')
+
+
 def find_paired_reads(filelist, forward_id='_R1', reverse_id='_R2'):
     pairs = list()
     for filename in filelist:
         if forward_id in filename and filename.replace(forward_id, reverse_id) in filelist:
             pairs.append([filename, filename.replace(forward_id, reverse_id)])
     return pairs
+
+
