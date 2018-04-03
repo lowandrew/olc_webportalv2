@@ -60,4 +60,8 @@ urlpatterns = [
     # Forbidden
     url(r'^forbidden$',
         views.forbidden, name="forbidden"),
+
+    # Task Queue
+    url(r'^task_queue$',
+        views.task_queue, name="task_queue"),
 ]

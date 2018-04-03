@@ -12,6 +12,7 @@ from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, Sendske
 from olc_webportalv2.new_multisample.forms import ProjectForm, JobForm
 from olc_webportalv2.new_multisample import tasks
 from olc_webportalv2.new_multisample.table import SendsketchTable
+from background_task.models import Task
 # Create your views here.
 
 
@@ -250,6 +251,7 @@ def display_genesippr_results(request, project_id):
                       {'project': project},
                       )
 
+
 @login_required
 def project_remove(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
@@ -318,6 +320,19 @@ def amr_detail(request, sample_id):
                   {'sample': sample,
                    'results': result_dict,
                    'caption': caption},
+                  )
+
+
+@login_required
+def task_queue(request):
+    task_count = Task.objects.count()
+    task = Task.objects.filter()  # Get ALL the tasks!
+    # Need to: Figure out a way to assign verbose names to tasks,
+    # and also to generate a list of tasks with complete 
+    return render(request,
+                  'new_multisample/task_queue.html',
+                  {'task': task,
+                   'task_count': task_count},
                   )
 
 

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied{% endblock %}
+
+{% block content %}
+<h1>Task Queue</h1>
+  <p>There are currently <strong>{{ task_count }}</strong> jobs in the queue.</p>
+
+  <br>
+  <h4>Your Tasks</h4>
+  <table class="table table-hover table-bordered">
+    <thead>
+      <tr>
+        <td>Task Name</td>
+        <td>Position In Queue</td>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for item in task %}
+        <tr>
+          <td>{{ item.task_name }}</td>
+          <td>{{ item.run_at }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock content %}

@@ -6,6 +6,8 @@
 {% load render_table from django_tables2 %}
 {% load i18n widget_tweaks %}
 {% block content %}
+  <td><a href="{% url 'new_multisample:task_queue'%}" class="btn btn-primary" role="button" aria-pressed="true">Task Queue</a></td>
+  <br><br>
     <h4>{{ project.project_title }}</h4>
     <hr>
     <table class="display compact" id="sample_table">
