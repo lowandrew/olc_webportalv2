@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from olc_webportalv2.users.models import User
 from olc_webportalv2.new_multisample.models import ProjectMulti, Sample
@@ -57,6 +57,7 @@ class SampleTestCase(TestCase):
         self.client.login(username='TestUser', password='password')
         resp = self.client.get(reverse('new_multisample:upload_samples', kwargs={'project_id': project.pk}))
         self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/upload_samples.html')
 
     def test_upload_sample_no_login(self):
         project = ProjectMulti.objects.get(project_title='FakeProject')
@@ -75,6 +76,7 @@ class SampleTestCase(TestCase):
         self.client.login(username='TestUser', password='password')
         resp = self.client.get(reverse('new_multisample:genomeqaml_results', kwargs={'project_id': project.pk}))
         self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/genomeqaml_results.html')
 
     def test_genomeqaml_results_no_login(self):
         project = ProjectMulti.objects.get(project_title='FakeProject')
@@ -85,6 +87,42 @@ class SampleTestCase(TestCase):
         project = ProjectMulti.objects.get(project_title='FakeProject')
         self.client.login(username='BadUser', password='password')
         resp = self.client.get(reverse('new_multisample:genomeqaml_results', kwargs={'project_id': project.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_genomeqaml_detail_loads(self):
+        sample = Sample.objects.get(title='FakeSample')
+        self.client.login(username='TestUser', password='password')
+        resp = self.client.get(reverse('new_multisample:genomeqaml_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/genomeqaml_detail.html')
+
+    def test_genomeqaml_detail_no_login(self):
+        sample = Sample.objects.get(title='FakeSample')
+        resp = self.client.get(reverse('new_multisample:genomeqaml_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_genomeqaml_detail_wrong_user(self):
+        sample = Sample.objects.get(title='FakeSample')
+        self.client.login(username='BadUser', password='password')
+        resp = self.client.get(reverse('new_multisample:genomeqaml_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_confindr_results_loads(self):
+        project = ProjectMulti.objects.get(project_title='FakeProject')
+        self.client.login(username='TestUser', password='password')
+        resp = self.client.get(reverse('new_multisample:confindr_results_table', kwargs={'project_id': project.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/confindr_results_table.html')
+
+    def test_confindr_results_login_required(self):
+        project = ProjectMulti.objects.get(project_title='FakeProject')
+        resp = self.client.get(reverse('new_multisample:confindr_results_table', kwargs={'project_id': project.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_confindr_results_wrong_user(self):
+        project = ProjectMulti.objects.get(project_title='FakeProject')
+        self.client.login(username='BadUser', password='password')
+        resp = self.client.get(reverse('new_multisample:confindr_results_table', kwargs={'project_id': project.pk}))
         self.assertEqual(resp.status_code, 302)
 
     def test_project_remove_loads(self):
@@ -117,6 +155,7 @@ class SampleTestCase(TestCase):
         self.client.login(username='TestUser', password='password')
         resp = self.client.get(reverse('new_multisample:project_remove_confirm', kwargs={'project_id': project.pk}))
         self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/confirm_project_delete.html')
 
     def test_project_remove_confirm_login_required(self):
         project = ProjectMulti.objects.get(project_title='FakeProject')
@@ -159,6 +198,7 @@ class SampleTestCase(TestCase):
         self.client.login(username='TestUser', password='password')
         resp = self.client.get(reverse('new_multisample:sample_remove_confirm', kwargs={'sample_id': sample.pk}))
         self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/confirm_sample_delete.html')
 
     def test_sample_remove_confirm_login_required(self):
         sample = Sample.objects.get(title='FakeSample')
@@ -170,4 +210,44 @@ class SampleTestCase(TestCase):
         self.client.login(username='BadUser', password='password')
         resp = self.client.get(reverse('new_multisample:sample_remove_confirm', kwargs={'sample_id': sample.pk}))
         self.assertEqual(resp.status_code, 302)
+
+    def test_gdcs_detail_load(self):
+        sample = Sample.objects.get(title='FakeSample')
+        self.client.login(username='TestUser', password='password')
+        resp = self.client.get(reverse('new_multisample:gdcs_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/gdcs_detail.html')
+
+    def test_gdcs_detail_login_required(self):
+        sample = Sample.objects.get(title='FakeSample')
+        resp = self.client.get(reverse('new_multisample:gdcs_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_gdcs_detail_wrong_user(self):
+        sample = Sample.objects.get(title='FakeSample')
+        self.client.login(username='BadUser', password='password')
+        resp = self.client.get(reverse('new_multisample:gdcs_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_amr_detail_load(self):
+        sample = Sample.objects.get(title='FakeSample')
+        self.client.login(username='TestUser', password='password')
+        resp = self.client.get(reverse('new_multisample:amr_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'new_multisample/amr_detail.html')
+
+    def test_amr_detail_login_required(self):
+        sample = Sample.objects.get(title='FakeSample')
+        resp = self.client.get(reverse('new_multisample:amr_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_amr_detail_wrong_user(self):
+        sample = Sample.objects.get(title='FakeSample')
+        self.client.login(username='BadUser', password='password')
+        resp = self.client.get(reverse('new_multisample:amr_detail', kwargs={'sample_id': sample.pk}))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_file_upload_bad_file_extension(self):
+        project = ProjectMulti.objects.get(project_title='FakeProject')
+        self.client.login(username='TestUser', password='password')
 

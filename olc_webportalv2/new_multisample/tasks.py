@@ -355,7 +355,7 @@ def run_geneseekr(fasta_file, sample_pk):
                            output_folder=output_folder)
 
 
-@background(schedule=3)
+@background(schedule=1)
 def run_genesippr(project_id):
     print('Running GeneSippr')
     project = ProjectMulti.objects.get(pk=project_id)
@@ -407,7 +407,7 @@ def run_genesippr(project_id):
     print('\nGenesipprV2 container actions complete')
 
 
-@background(schedule=2)
+@background(schedule=1)
 def run_sendsketch(read1, read2, sample_pk, file_path):
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
@@ -442,7 +442,7 @@ def run_sendsketch(read1, read2, sample_pk, file_path):
     print('\nsendsketch.sh container actions complete')
 
 
-@background(schedule=2)
+@background(schedule=1)
 def run_confindr(project_id):
     print('Running ConFindr')
     project = ProjectMulti.objects.get(pk=project_id)
@@ -488,7 +488,7 @@ def run_confindr(project_id):
     print('ConFindr run complete')
 
 
-@background(schedule=2)
+@background(schedule=1)
 def run_sendsketch_fasta(fasta_file, sample_pk):
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 

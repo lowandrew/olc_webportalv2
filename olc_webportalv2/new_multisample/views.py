@@ -12,7 +12,7 @@ from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, Sendske
 from olc_webportalv2.new_multisample.forms import ProjectForm, JobForm
 from olc_webportalv2.new_multisample import tasks
 from olc_webportalv2.new_multisample.table import SendsketchTable
-from background_task.models import Task
+from background_task.models import Task, TaskManager
 # Create your views here.
 
 
@@ -309,6 +309,8 @@ def gdcs_detail(request, sample_id):
 @login_required
 def amr_detail(request, sample_id):
     sample = get_object_or_404(Sample, pk=sample_id)
+    species = 'Unknown'
+    result_dict = dict()
     if request.user != sample.project.user:
         return redirect('new_multisample:forbidden')
     for amr_result in sample.amr_results.all():
@@ -328,11 +330,20 @@ def task_queue(request):
     task_count = Task.objects.count()
     task = Task.objects.filter()  # Get ALL the tasks!
     # Need to: Figure out a way to assign verbose names to tasks,
-    # and also to generate a list of tasks with complete 
+    # and also to generate a list of tasks with complete
+
+    # Get task offset for showing position in queue.
+    try:
+        offset = task[0].pk - 1
+        offset = offset * -1  # Make negative so we can do addition that's really subtraction in the template
+    except IndexError:  # Handle the case that there are no tasks.
+        offset = 0
+
     return render(request,
                   'new_multisample/task_queue.html',
                   {'task': task,
-                   'task_count': task_count},
+                   'task_count': task_count,
+                   'offset': offset},
                   )
 
 

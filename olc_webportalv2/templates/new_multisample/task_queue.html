@@ -20,7 +20,8 @@
       {% for item in task %}
         <tr>
           <td>{{ item.task_name }}</td>
-          <td>{{ item.run_at }}</td>
+          <td>{{ item.pk|add:offset }}</td>
+          <td>{{ item.run_at|date:"U" }}</td>
         </tr>
       {% endfor %}
     </tbody>
