@@ -116,12 +116,13 @@ def project_detail(request, project_id):
 
             if 'genesipprv2' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.genesippr_status == 'Unprocessed':
+                    if sample.genesippr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
-                tasks.run_genesippr(project_id=project.pk)
+                        tasks.run_genesippr(sample_id=sample.pk)
                 # Also get GeneSeekr going.
                 for sample in project.samples.all():
                     if sample.file_fasta and sample.genesippr_status == 'Unprocessed':
+                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
                         tasks.run_geneseekr(fasta_file=sample.file_fasta.name,
                                             sample_pk=sample.pk)
 
@@ -129,7 +130,7 @@ def project_detail(request, project_id):
                 for sample in project.samples.all():
                     if sample.confindr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(confindr_status="Processing")
-                tasks.run_confindr(project_id=project.pk)
+                        tasks.run_confindr(sample_id=sample.pk)
 
             if 'genomeqaml' in jobs_to_run:
                 for sample in project.samples.all():
@@ -143,7 +144,7 @@ def project_detail(request, project_id):
                     if sample.amr_status == 'Unprocessed' and sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
                         tasks.run_amr_fasta(sample_pk=sample.pk)
-                    elif sample.amr_status == 'Complete' and not sample.file_fasta:
+                    elif sample.amr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
                         tasks.run_amr(sample_pk=sample.pk)
 

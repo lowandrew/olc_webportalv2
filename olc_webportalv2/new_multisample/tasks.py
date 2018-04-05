@@ -322,7 +322,6 @@ def run_genomeqaml(fasta_file, sample_pk):
         Sample.objects.filter(pk=sample_pk).update(genomeqaml_status="Error")
 
 
-
 @background(schedule=1)
 def run_geneseekr(fasta_file, sample_pk):
     print('Running GeneSeekr')
@@ -356,22 +355,20 @@ def run_geneseekr(fasta_file, sample_pk):
 
 
 @background(schedule=1)
-def run_genesippr(project_id):
+def run_genesippr(sample_id):
     print('Running GeneSippr')
-    project = ProjectMulti.objects.get(pk=project_id)
-    genesippr_dir = 'olc_webportalv2/media/genesippr_{}'.format(project.pk)
+    # project = ProjectMulti.objects.get(pk=project_id)
+    sample = Sample.objects.get(pk=sample_id)
+    genesippr_dir = 'olc_webportalv2/media/genesippr_{}'.format(sample.pk)
     if not os.path.isdir(genesippr_dir):
         os.makedirs(genesippr_dir)
-    fastq_count = 0
-    for sample in project.samples.all():
-        if not sample.file_fasta and sample.genesippr_status != 'Complete':
-            fastq_count += 1
-            cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
-                                                         genesippr_dir=genesippr_dir)
-            os.system(cmd)
-            cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
-                                                         genesippr_dir=genesippr_dir)
-            os.system(cmd)
+    if not sample.file_fasta and sample.genesippr_status != 'Complete':
+        cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+                                                     genesippr_dir=genesippr_dir)
+        os.system(cmd)
+        cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
+                                                     genesippr_dir=genesippr_dir)
+        os.system(cmd)
 
     # Run Genesippr
     cmd = 'docker exec ' \
@@ -382,18 +379,16 @@ def run_genesippr(project_id):
           '-s /sequences/{0}'.format(os.path.split(genesippr_dir)[-1])
 
     try:
-        if fastq_count > 0:
-            p = Popen(cmd, shell=True)
-            p.communicate()  # wait until the script completes before resuming the code
-            genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
-            for sample in project.samples.all():
-                if not sample.file_fasta:
-                    try:
-                        print('Reading GeneSippr result for sample ' + sample.title)
-                        read_genesippr_results(genesippr_reports, sample.id)
-                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
-                    except:
-                        Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
+        p = Popen(cmd, shell=True)
+        p.communicate()  # wait until the script completes before resuming the code
+        genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
+        if not sample.file_fasta:
+            try:
+                print('Reading GeneSippr result for sample ' + sample.title)
+                read_genesippr_results(genesippr_reports, sample.id)
+                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Complete")
+            except:
+                Sample.objects.filter(pk=sample.pk).update(genesippr_status="Error")
     except:
         print('GenesipprV2 failed to execute command.')
         quit()
@@ -437,21 +432,21 @@ def run_sendsketch(read1, read2, sample_pk, file_path):
 
 
 @background(schedule=1)
-def run_confindr(project_id):
+def run_confindr(sample_id):
     print('Running ConFindr')
-    project = ProjectMulti.objects.get(pk=project_id)
-    confindr_dir = 'olc_webportalv2/media/confindr_{}'.format(project.pk)
+    sample = Sample.objects.get(pk=sample_id)
+    project_id = sample.project.pk
+    confindr_dir = 'olc_webportalv2/media/confindr_{}'.format(sample.pk)
     if not os.path.isdir(confindr_dir):
         os.makedirs(confindr_dir)
     # Create a folder with links to the samples we want to run things on.
-    for sample in project.samples.all():
-        if sample.confindr_status != 'Complete' and not sample.file_fasta:
-            cmd = 'ln -s -r {r1} {confindr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
-                                                        confindr_dir=confindr_dir)
-            os.system(cmd)
-            cmd = 'ln -s -r {r2} {confindr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
-                                                        confindr_dir=confindr_dir)
-            os.system(cmd)
+    if sample.confindr_status != 'Complete' and not sample.file_fasta:
+        cmd = 'ln -s -r {r1} {confindr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
+                                                    confindr_dir=confindr_dir)
+        os.system(cmd)
+        cmd = 'ln -s -r {r2} {confindr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
+                                                    confindr_dir=confindr_dir)
+        os.system(cmd)
 
     # Will then need to run ConFindr here using docker exec.
     cmd = 'docker exec ' \
@@ -461,7 +456,7 @@ def run_confindr(project_id):
           '-o /sequences/confindr_results_{project_id} ' \
           '-d /home/databases ' \
           '-fid {forward_id} ' \
-          '-rid {reverse_id}'.format(project_id=project_id,
+          '-rid {reverse_id}'.format(project_id=sample_id,
                                      forward_id=ProjectMulti.objects.get(pk=project_id).forward_id,
                                      reverse_id=ProjectMulti.objects.get(pk=project_id).reverse_id)
 
@@ -472,13 +467,12 @@ def run_confindr(project_id):
         print('confindr failed to execute command.')
         quit()
     # Once it's run, need to read the results.
-    for sample in project.samples.all():
-        if not sample.file_fasta:
-            try:
-                read_confindr_results(sample_id=sample.id,
-                                      confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(project_id))
-            except:
-                Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
+    if not sample.file_fasta:
+        try:
+            read_confindr_results(sample_id=sample_id,
+                                  confindr_csv='olc_webportalv2/media/confindr_results_{}/confindr_report.csv'.format(sample_id))
+        except:
+            Sample.objects.filter(pk=sample.id).update(confindr_status="Error")
     print('ConFindr run complete')
 
 
@@ -591,6 +585,7 @@ def read_genomeqaml_results(sample_id, genomeqaml_csv):
                                                       percent_fail=df_records[i]['Percent_Fail'],
                                                       percent_pass=df_records[i]['Percent_Pass'],
                                                       percent_reference=df_records[i]['Percent_Ref'])
+
 
 def read_confindr_results(sample_id, confindr_csv):
     sample = Sample.objects.get(pk=sample_id)
