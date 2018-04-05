@@ -24,11 +24,6 @@ class ProjectMulti(models.Model):
     description = models.CharField(max_length=200, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
-    gdcs_file = models.CharField(max_length=256, default='')
-    genesippr_file = models.CharField(max_length=256, default='')
-    serosippr_file = models.CharField(max_length=256, default='')
-    sixteens_file = models.CharField(max_length=256, default='')
-    results_created = models.CharField(max_length=10, default='False')
     forward_id = models.CharField(max_length=256, default='_R1')
     reverse_id = models.CharField(max_length=256, default='_R2')
 

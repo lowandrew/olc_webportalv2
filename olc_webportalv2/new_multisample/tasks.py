@@ -364,15 +364,14 @@ def run_genesippr(project_id):
         os.makedirs(genesippr_dir)
     fastq_count = 0
     for sample in project.samples.all():
-        if not sample.file_fasta:
-            if sample.genesippr_status != 'Complete':
-                fastq_count += 1
-                cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
-                                                             genesippr_dir=genesippr_dir)
-                os.system(cmd)
-                cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
+        if not sample.file_fasta and sample.genesippr_status != 'Complete':
+            fastq_count += 1
+            cmd = 'ln -s -r {r1} {genesippr_dir}'.format(r1=os.path.join('olc_webportalv2/media', sample.file_R1.name),
                                                          genesippr_dir=genesippr_dir)
-                os.system(cmd)
+            os.system(cmd)
+            cmd = 'ln -s -r {r2} {genesippr_dir}'.format(r2=os.path.join('olc_webportalv2/media', sample.file_R2.name),
+                                                         genesippr_dir=genesippr_dir)
+            os.system(cmd)
 
     # Run Genesippr
     cmd = 'docker exec ' \
@@ -386,11 +385,6 @@ def run_genesippr(project_id):
         if fastq_count > 0:
             p = Popen(cmd, shell=True)
             p.communicate()  # wait until the script completes before resuming the code
-            ProjectMulti.objects.filter(pk=project_id).update(gdcs_file=os.path.join(genesippr_dir, 'reports', 'GDCS.csv'))
-            ProjectMulti.objects.filter(pk=project_id).update(sixteens_file=os.path.join(genesippr_dir, 'reports', 'sixteens_full.csv'))
-            ProjectMulti.objects.filter(pk=project_id).update(genesippr_file=os.path.join(genesippr_dir, 'reports', 'genesippr.csv'))
-            ProjectMulti.objects.filter(pk=project_id).update(serosippr_file=os.path.join(genesippr_dir, 'reports', 'serosippr.csv'))
-            ProjectMulti.objects.filter(pk=project_id).update(results_created='True')
             genesippr_reports = glob.glob(os.path.join(genesippr_dir, 'reports', '*csv'))
             for sample in project.samples.all():
                 if not sample.file_fasta:

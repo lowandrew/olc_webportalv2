@@ -1,18 +1,13 @@
-from django.shortcuts import render, get_object_or_404
 import os
-import pandas as pd
-
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.core.files.storage import FileSystemStorage
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import Http404, HttpResponse, HttpResponseNotFound
-from django.shortcuts import render, redirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
 from django_tables2 import RequestConfig
-from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, SendsketchResult, GenesipprResultsGDCS, AMRResult
+from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, SendsketchResult
 from olc_webportalv2.new_multisample.forms import ProjectForm, JobForm
 from olc_webportalv2.new_multisample import tasks
 from olc_webportalv2.new_multisample.table import SendsketchTable
-from background_task.models import Task, TaskManager
+from background_task.models import Task
 # Create your views here.
 
 
@@ -49,7 +44,6 @@ def upload_samples(request, project_id):
     if request.user != project.user:
         return redirect('new_multisample:forbidden')
     if request.method == 'POST':
-        # form = SampleForm(request.POST)
         files = request.FILES.getlist('files')
         filenames = list()
         file_dict = dict()
@@ -107,7 +101,7 @@ def project_detail(request, project_id):
             print(jobs_to_run)
             if 'sendsketch' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.sendsketch_status != 'Complete':
+                    if sample.sendsketch_status == 'Unprocessed':
                         if sample.file_fasta:
                             Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
                             tasks.run_sendsketch_fasta(fasta_file=sample.file_fasta.name,
@@ -122,34 +116,34 @@ def project_detail(request, project_id):
 
             if 'genesipprv2' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.genesippr_status != 'Complete':
+                    if sample.genesippr_status == 'Unprocessed':
                         Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
                 tasks.run_genesippr(project_id=project.pk)
                 # Also get GeneSeekr going.
                 for sample in project.samples.all():
-                    if sample.file_fasta:
+                    if sample.file_fasta and sample.genesippr_status == 'Unprocessed':
                         tasks.run_geneseekr(fasta_file=sample.file_fasta.name,
                                             sample_pk=sample.pk)
 
             if 'confindr' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.confindr_status != 'Complete' and not sample.file_fasta:
+                    if sample.confindr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(confindr_status="Processing")
                 tasks.run_confindr(project_id=project.pk)
 
             if 'genomeqaml' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.genomeqaml_status != 'Complete' and sample.file_fasta:
+                    if sample.genomeqaml_status == 'Unprocessed' and sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(genomeqaml_status="Processing")
                         tasks.run_genomeqaml(fasta_file=sample.file_fasta.name,
                                              sample_pk=sample.pk)
 
             if 'amrdetect' in jobs_to_run:
                 for sample in project.samples.all():
-                    if sample.amr_status != 'Complete' and sample.file_fasta:
+                    if sample.amr_status == 'Unprocessed' and sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
                         tasks.run_amr_fasta(sample_pk=sample.pk)
-                    elif sample.amr_status != 'Complete' and not sample.file_fasta:
+                    elif sample.amr_status == 'Complete' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
                         tasks.run_amr(sample_pk=sample.pk)
 
@@ -180,7 +174,8 @@ def genomeqaml_detail(request, sample_id):
 def sendsketch_results_table(request, sample_id):
     try:
         sample = SendsketchResult.objects.filter(sample=Sample.objects.get(pk=sample_id)).exclude(rank='N/A')
-        if request.user != sample.project.user:
+        s = get_object_or_404(Sample, pk=sample_id)
+        if request.user != s.project.user:
             return redirect('new_multisample:forbidden')
         sendsketch_results_table_ = SendsketchTable(SendsketchResult.objects.all())
         base_project = Sample.objects.get(pk=sample_id)
@@ -221,35 +216,15 @@ def genomeqaml_results(request, project_id):
                   )
 
 
-
 @login_required
 def display_genesippr_results(request, project_id):
     project = get_object_or_404(ProjectMulti, pk=project_id)
     if request.user != project.user:
         return redirect('new_multisample:forbidden')
-    if project.results_created == 'True':
-        genesippr_data = pd.read_csv(project.genesippr_file).dropna(axis=1, how='all').fillna('')
-        genesippr_data_html = genesippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
-        # serosippr_data = pd.read_csv(project.serosippr_file).fillna('')
-        # serosippr_data_html = serosippr_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
-        gdcs_data = pd.read_csv(project.gdcs_file).fillna('')
-        gdcs_data = gdcs_data[['Strain', 'Genus', 'Matches', 'MeanCoverage', 'Pass/Fail']]
-        gdcs_data_html = gdcs_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
-        sixteens_data = pd.read_csv(project.sixteens_file).fillna('')
-        sixteens_data_html = sixteens_data.to_html(classes=['table', 'table-hover', 'table-bordered'])
-        return render(request,
-                      'new_multisample/display_genesippr_results.html',
-                      {'project': project,
-                       'genesippr_data': genesippr_data_html,
-                       'sixteens_data': sixteens_data_html,
-                       'gdcs_data': gdcs_data_html},
-                       # 'serosippr_data': serosippr_data_html},
-                      )
-    else:
-        return render(request,
-                      'new_multisample/display_genesippr_results.html',
-                      {'project': project},
-                      )
+    return render(request,
+                  'new_multisample/display_genesippr_results.html',
+                  {'project': project},
+                  )
 
 
 @login_required
