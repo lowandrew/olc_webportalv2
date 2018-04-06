@@ -105,48 +105,64 @@ def project_detail(request, project_id):
                         if sample.file_fasta:
                             Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
                             tasks.run_sendsketch_fasta(fasta_file=sample.file_fasta.name,
-                                                       sample_pk=sample.pk)
+                                                       sample_pk=sample.pk,
+                                                       verbose_name='SendSketch on {}'.format(sample.title),
+                                                       creator=request.user)
                         else:
                             file_path = os.path.dirname(str(sample.file_R1))
                             Sample.objects.filter(pk=sample.pk).update(sendsketch_status="Processing")
                             tasks.run_sendsketch(read1=sample.file_R1.name,
                                                  read2=sample.file_R2.name,
                                                  sample_pk=sample.pk,
-                                                 file_path=file_path)
+                                                 file_path=file_path,
+                                                 verbose_name='Sendsketch on {}'.format(sample.title),
+                                                 creator=request.user)
 
             if 'genesipprv2' in jobs_to_run:
                 for sample in project.samples.all():
                     if sample.genesippr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
-                        tasks.run_genesippr(sample_id=sample.pk)
+                        tasks.run_genesippr(sample_id=sample.pk,
+                                            verbose_name='GeneSippr on {}'.format(sample.title),
+                                            creator=request.user)
                 # Also get GeneSeekr going.
                 for sample in project.samples.all():
                     if sample.file_fasta and sample.genesippr_status == 'Unprocessed':
                         Sample.objects.filter(pk=sample.pk).update(genesippr_status="Processing")
                         tasks.run_geneseekr(fasta_file=sample.file_fasta.name,
-                                            sample_pk=sample.pk)
+                                            sample_pk=sample.pk,
+                                            verbose_name='GeneSippr on {}'.format(sample.title),
+                                            creator=request.user)
 
             if 'confindr' in jobs_to_run:
                 for sample in project.samples.all():
                     if sample.confindr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(confindr_status="Processing")
-                        tasks.run_confindr(sample_id=sample.pk)
+                        tasks.run_confindr(sample_id=sample.pk,
+                                           verbose_name='ConFindr on {}'.format(sample.title),
+                                           creator=request.user)
 
             if 'genomeqaml' in jobs_to_run:
                 for sample in project.samples.all():
                     if sample.genomeqaml_status == 'Unprocessed' and sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(genomeqaml_status="Processing")
                         tasks.run_genomeqaml(fasta_file=sample.file_fasta.name,
-                                             sample_pk=sample.pk)
+                                             sample_pk=sample.pk,
+                                             verbose_name='GenomeQAML on {}'.format(sample.title),
+                                             creator=request.user)
 
             if 'amrdetect' in jobs_to_run:
                 for sample in project.samples.all():
                     if sample.amr_status == 'Unprocessed' and sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
-                        tasks.run_amr_fasta(sample_pk=sample.pk)
+                        tasks.run_amr_fasta(sample_pk=sample.pk,
+                                            verbose_name='AMR Detection on {}'.format(sample.title),
+                                            creator=request.user)
                     elif sample.amr_status == 'Unprocessed' and not sample.file_fasta:
                         Sample.objects.filter(pk=sample.pk).update(amr_status="Processing")
-                        tasks.run_amr(sample_pk=sample.pk)
+                        tasks.run_amr(sample_pk=sample.pk,
+                                      verbose_name='AMR Detection on {}'.format(sample.title),
+                                      creator=request.user)
 
             form = JobForm()
 
@@ -304,7 +320,7 @@ def amr_detail(request, sample_id):
 @login_required
 def task_queue(request):
     task_count = Task.objects.count()
-    task = Task.objects.filter()  # Get ALL the tasks!
+    task = Task.objects.filter()  # Get ALL the tasks belonging to specified user!
     # Need to: Figure out a way to assign verbose names to tasks,
     # and also to generate a list of tasks with complete
 
@@ -315,9 +331,13 @@ def task_queue(request):
     except IndexError:  # Handle the case that there are no tasks.
         offset = 0
 
+    task_list = list()
+    for item in task:
+        if item.creator == request.user:
+            task_list.append(item)
     return render(request,
                   'new_multisample/task_queue.html',
-                  {'task': task,
+                  {'task': task_list,
                    'task_count': task_count,
                    'offset': offset},
                   )

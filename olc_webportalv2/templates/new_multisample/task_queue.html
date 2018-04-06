@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-
+{% load staticfiles %}
 {% block content %}
 <h1>Task Queue</h1>
   <p>There are currently <strong>{{ task_count }}</strong> jobs in the queue.</p>
 
   <br>
   <h4>Your Tasks</h4>
-  <table class="table table-hover table-bordered">
+  <table class="display compact" id="queue-table">
     <thead>
       <tr>
         <td>Task Name</td>
@@ -17,11 +17,20 @@
     <tbody>
       {% for item in task %}
         <tr>
-          <td>{{ item.task_name }}</td>
+          <td>{{ item.verbose_name }}</td>
           <td>{{ item.pk|add:offset }}</td>
-          <td>{{ item.run_at|date:"U" }}</td>
+
         </tr>
       {% endfor %}
     </tbody>
   </table>
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <script src="{% static 'js/datatables.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('#queue-table').dataTable().fnSort([[1, 'asc']]);  // This makes the datatable sort based on queue position
+    });
+  </script>
+
 {% endblock content %}
