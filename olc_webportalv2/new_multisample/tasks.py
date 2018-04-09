@@ -15,6 +15,7 @@ from olc_webportalv2.new_multisample.models import ProjectMulti, Sample, Sendske
 
 @background(schedule=1)
 def run_amr_fasta(sample_pk):
+    # Sample.objects.filter(pk=sample_pk).update(amr_status="Processing")
     sample = Sample.objects.get(pk=sample_pk)
     project = ProjectMulti.objects.get(pk=sample.project.pk)
     print('Running AMR via GeneSeekr')
@@ -149,6 +150,7 @@ def run_amr_fasta(sample_pk):
 
 @background(schedule=1)
 def run_amr(sample_pk):
+    # Sample.objects.filter(pk=sample_pk).update(amr_status="Processing")
     sample = Sample.objects.get(pk=sample_pk)
     project = ProjectMulti.objects.get(pk=sample.project.pk)
     print('Running AMR via SRST2')
@@ -299,6 +301,7 @@ def run_amr(sample_pk):
 
 @background(schedule=1)
 def run_genomeqaml(fasta_file, sample_pk):
+    # Sample.objects.filter(pk=sample_pk).update(genomeqaml_status="Processing")
     print('Running GenomeQAML.')
     output_folder = 'olc_webportalv2/media/sample_{}_genomeqaml'.format(sample_pk)
     if not os.path.isdir(output_folder):
@@ -324,6 +327,7 @@ def run_genomeqaml(fasta_file, sample_pk):
 
 @background(schedule=1)
 def run_geneseekr(fasta_file, sample_pk):
+    # Sample.objects.filter(pk=sample_pk).update(genesippr_status="Processing")
     print('Running GeneSeekr')
     output_folder = 'olc_webportalv2/media/sample_{}_geneseekr'.format(sample_pk)
     if not os.path.isdir(output_folder):
@@ -356,6 +360,7 @@ def run_geneseekr(fasta_file, sample_pk):
 
 @background(schedule=1)
 def run_genesippr(sample_id):
+    # Sample.objects.filter(pk=sample_id).update(genesippr_status="Processing")
     print('Running GeneSippr')
     # project = ProjectMulti.objects.get(pk=project_id)
     sample = Sample.objects.get(pk=sample_id)
@@ -398,6 +403,7 @@ def run_genesippr(sample_id):
 
 @background(schedule=1)
 def run_sendsketch(read1, read2, sample_pk, file_path):
+    # Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Processing")
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
     output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)
@@ -433,6 +439,7 @@ def run_sendsketch(read1, read2, sample_pk, file_path):
 
 @background(schedule=1)
 def run_confindr(sample_id):
+    # Sample.objects.filter(pk=sample_id).update(confindr_status="Processing")
     print('Running ConFindr')
     sample = Sample.objects.get(pk=sample_id)
     project_id = sample.project.pk
@@ -478,6 +485,7 @@ def run_confindr(sample_id):
 
 @background(schedule=1)
 def run_sendsketch_fasta(fasta_file, sample_pk):
+    # Sample.objects.filter(pk=sample_pk).update(sendsketch_status="Processing")
     print('\nrun_sendsketch() called successfully for sample ID {}'.format(sample_pk))
 
     output_filename = 'sample_{}_sendsketch_results.txt'.format(sample_pk)

@@ -29,7 +29,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
   <script type="text/javascript">
     $(document).ready(function () {
-      $('#queue-table').dataTable().fnSort([[1, 'asc']]);  // This makes the datatable sort based on queue position
+      $('#queue-table').dataTable({stateSave: true}).fnSort([[1, 'asc']]);  // This makes the datatable sort based on queue position
     });
   </script>
 
