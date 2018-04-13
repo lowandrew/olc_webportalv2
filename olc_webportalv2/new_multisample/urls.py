@@ -10,6 +10,10 @@ urlpatterns = [
     url(r'^project/(?P<project_id>\d+)/$',
         views.project_detail, name="project_detail"),
 
+    # Project table only
+    url(r'^project-table/(?P<project_id>\d+)/$',
+        views.only_project_table, name="only_project_table"),
+
     # Upload data for project
     url(r'^project/(?P<project_id>\d+)/upload$',
         views.upload_samples, name="upload_samples"),

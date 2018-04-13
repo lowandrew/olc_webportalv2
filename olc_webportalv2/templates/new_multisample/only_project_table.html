@@ -1,13 +1,6 @@
-{% extends "base.html" %}
-{#Head container#}
 {% load staticfiles %}
-{% load bootstrap %}
-{% load crispy_forms_tags %}
-{% load i18n widget_tweaks %}
 {% block content %}
-    <h4>{{ project.project_title }}</h4>
-    <hr>
-  <div id="table-div">
+
     <table class="display compact" id="sample_table">
     <thead>
         <tr>
@@ -154,66 +147,7 @@
         {% endfor %}
     </tbody>
     </table>
-  </div>
-    <hr>
-
-    {# JOB SELECTION FORM #}
-    <h5>Select Jobs</h5>
-{#    <div class="form-group">#}
-{#        <form class="form-horizontal" role="form" action="." method="post">#}
-{#            {% csrf_token %}#}
-{#            {% for field in form %}#}
-{#                <p>{{ field }}</p>#}
-{#            {% endfor %}#}
-{##}
-{#             Submit button #}
-{#            <div>#}
-{#                <button type="submit" class="btn btn-outline-primary ">{% trans "Run selected jobs" %}</button>#}
-{#            </div>#}
-{##}
-{#        </form>#}
-{#    </div>#}
-    {% crispy form %}
-
-    <hr>
-
-    <td>
-        <a href="{% url 'new_multisample:upload_samples' project_id=project.pk %}" class="btn btn-primary" role="button" aria-pressed="true">
-            Upload samples
-        </a>
-    </td>
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
-    <script src="{% static 'js/datatables.min.js' %}"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
-    <script type="text/javascript">
-        $(document).ready(function () {
-             $('#sample_table').dataTable({
-                 stateSave: true
-             });
-        });
-        //Periodically reload the page if a job status == 'Processing'
-        setInterval(function() {
-            $.ajax({
-              url: "{% url 'new_multisample:only_project_table' project_id=project.pk %}",
-              success: function(data){
-                $('#table-div').html(data);
-                $('#sample_table').dataTable({
-                  stateSave: true,
-                  destroy: true
-                });
-              }
-            });
-
-{#            {% for sample in project.samples.all %}#}
-              // TODO: There has to be a better way to do this. Look it up at some point.
-{#                {% if sample.genesippr_status == 'Processing' or sample.sendsketch_status == 'Processing' or sample.confindr_status == 'Processing' or sample.genomeqaml_status == 'Processing' or sample.amr_status == 'Processing' %}#}
-{#                    window.location = window.location.href;#}
-{#                {% elif sample.genesippr_status == 'In Queue' or sample.sendsketch_status == 'In Queue' or sample.confindr_status == 'In Queue' or sample.genomeqaml_status == 'In Queue' or sample.amr_status == 'In Queue' %}#}
-{#                    window.location = window.location.href;#}
-{#                {% endif %}#}
-{#            {% endfor %}#}
-        }, 5000); // This reloads the <div> every 5 seconds.
-    </script>
-
-{% endblock %}
-
+  <script src="{% static 'js/datatables.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
+{% endblock content %}
