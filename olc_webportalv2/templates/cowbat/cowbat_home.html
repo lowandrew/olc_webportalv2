@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>Assembly Pipeline</h2>
+  <p>This is where you can upload your files to be processed by the OLC Assembly Pipeline. If you need a refresher
+  on what files to upload, click on the 'What do I upload?' button. Once you've selected your files, hit 'Validate Files'.
+  If everything gets validated properly, the 'Upload Files and Run Pipeline' button will become active and you can
+  get the pipeline running.</p>
+  <button type="button" class="btn btn-secondary" data-toggle="collapse" data-target="#genesippr-button">What do I upload?</button>
+    <div id="genesippr-button" class="collapse">
+        <br>
+        <div class="container">
+          <p>To run the COWBAT pipeline, you need to add the following files:</p>
+          <ul>
+            <li>SampleSheet.csv</li>
+            <li>RunInfo.xml</li>
+            <li>InterOp Folder</li>
+            <li>CompletedJobInfo.xml</li>
+            <li>config.xml</li>
+            <li>GenerateFASTQRunStatistics.xml</li>
+            <li>runParameters.xml</li>
+            <li>Forward and reverse reads in .fastq.gz format for each SEQID listed on SampleSheet.csv</li>
+          </ul>
+        </div>
+    </div>
+  <br><br>
+  <form action="/file-upload" class="dropzone" id="myDropzone" enctype="multipart/form-data">
+  {% csrf_token %}
+  </form>
+  <br>
+  <button id="validate" class="btn btn-primary">Validate Files</button>
+  <button id="submit" class="btn btn-success" disabled>Upload Files and Run Pipeline</button>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/basic.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/dropzone.css' %}"/>
+  <script src={% static 'js/dropzone.js' %}></script>
+  <script src={% static 'js/papaparse.min.js' %}></script>
+  <script type="text/javascript">
+  // Found at: https://amatellanes.wordpress.com/2013/11/05/dropzonejs-django-how-to-build-a-file-upload-form/
+  Dropzone.options.myDropzone = {
+
+                // Prevents Dropzone from uploading dropped files immediately
+                autoProcessQueue : false,
+                addRemoveLinks: true,
+                acceptedFiles: '.fastq.gz, .xml, .csv',
+
+                init : function() {
+                    var submitButton = document.querySelector("#submit");
+                    var validateButton = document.querySelector('#validate');
+                    myDropzone = this;
+
+                    submitButton.addEventListener("click", function() {
+                        myDropzone.processQueue();
+                        // Tell Dropzone to process all queued files.
+                    });
+
+
+                    validateButton.addEventListener("click", function() {
+                      document.getElementById('validate').disabled = false;
+                        var filesAccepted = myDropzone.getAcceptedFiles();
+                        for(var i=0; i < filesAccepted.length; i++){
+                          console.log(filesAccepted[i].name);
+                          if(filesAccepted[i].name.includes('.csv')){
+                            var reader = new FileReader();
+                            reader.readAsText(filesAccepted[i]);
+                            reader.onload = function(event){
+                              var csv = event.target.result;
+                              var csvdata = Papa.parse(csv);
+                              console.log(csvdata)
+                            }
+                          }
+                        }
+                    });
+                    // You might want to show the submit button only when
+                    // files are dropped here:
+                    this.on("addedfile", function() {
+                        // Show submit button here and/or inform user to click it.
+                    });
+
+                }
+            };
+  </script>
+{% endblock %}

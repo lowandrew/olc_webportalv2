@@ -18,6 +18,7 @@ urlpatterns = [
 
     # Your stuff: custom urls includes go here
     url(r'^newmultiprojects/', include('olc_webportalv2.new_multisample.urls', namespace='new_multisample')),
+    url(r'^cowbat/', include('olc_webportalv2.cowbat.urls', namespace='cowbat')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -48,6 +48,10 @@
                   <a class="nav-link" href="{% url 'new_multisample:new_multisample' %}">Projects</a>
               </li>
 
+            <li class="nav-item active">
+              <a class="nav-link" href="{% url 'cowbat:cowbat_home' %}">Assembly</a>
+            </li>
+
             {% if request.user.is_authenticated %}
               <li class="nav-item active">
                 {# URL provided by django-allauth/account/urls.py #}
