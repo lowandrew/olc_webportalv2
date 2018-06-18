@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class CowbatConfig(AppConfig):
-    name = 'cowbat'
+    name = 'olc_webportalv2.cowbat'

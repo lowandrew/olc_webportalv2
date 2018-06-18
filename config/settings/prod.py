@@ -61,6 +61,7 @@ LOCAL_APPS = [
     'olc_webportalv2.users.apps.UsersConfig',
     # Your stuff: custom apps go here
     'olc_webportalv2.new_multisample.apps.NewMultisampleConfig',
+    'olc_webportalv2.cowbat.apps.CowbatConfig',
 
     # Need this to get django-multiselectfield to work
     'multiselectfield',
@@ -105,7 +106,7 @@ MIGRATION_MODULES = {
 # DEBUG
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = env.bool('DJANGO_DEBUG', False)
+DEBUG = env.bool('DJANGO_DEBUG', True)
 
 # FIXTURE CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -312,3 +313,23 @@ ADMIN_URL = r'^admin/'
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
 ALLOWED_HOSTS = ['0.0.0.0', '192.168.1.22', '192.168.1.20']
+MAX_ATTEMPTS = 1
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'django_debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

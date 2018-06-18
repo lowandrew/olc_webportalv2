@@ -5,39 +5,50 @@
 {% load i18n widget_tweaks %}
 {% block content %}
   <h2>Assembly Pipeline</h2>
-  <p>This is where you can upload your files to be processed by the OLC Assembly Pipeline. If you need a refresher
-  on what files to upload, click on the 'What do I upload?' button. Once you've selected your files, hit 'Validate Files'.
-  If everything gets validated properly, the 'Upload Files and Run Pipeline' button will become active and you can
-  get the pipeline running.</p>
-  <button type="button" class="btn btn-secondary" data-toggle="collapse" data-target="#genesippr-button">What do I upload?</button>
-    <div id="genesippr-button" class="collapse">
-        <br>
-        <div class="container">
-          <p>To run the COWBAT pipeline, you need to add the following files:</p>
-          <ul>
-            <li>SampleSheet.csv</li>
-            <li>RunInfo.xml</li>
-            <li>InterOp Folder</li>
-            <li>CompletedJobInfo.xml</li>
-            <li>config.xml</li>
-            <li>GenerateFASTQRunStatistics.xml</li>
-            <li>runParameters.xml</li>
-            <li>Forward and reverse reads in .fastq.gz format for each SEQID listed on SampleSheet.csv</li>
-          </ul>
-        </div>
-    </div>
   <br><br>
-  <form action="/file-upload" class="dropzone" id="myDropzone" enctype="multipart/form-data">
+  <form action={% url 'cowbat:cowbat_home' %} class="dropzone" id="myDropzone" enctype="multipart/form-data" method="post">
   {% csrf_token %}
   </form>
   <br>
   <button id="validate" class="btn btn-primary">Validate Files</button>
-  <button id="submit" class="btn btn-success" disabled>Upload Files and Run Pipeline</button>
+  <button type="submit" id="submit" class="btn btn-success" >Upload Files and Run Pipeline</button>
+  <br><br>
+  <button type="button" class="btn btn-secondary" data-toggle="collapse" data-target="#files-required-button">Required Files</button>
+  <div id="files-required-button" class="collapse">
+    <br>
+    <div class="container">
+      <table id="files-required-table" class="table table-hover compact">
+        <thead>
+        <tr>
+          <td>File</td>
+          <td>Status</td>
+        <tr></tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>SampleSheet.csv</td>
+          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
+        </tr>
+        <tr>
+          <td>RunInfo.xml</td>
+          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
+        </tr>
+        <tr>
+          <td>GenerateFASTQRunStatistics.xml</td>
+          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   <link rel="stylesheet" type="text/css" href="{% static 'css/basic.css' %}"/>
   <link rel="stylesheet" type="text/css" href="{% static 'css/dropzone.css' %}"/>
   <script src={% static 'js/dropzone.js' %}></script>
   <script src={% static 'js/papaparse.min.js' %}></script>
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
   <script type="text/javascript">
+    $(document).ready(function () {
+    });
   // Found at: https://amatellanes.wordpress.com/2013/11/05/dropzonejs-django-how-to-build-a-file-upload-form/
   Dropzone.options.myDropzone = {
 
@@ -45,6 +56,9 @@
                 autoProcessQueue : false,
                 addRemoveLinks: true,
                 acceptedFiles: '.fastq.gz, .xml, .csv',
+                maxFilesize: 1024, // This is in MB. Shouldn't ever have files bigger than this.
+                parallelUploads: 200, // Number of files allowed to upload at one. Shouldn't ever be bigger than this
+                uploadMultiple: true,
 
                 init : function() {
                     var submitButton = document.querySelector("#submit");
@@ -58,7 +72,6 @@
 
 
                     validateButton.addEventListener("click", function() {
-                      document.getElementById('validate').disabled = false;
                         var filesAccepted = myDropzone.getAcceptedFiles();
                         for(var i=0; i < filesAccepted.length; i++){
                           console.log(filesAccepted[i].name);
@@ -68,7 +81,132 @@
                             reader.onload = function(event){
                               var csv = event.target.result;
                               var csvdata = Papa.parse(csv);
-                              console.log(csvdata)
+                              // at this point we should try to get a list of SEQIDs out of the SampleSheet - Make sure
+                              // that they're in the correct format, and raise an error if not.
+                              var sampleSheetData = csvdata['data'];
+                              var seqidstart = false;
+                              var seqidregex = /\d{4}-[A-Z]+-\d{4}/;
+                              var seqidlist = [];
+                              // Make a regex to tell of SEQID matches.
+                              for(var i=0; i<sampleSheetData.length; i++){
+                                  if(seqidstart === true) {
+                                    if(sampleSheetData[i][0].search(seqidregex) === 0) {
+                                      seqidlist.push(sampleSheetData[i][0])
+                                    }
+                                  }
+                                  if(sampleSheetData[i][0] === 'Sample_ID') {
+                                    seqidstart = true;
+                                  }
+                              }
+                              // At this point we have a list of all SEQIDs we should get have files for.
+                              // Need to go through and make sure we have forward and reverse reads for each of those
+                              // files
+                              var missing_forward_reads = [];
+                              var missing_reverse_reads = [];
+                              var present_forward_reads = [];
+                              var present_reverse_reads = [];
+                              for(var i=0; i<seqidlist.length; i++){
+                                var found_forward_read = false;
+                                var found_reverse_read = false;
+                                for(var j=0; j<filesAccepted.length; j++) {
+                                  if (filesAccepted[j].name.includes(seqidlist[i]) && filesAccepted[j].name.includes('_R1')) {
+                                    present_forward_reads.push(seqidlist[i]);
+                                    found_forward_read = true;
+                                  }
+                                  if (filesAccepted[j].name.includes(seqidlist[i]) && filesAccepted[j].name.includes('_R2')) {
+                                    found_reverse_read = true;
+                                    present_reverse_reads.push(seqidlist[i]);
+                                  }
+                                }
+                                if (found_forward_read === false) {
+                                  missing_forward_reads.push(seqidlist[i])
+                                }
+                                if (found_reverse_read === false) {
+                                  missing_reverse_reads.push(seqidlist[i])
+                                }
+                              }
+
+                              var filesAcceptedNames = [];
+                              // Get all the names put into array for validation.
+                              for(var i=0; i<filesAccepted.length; i++) {
+                                filesAcceptedNames.push(filesAccepted[i].name)
+                              }
+                              var filesTable = document.getElementById('files-required-table');
+                              // Change classes for SampleSheet, RunInfo, whatever else to green checkmark
+                              // if those files have been uploaded.
+                              for(var i = 1; i < filesTable.rows.length;)
+                              {
+                                  filesTable.deleteRow(i);
+                              }
+                              var validationSuccess = true;
+                              var requiredFiles = ['SampleSheet.csv', 'RunInfo.xml', 'GenerateFASTQRunStatistics.xml'];
+                              for(var i=0; i<requiredFiles.length; i++ ) {
+                                if (filesAcceptedNames.indexOf(requiredFiles[i]) !== -1) {
+                                  var row = filesTable.insertRow();
+                                  var cell1 = row.insertCell();
+                                  var cell2 = row.insertCell();
+                                  cell1.innerHTML=requiredFiles[i];
+                                  cell2.classList.add('table-success');
+                                  cell2.align = 'center';
+                                  cell2.innerHTML = '<i class=\"fa fa-check-circle fa-1x\"></i>';
+                                }
+                                else {
+                                  var row = filesTable.insertRow();
+                                  var cell1 = row.insertCell();
+                                  var cell2 = row.insertCell();
+                                  cell1.innerHTML=requiredFiles[i];
+                                  cell2.classList.add('table-danger');
+                                  cell2.align = 'center';
+                                  cell2.innerHTML = '<i class=\"fa fa-ban fa-1x\"></i>';
+                                  validationSuccess = false;
+                                }
+                              }
+                              for(var i=0; i<seqidlist.length; i++) {
+                                // Validate Forward Read files.
+                                if (present_forward_reads.indexOf(seqidlist[i]) !== -1) {
+                                  var row = filesTable.insertRow();
+                                  var cell1 = row.insertCell();
+                                  var cell2 = row.insertCell();
+                                  cell1.innerHTML = seqidlist[i] + '_R1';
+                                  cell2.classList.add('table-success');
+                                  cell2.align = 'center';
+                                  cell2.innerHTML = '<i class=\"fa fa-check-circle fa-1x\"></i>';
+                                }
+                                else {
+                                  var row = filesTable.insertRow();
+                                  var cell1 = row.insertCell();
+                                  var cell2 = row.insertCell();
+                                  cell1.innerHTML = seqidlist[i] + '_R1';
+                                  cell2.classList.add('table-danger');
+                                  cell2.align = 'center';
+                                  cell2.innerHTML = '<i class=\"fa fa-ban fa-1x\"></i>';
+                                  validationSuccess = false;
+                                }
+                                // Validate reverse read files.
+                                if (present_reverse_reads.indexOf(seqidlist[i]) !== -1) {
+                                  var row = filesTable.insertRow();
+                                  var cell1 = row.insertCell();
+                                  var cell2 = row.insertCell();
+                                  cell1.innerHTML = seqidlist[i] + '_R2';
+                                  cell2.classList.add('table-success');
+                                  cell2.align = 'center';
+                                  cell2.innerHTML = '<i class=\"fa fa-check-circle fa-1x\"></i>';
+                                }
+                                else {
+                                  var row = filesTable.insertRow();
+                                  var cell1 = row.insertCell();
+                                  var cell2 = row.insertCell();
+                                  cell1.innerHTML = seqidlist[i] + '_R2';
+                                  cell2.classList.add('table-danger');
+                                  cell2.align = 'center';
+                                  cell2.innerHTML = '<i class=\"fa fa-ban fa-1x\"></i>';
+                                  validationSuccess = false;
+                                }
+                              }
+                              if(validationSuccess === true) {
+                                document.getElementById('submit').disabled = false;
+                              }
+                              console.log(missing_reverse_reads);
                             }
                           }
                         }
