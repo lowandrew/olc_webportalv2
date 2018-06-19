@@ -51,7 +51,7 @@
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
   <script type="text/javascript">
     $(document).ready(function () {
-      {#$('#submit').hide()#}
+      $('#submit').hide()
     });
   // Found at: https://amatellanes.wordpress.com/2013/11/05/dropzonejs-django-how-to-build-a-file-upload-form/
   Dropzone.options.myDropzone = {
@@ -69,7 +69,7 @@
                 init : function() {
                     var submitButton = document.querySelector("#submit");
                     var validateButton = document.querySelector('#validate');
-                    myDropzone = this;
+                    var myDropzone = this;
 
                     //this.on("queuecomplete", function () {
                      // $("#myDropzone").submit()

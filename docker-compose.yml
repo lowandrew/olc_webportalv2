@@ -22,7 +22,7 @@ services:
       - DOCKER_HOST=unix:///var/run/docker.sock
     ports:
       - "8000:8000"
-    command: gunicorn config.wsgi:application -w 2 -b :8000
+    command: gunicorn config.wsgi:application -w 4 -b :8000 -t 3600
 
   nginx:
     restart: always
