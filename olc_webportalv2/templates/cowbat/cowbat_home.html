@@ -5,13 +5,16 @@
 {% load i18n widget_tweaks %}
 {% block content %}
   <h2>Assembly Pipeline</h2>
+  <br>
   <br><br>
   <form action={% url 'cowbat:cowbat_home' %} class="dropzone" id="myDropzone" enctype="multipart/form-data" method="post">
   {% csrf_token %}
+    {{ form }}
+
   </form>
   <br>
   <button id="validate" class="btn btn-primary">Validate Files</button>
-  <button type="submit" id="submit" class="btn btn-success" >Upload Files and Run Pipeline</button>
+  <button id="submit" class="btn btn-success" >Upload Files and Run Pipeline</button>
   <br><br>
   <button type="button" class="btn btn-secondary" data-toggle="collapse" data-target="#files-required-button">Required Files</button>
   <div id="files-required-button" class="collapse">
@@ -48,6 +51,7 @@
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
   <script type="text/javascript">
     $(document).ready(function () {
+      {#$('#submit').hide()#}
     });
   // Found at: https://amatellanes.wordpress.com/2013/11/05/dropzonejs-django-how-to-build-a-file-upload-form/
   Dropzone.options.myDropzone = {
@@ -59,13 +63,20 @@
                 maxFilesize: 1024, // This is in MB. Shouldn't ever have files bigger than this.
                 parallelUploads: 200, // Number of files allowed to upload at one. Shouldn't ever be bigger than this
                 uploadMultiple: true,
+                maxFiles: 200,
+                timeout: 3600000,
 
                 init : function() {
                     var submitButton = document.querySelector("#submit");
                     var validateButton = document.querySelector('#validate');
                     myDropzone = this;
 
-                    submitButton.addEventListener("click", function() {
+                    //this.on("queuecomplete", function () {
+                     // $("#myDropzone").submit()
+                    //});
+                    submitButton.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
                         myDropzone.processQueue();
                         // Tell Dropzone to process all queued files.
                     });
@@ -75,7 +86,7 @@
                         var filesAccepted = myDropzone.getAcceptedFiles();
                         for(var i=0; i < filesAccepted.length; i++){
                           console.log(filesAccepted[i].name);
-                          if(filesAccepted[i].name.includes('.csv')){
+                          if(filesAccepted[i].name.includes('SampleSheet.csv')){
                             var reader = new FileReader();
                             reader.readAsText(filesAccepted[i]);
                             reader.onload = function(event){
@@ -204,7 +215,7 @@
                                 }
                               }
                               if(validationSuccess === true) {
-                                document.getElementById('submit').disabled = false;
+                                $('#submit').show()
                               }
                               console.log(missing_reverse_reads);
                             }
@@ -213,9 +224,6 @@
                     });
                     // You might want to show the submit button only when
                     // files are dropped here:
-                    this.on("addedfile", function() {
-                        // Show submit button here and/or inform user to click it.
-                    });
 
                 }
             };

@@ -331,5 +331,20 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'cowbat': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'olc_webportalv2.cowbat.apps.CowbatConfig': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'olc_webportalv2.cowbat': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
 }
