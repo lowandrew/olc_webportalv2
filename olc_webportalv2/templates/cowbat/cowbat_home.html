@@ -71,12 +71,14 @@
                     var validateButton = document.querySelector('#validate');
                     var myDropzone = this;
 
-                    //this.on("queuecomplete", function () {
-                     // $("#myDropzone").submit()
-                    //});
+                    this.on("queuecomplete", function () {
+                      $("#myDropzone").submit();
+                    });
                     submitButton.addEventListener("click", function(e) {
                         e.preventDefault();
                         e.stopPropagation();
+                        $('#submit').prop("disabled", true);
+                        $('#validate').prop("disabled", true);
                         myDropzone.processQueue();
                         // Tell Dropzone to process all queued files.
                     });
