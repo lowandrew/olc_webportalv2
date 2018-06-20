@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from olc_webportalv2.cowbat.forms import RunNameForm
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile
+from olc_webportalv2.cowbat.tasks import run_cowbat
 from django.contrib.auth.decorators import login_required
 import logging
 
@@ -23,8 +24,10 @@ def cowbat_home(request):
                                     data_file=item)
                 instance.save()
                 log.debug(item.name)
-            return render(request,
-                          'cowbat/cowbat_processing.html')
+            if sequencing_run.status == 'Unprocessed':
+                SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
+                run_cowbat(sequencing_run_pk=sequencing_run.pk)
+            return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
         else:
             log.debug('INVALID FORM')
     else:
@@ -37,6 +40,10 @@ def cowbat_home(request):
 
 
 @login_required
-def cowbat_processing(request):
+def cowbat_processing(request, sequencing_run_pk):
+    sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
     return render(request,
-                  'cowbat/cowbat_processing.html')
+                  'cowbat/cowbat_processing.html',
+                  {
+                      'sequencing_run': sequencing_run,
+                  })

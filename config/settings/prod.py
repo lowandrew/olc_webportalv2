@@ -97,6 +97,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# CHANGE PERMISSONS ON UPLOADED FILES TO ALLOW FOR COWBAT TO RUN
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o766
+FILE_UPLOAD_PERMISSIONS = 0o766
+
 # MIGRATIONS CONFIGURATION
 # ------------------------------------------------------------------------------
 MIGRATION_MODULES = {

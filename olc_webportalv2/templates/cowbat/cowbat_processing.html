@@ -4,5 +4,13 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
-<h2>COWBAT is processing...</h2>
+<h2>COWBAT Status for {{ sequencing_run.run_name }}</h2>
+<br>
+{% if sequencing_run.status == 'Unprocessed' %}
+    <button class="btn btn-primary btn-block" disabled>{{ sequencing_run.status }}</button>
+{% elif sequencing_run.status == 'Error' %}
+    <button class="btn btn-danger btn-block" disabled>{{ sequencing_run.status }}</button>
+{% elif sequencing_run.status == 'Processing' %}
+  <button class="btn btn-warning btn-block" disabled>{{ sequencing_run.status }}</button>
+{% endif %}
 {% endblock %}
