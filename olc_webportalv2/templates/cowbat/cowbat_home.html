@@ -104,12 +104,12 @@
       var x = document.forms["file-form"]["run_name"].value;
       var run_name_regex = /\d{6}_[A-Z]+/;
       if (x === "") {
-        alert("Must enter a run name")
+        alert("Must enter a run name");
         return false
       }
       var found = x.match(run_name_regex);
       if (found === null) {
-        alert("Invalid Run Name. Correct format is YYMMDD_LAB")
+        alert("Invalid Run Name. Correct format is YYMMDD_LAB");
         return false
       }
       return true

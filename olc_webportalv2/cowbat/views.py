@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
+import mimetypes
+import os
 from olc_webportalv2.cowbat.forms import RunNameForm
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile
 from olc_webportalv2.cowbat.tasks import run_cowbat
@@ -47,3 +50,16 @@ def cowbat_processing(request, sequencing_run_pk):
                   {
                       'sequencing_run': sequencing_run,
                   })
+
+
+@login_required
+def download_run_info(request, run_folder):
+    # Found at: http://voorloopnul.com/blog/serving-large-and-small-files-with-django/
+    filepath = '/static/{run_folder}/{run_folder}.zip'.format(run_folder=run_folder)
+    with open(filepath, 'r') as f:
+        data = f.read()
+
+    response = HttpResponse(data, content_type=mimetypes.guess_type(filepath)[0])
+    response['Content-Disposition'] = 'attachment; filename={}.zip'.format(run_folder)
+    response['Content-Length'] = os.path.getsize(filepath)
+    return response

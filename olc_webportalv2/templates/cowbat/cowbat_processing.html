@@ -5,6 +5,7 @@
 {% load i18n widget_tweaks %}
 {% block content %}
 {# TODO: Figure out a way to have some sort of progress bar when run is processing #}
+{# TODO2: Refresh page every so often (30 or 60 seconds?) so user knows what's happening. #}
 <h2>COWBAT Status for {{ sequencing_run.run_name }}</h2>
 <br>
 {% if sequencing_run.status == 'Unprocessed' %}
@@ -13,5 +14,10 @@
     <button class="btn btn-danger btn-block" disabled>{{ sequencing_run.status }}</button>
 {% elif sequencing_run.status == 'Processing' %}
   <button class="btn btn-warning btn-block" disabled>{{ sequencing_run.status }}</button>
+{% elif sequencing_run.status == 'Complete' %}
+  <button class="btn btn-success btn-block" disabled>{{ sequencing_run.status }}</button>
+  <br>
+  <a href="{% url 'cowbat:download_run_info' run_folder=sequencing_run.run_name %}" class="btn btn-sample btn-block"
+     role="button">Download Reports and Assemblies for {{ sequencing_run.run_name }}</a>
 {% endif %}
 {% endblock %}
