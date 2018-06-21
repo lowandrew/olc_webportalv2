@@ -22,20 +22,20 @@ def run_cowbat(sequencing_run_pk):
 
     # With the sequencing run done, need to put create a zipfile with assemblies and reports for user to download.
     # First create a folder.
-    os.makedirs('/sequences/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
+    os.makedirs('olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
     # Now copy the reports and assemblies to the created folder.
     cmd = 'cp -r {best_assemblies} ' \
-          '{download_folder}'.format(best_assemblies='/sequences/{run_name}/BestAssemblies'.format(run_name=str(sequencing_run)),
-                                     download_folder='/sequences/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
+          '{download_folder}'.format(best_assemblies='olc_webportalv2/media/{run_name}/BestAssemblies'.format(run_name=str(sequencing_run)),
+                                     download_folder='olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
     os.system(cmd)
     cmd = 'cp -r {reports} ' \
-          '{download_folder}'.format(reports='/sequences/{run_name}/reports'.format(run_name=str(sequencing_run)),
-                                     download_folder='/sequences/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
+          '{download_folder}'.format(reports='olc_webportalv2/media/{run_name}/reports'.format(run_name=str(sequencing_run)),
+                                     download_folder='olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
     os.system(cmd)
 
     # With that done, create a zipfile.
-    shutil.make_archive('/sequences/{run_name}/{run_name}'.format(run_name=str(sequencing_run)),
-                        'zip', '/sequences/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
+    shutil.make_archive('olc_webportalv2/media/{run_name}/{run_name}'.format(run_name=str(sequencing_run)),
+                        'zip', 'olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
 
     # We should now have a file in /sequences/run_name called run_name.zip - this is what we'll upload.
 

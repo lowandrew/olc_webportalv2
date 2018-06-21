@@ -55,7 +55,7 @@ def cowbat_processing(request, sequencing_run_pk):
 @login_required
 def download_run_info(request, run_folder):
     # Found at: http://voorloopnul.com/blog/serving-large-and-small-files-with-django/
-    filepath = '/static/{run_folder}/{run_folder}.zip'.format(run_folder=run_folder)
+    filepath = 'olc_webportalv2/media/{run_folder}/{run_folder}.zip'.format(run_folder=run_folder)
     with open(filepath, 'r') as f:
         data = f.read()
 
