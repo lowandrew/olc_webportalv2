@@ -10,7 +10,7 @@
   <br>
   <div id="upload-div" class="center" style="width: 600px;"></div>
   <br>
-  <form action={% url 'cowbat:cowbat_home' %} class="dropzone" id="myDropzone" enctype="multipart/form-data" method="post">
+  <form action={% url 'cowbat:cowbat_home' %} class="dropzone" id="myDropzone" enctype="multipart/form-data" method="post" name="file-form">
   {% csrf_token %}
     {{ form }}
 
@@ -99,6 +99,21 @@
             spinnerdiv.appendChild(div);
         }
     }
+
+    function validateForm() {
+      var x = document.forms["file-form"]["run_name"].value;
+      var run_name_regex = /\d{6}_[A-Z]+/;
+      if (x === "") {
+        alert("Must enter a run name")
+        return false
+      }
+      var found = x.match(run_name_regex);
+      if (found === null) {
+        alert("Invalid Run Name. Correct format is YYMMDD_LAB")
+        return false
+      }
+      return true
+    }
   Dropzone.options.myDropzone = {
 
                 // Prevents Dropzone from uploading dropped files immediately
@@ -132,6 +147,7 @@
 
 
                     validateButton.addEventListener("click", function() {
+                        var valid_run_name = validateForm();
                         var filesAccepted = myDropzone.getAcceptedFiles();
                         for(var i=0; i < filesAccepted.length; i++){
                           console.log(filesAccepted[i].name);
@@ -263,7 +279,7 @@
                                   validationSuccess = false;
                                 }
                               }
-                              if(validationSuccess === true) {
+                              if(validationSuccess === true && valid_run_name === true) {
                                 $('#submit').show()
                               }
                               console.log(missing_reverse_reads);

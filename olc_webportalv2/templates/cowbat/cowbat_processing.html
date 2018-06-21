@@ -4,6 +4,7 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
+{# TODO: Figure out a way to have some sort of progress bar when run is processing #}
 <h2>COWBAT Status for {{ sequencing_run.run_name }}</h2>
 <br>
 {% if sequencing_run.status == 'Unprocessed' %}
