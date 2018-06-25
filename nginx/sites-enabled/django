@@ -20,5 +20,8 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         send_timeout 3600s;
     }
+    http {
+        fastcgi_read_timeout 999999;
+    }
 
 }
