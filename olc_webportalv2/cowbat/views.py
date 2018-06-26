@@ -67,7 +67,10 @@ def cowbat_processing(request, sequencing_run_pk):
             num_subfolders += len(next(os.walk(folder))[1])
     # Use this as our marker of progress.
     log.debug(str(num_subfolders))
-    progress = 100.0 * (float(num_subfolders)/float(total_num_folders))
+    if total_num_folders != 0:
+        progress = 100.0 * (float(num_subfolders)/float(total_num_folders))
+    else:
+        progress = 0
     progress = int(progress)
     log.debug(str(progress))
     return render(request,
