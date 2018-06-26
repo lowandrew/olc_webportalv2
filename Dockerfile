@@ -14,5 +14,11 @@ RUN pip3 install -r base.txt
 
 # Prepare
 COPY . /data/web/
-RUN apt-get install libltdl7
+RUN apt-get install -y software-properties-common apt-transport-https
+RUN add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+RUN apt-get update
+RUN apt-get install -y --allow-unauthenticated libltdl7 docker-ce
 # RUN mkdir -p olc_webportalv2/static/admin
