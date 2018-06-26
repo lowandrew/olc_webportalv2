@@ -384,22 +384,25 @@ def only_project_table(request, project_id):
         return redirect('new_multisample:forbidden')
     task = Task.objects.filter()
     try:
-        currently_processing_task = task[0]
-        # Now we need to parse the verbose name in order to update the relevant part of the Sample model in the DB.
-        # Last element verbose name should always be sample title, and first element can tell us what task we're
-        # looking at.
-        sample_pk = int(currently_processing_task.verbose_name.split()[-1])
-        task_type = currently_processing_task.verbose_name.split()[0]
-        if task_type == 'AMR':
-            Sample.objects.filter(pk=sample_pk).update(amr_status='Processing')
-        elif task_type == 'GenomeQAML':
-            Sample.objects.filter(pk=sample_pk).update(genomeqaml_status='Processing')
-        elif task_type == 'ConFindr':
-            Sample.objects.filter(pk=sample_pk).update(confindr_status='Processing')
-        elif task_type == 'GeneSippr':
-            Sample.objects.filter(pk=sample_pk).update(genesippr_status='Processing')
-        elif task_type == 'SendSketch':
-            Sample.objects.filter(pk=sample_pk).update(sendsketch_status='Processing')
+        try:
+            currently_processing_task = task[0]
+            # Now we need to parse the verbose name in order to update the relevant part of the Sample model in the DB.
+            # Last element verbose name should always be sample title, and first element can tell us what task we're
+            # looking at.
+            sample_pk = int(currently_processing_task.verbose_name.split()[-1])
+            task_type = currently_processing_task.verbose_name.split()[0]
+            if task_type == 'AMR':
+                Sample.objects.filter(pk=sample_pk).update(amr_status='Processing')
+            elif task_type == 'GenomeQAML':
+                Sample.objects.filter(pk=sample_pk).update(genomeqaml_status='Processing')
+            elif task_type == 'ConFindr':
+                Sample.objects.filter(pk=sample_pk).update(confindr_status='Processing')
+            elif task_type == 'GeneSippr':
+                Sample.objects.filter(pk=sample_pk).update(genesippr_status='Processing')
+            elif task_type == 'SendSketch':
+                Sample.objects.filter(pk=sample_pk).update(sendsketch_status='Processing')
+        except AttributeError:
+            pass
     # Make sure we don't crash if there aren't any tasks to be processed.
     except IndexError:
         pass
