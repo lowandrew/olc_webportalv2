@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>Welcome to the assembly section of the web portal!</h2>
+  <br>
+  <table id="assembly-table">
+      <thead>
+          <tr>
+            <th>Run Name</th>
+            <th>Run Status</th>
+            <th>Report Download</th>
+          </tr>
+      </thead>
+      <tbody>
+      {% for sequencing_run in sequencing_runs %}
+        <tr>
+          <td>{{ sequencing_run.run_name }}</td>
+          <td>{{  sequencing_run.status }}</td>
+          <td>
+          {% if sequencing_run.status == 'Complete' %}
+            <button class="btn-sample">Download</button>
+          {% else %}
+            <button class="btn-dark" disabled>Not Available</button>
+          {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+  </table>
+  <br>
+  <a href="{% url 'cowbat:upload_metadata' %}" class="btn btn-primary btn-block" role="button" aria-pressed="true">Upload a New Run</a>
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <script src="{% static 'js/datatables.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
+  <script type="text/javascript">
+    $(document).ready(function () {
+        $('#assembly-table').dataTable()
+    });
+  </script>
+{% endblock %}

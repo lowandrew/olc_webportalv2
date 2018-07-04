@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+<h2>COWBAT Status for {{ sequencing_run.run_name }}</h2>
+<br>
+{% if sequencing_run.status == 'Unprocessed' %}
+    <button class="btn btn-primary btn-block" disabled>{{ sequencing_run.status }}</button>
+{% elif sequencing_run.status == 'Error' %}
+    <button class="btn btn-danger btn-block" disabled>{{ sequencing_run.status }}</button>
+{% elif sequencing_run.status == 'Processing' %}
+  <button class="btn btn-info btn-block" disabled>{{ sequencing_run.status }}</button>
+  <br><br>
+  <div style="text-align: center">
+      <h4>Run Progress</h4>
+      <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0"
+          aria-valuemax="100" style="width:{{ progress }}%">{{ progress }}%</div>
+      </div>
+  </div>
+{% elif sequencing_run.status == 'Complete' %}
+  <button class="btn btn-success btn-block" disabled>{{ sequencing_run.status }}</button>
+  <br>
+  <div style="text-align: center">
+    <h4>Run Progress</h4>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped bg-success" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+           aria-valuemax="100" style="width:100%">100%</div>
+    </div>
+    <br>
+    <a href="{% url 'cowbat:download_run_info' run_folder=sequencing_run.run_name %}" class="btn btn-outline-dark"
+       role="button">Download Reports and Assemblies for {{ sequencing_run.run_name }}</a>
+{% endif %}
+  <script type="text/javascript">
+    setInterval(function () {
+      {% if sequencing_run.status == 'Processing' %}
+        window.location = window.location.href;
+      {% endif %}
+    }, 60000) // This should refresh the page every 60 seconds as long as run status is processing.
+  </script>
+{% endblock %}

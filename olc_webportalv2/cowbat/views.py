@@ -94,3 +94,47 @@ def download_run_info(request, run_folder):
     response['Content-Disposition'] = 'attachment; filename={}.zip'.format(run_folder)
     response['Content-Length'] = os.path.getsize(filepath)
     return response
+
+
+@login_required
+def assembly_home(request):
+    sequencing_runs = SequencingRun.objects.filter()
+    return render(request,
+                  'cowbat/assembly_home.html',
+                  {
+                      'sequencing_runs': sequencing_runs
+                  })
+
+
+@login_required
+def upload_metadata(request):
+    form = RunNameForm()
+    if request.method == 'POST':
+        form = RunNameForm(request.POST)
+        if form.is_valid():
+            sequencing_run, created = SequencingRun.objects.update_or_create(run_name=form.cleaned_data.get('run_name'),
+                                                                             seqids=list())
+            files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
+            for item in files:
+                instance = DataFile(sequencing_run=sequencing_run,
+                                    data_file=item)
+                instance.save()
+            # TODO: Make list of SEQIDs and store in database for validation of sequence files.
+            return redirect('cowbat:upload_interop', sequencing_run_pk=sequencing_run.pk)
+    return render(request,
+                  'cowbat/upload_metadata.html',
+                  {
+                      'form': form
+                  })
+
+
+@login_required
+def upload_interop(request, sequencing_run_pk):
+    sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
+    if request.method == 'POST':
+        log.debug(request.FILES)
+    return render(request,
+                  'cowbat/upload_interop.html',
+                  {
+                      'sequencing_run': sequencing_run
+                  })

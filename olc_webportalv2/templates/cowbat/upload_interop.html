@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>Upload InterOp Folder for Run {{ sequencing_run.run_name }}</h2>
+  <br>
+  <form enctype="multipart/form-data" action="" method="post">
+    {% csrf_token %}
+    <input type="file" webkitdirectory mozdirectory />
+  </form>
+  <br>
+  <button type="submit" class="btn btn-success">Upload InterOp Folder</button>
+{% endblock %}
