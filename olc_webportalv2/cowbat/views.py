@@ -9,7 +9,7 @@ import glob
 import re
 import os
 # Portal-specific things.
-from olc_webportalv2.cowbat.models import SequencingRun, DataFile
+from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
 from olc_webportalv2.cowbat.tasks import run_cowbat
 
@@ -17,36 +17,6 @@ log = logging.getLogger(__name__)
 
 
 # Create your views here.
-@login_required
-def cowbat_home(request):
-    form = RunNameForm()
-    if request.method == 'POST':
-        log.debug(request.FILES)
-        form = RunNameForm(request.POST)
-        if form.is_valid():
-            log.debug('VALID FORM')
-            sequencing_run, created = SequencingRun.objects.update_or_create(run_name=form.cleaned_data.get('run_name'))
-            files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
-            for item in files:
-                instance = DataFile(sequencing_run=sequencing_run,
-                                    data_file=item)
-                instance.save()
-                log.debug(item.name)
-            if sequencing_run.status == 'Unprocessed':
-                SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
-                run_cowbat(sequencing_run_pk=sequencing_run.pk)
-            return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
-        else:
-            log.debug('INVALID FORM')
-    else:
-        log.debug('NOT A POST REQUEST')
-    return render(request,
-                  'cowbat/cowbat_home.html',
-                  {
-                      'form': form,
-                  })
-
-
 @login_required
 def cowbat_processing(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
@@ -72,7 +42,7 @@ def cowbat_processing(request, sequencing_run_pk):
     else:
         progress = 0
     progress = int(progress)
-    log.debug(str(progress))
+    # TODO: Send email to user (optionally) when run is complete.
     return render(request,
                   'cowbat/cowbat_processing.html',
                   {
@@ -112,14 +82,29 @@ def upload_metadata(request):
     if request.method == 'POST':
         form = RunNameForm(request.POST)
         if form.is_valid():
-            sequencing_run, created = SequencingRun.objects.update_or_create(run_name=form.cleaned_data.get('run_name'),
-                                                                             seqids=list())
+            if not SequencingRun.objects.filter(run_name=form.cleaned_data.get('run_name')).exists():
+                sequencing_run, created = SequencingRun.objects.update_or_create(run_name=form.cleaned_data.get('run_name'),
+                                                                                 seqids=list())
+            else:
+                sequencing_run = SequencingRun.objects.get(run_name=form.cleaned_data.get('run_name'))
             files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
             for item in files:
                 instance = DataFile(sequencing_run=sequencing_run,
                                     data_file=item)
                 instance.save()
-            # TODO: Make list of SEQIDs and store in database for validation of sequence files.
+                log.debug(item.name)
+                if item.name == 'SampleSheet.csv':
+                    with open('olc_webportalv2/media/{run_name}/SampleSheet.csv'.format(run_name=str(sequencing_run))) as f:
+                        lines = f.readlines()
+                    seqid_start = False
+                    seqid_list = list()
+                    for i in range(len(lines)):
+                        if seqid_start:
+                            seqid = lines[i].split(',')[0]
+                            seqid_list.append(seqid)
+                        if 'Sample_ID' in lines[i]:
+                            seqid_start = True
+                    SequencingRun.objects.filter(pk=sequencing_run.pk).update(seqids=seqid_list)
             return redirect('cowbat:upload_interop', sequencing_run_pk=sequencing_run.pk)
     return render(request,
                   'cowbat/upload_metadata.html',
@@ -132,9 +117,35 @@ def upload_metadata(request):
 def upload_interop(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
     if request.method == 'POST':
-        log.debug(request.FILES)
+            files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
+            for item in files:
+                instance = InterOpFile(sequencing_run=sequencing_run,
+                                       interop_file=item)
+                instance.save()
+            return redirect('cowbat:upload_sequence_data', sequencing_run_pk=sequencing_run.pk)
     return render(request,
                   'cowbat/upload_interop.html',
+                  {
+                      'sequencing_run': sequencing_run
+                  })
+
+
+@login_required
+def upload_sequence_data(request, sequencing_run_pk):
+    sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
+    if request.method == 'POST':
+        files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
+        for item in files:
+            log.debug(item.name)
+            instance = DataFile(sequencing_run=sequencing_run,
+                                data_file=item)
+            instance.save()
+        if sequencing_run.status == 'Unprocessed':
+            SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
+            run_cowbat(sequencing_run_pk=sequencing_run.pk)
+        return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
+    return render(request,
+                  'cowbat/upload_sequence_data.html',
                   {
                       'sequencing_run': sequencing_run
                   })

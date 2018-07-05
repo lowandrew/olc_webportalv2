@@ -4,7 +4,7 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
-<h2>Upload Metadata Files and Name Run</h2>
+<h2>Step 1 of 3: Upload Metadata Files and Name Run</h2>
   <p>Please enter a run name and drag and drop the files found in the following table to be uploaded. Once all files have been uploaded,
   you will be able to proceed to the next page.</p>
   <br>
@@ -131,8 +131,8 @@
                       }
                 });
                 submitButton.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    {#e.preventDefault();#}
+                    {#e.stopPropagation();#}
                     myDropzone.processQueue();
                     // Tell Dropzone to process all queued files.
                 });

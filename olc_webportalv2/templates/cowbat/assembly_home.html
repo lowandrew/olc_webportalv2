@@ -18,10 +18,19 @@
       {% for sequencing_run in sequencing_runs %}
         <tr>
           <td>{{ sequencing_run.run_name }}</td>
-          <td>{{  sequencing_run.status }}</td>
+          {% if sequencing_run.status == 'Complete' %}
+             <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-success" role="button">{{ sequencing_run.status }}</a></td>
+          {% elif sequencing_run.status == 'Processing' %}
+             <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-warning" role="button">{{ sequencing_run.status }}</a></td>
+          {% elif sequencing_run.status == 'Error' %}
+             <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-danger" role="button">{{ sequencing_run.status }}</a></td>
+          {% elif sequencing_run.status == 'Unprocessed' %}
+             <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-secondary" role="button">{{ sequencing_run.status }}</a></td>
+          {% endif %}
           <td>
           {% if sequencing_run.status == 'Complete' %}
-            <button class="btn-sample">Download</button>
+            <a href="{% url 'cowbat:download_run_info' run_folder=sequencing_run.run_name %}" class="btn btn-outline-dark"
+       role="button">Download {{ sequencing_run.run_name }}</a>
           {% else %}
             <button class="btn-dark" disabled>Not Available</button>
           {% endif %}

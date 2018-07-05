@@ -4,12 +4,50 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
-  <h2>Upload InterOp Folder for Run {{ sequencing_run.run_name }}</h2>
+  <h2>Step 2 of 3: Upload InterOp Files for Run {{ sequencing_run.run_name }}</h2>
   <br>
-  <form enctype="multipart/form-data" action="" method="post">
-    {% csrf_token %}
-    <input type="file" webkitdirectory mozdirectory />
+  <form action={% url 'cowbat:upload_interop'  sequencing_run_pk=sequencing_run.pk %} class="dropzone" id="myDropzone" enctype="multipart/form-data" method="post" name="file-form">
+  {% csrf_token %}
   </form>
   <br>
-  <button type="submit" class="btn btn-success">Upload InterOp Folder</button>
+  <button id="submit" class="btn btn-success" disabled>Upload InterOp Files</button>
+  <button id="validate" class="btn btn-primary">Validate InterOp Files</button>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/basic.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/dropzone.css' %}"/>
+  <script src={% static 'js/dropzone.js' %}></script>
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <script type="text/javascript">
+  Dropzone.options.myDropzone = {
+
+    // Prevents Dropzone from uploading dropped files immediately
+    autoProcessQueue: false,
+    addRemoveLinks: true,
+    acceptedFiles: '.bin',
+    maxFilesize: 1024, // This is in MB. Shouldn't ever have files bigger than this.
+    parallelUploads: 200, // Number of files allowed to upload at one. Shouldn't ever be bigger than this
+    uploadMultiple: true,
+    maxFiles: 200,
+    timeout: 3600000,
+     init : function() {
+                var submitButton = document.querySelector("#submit");
+                var validateButton = document.querySelector("#validate");
+                var myDropzone = this;
+
+                this.on("queuecomplete", function () {
+                  $("#myDropzone").submit();
+                });
+                validateButton.addEventListener("click", function(e) {
+                      // Todo: Actually make this validation do something.
+                      var filesAccepted = myDropzone.getAcceptedFiles();
+                      $('#submit').prop('disabled', false);
+                });
+                submitButton.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    myDropzone.processQueue();
+                    // Tell Dropzone to process all queued files.
+                });
+      }
+  };
+  </script>
 {% endblock %}

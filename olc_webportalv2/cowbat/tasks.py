@@ -40,5 +40,4 @@ def run_cowbat(sequencing_run_pk):
     # We should now have a file in /sequences/run_name called run_name.zip - this is what we'll upload.
 
     SequencingRun.objects.filter(pk=sequencing_run_pk).update(status='Complete')
-
-
+    # TODO: Upload results to blob storage and then get rid of everything except for reports and storage.
