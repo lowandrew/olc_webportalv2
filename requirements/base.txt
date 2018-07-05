@@ -58,3 +58,4 @@ uwsgi
 django-extensions
 django-debug-toolbar
 django-test-plus
+azure

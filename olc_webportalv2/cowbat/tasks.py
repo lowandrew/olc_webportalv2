@@ -1,8 +1,15 @@
+# Django-related imports
+from django.core.mail import send_mail  # To be used eventually, only works in cloud
 from background_task import background
 from olc_webportalv2.cowbat.models import SequencingRun
+from django.conf import settings  # To access azure credentials
+# Standard python stuff
 from subprocess import check_output
 import shutil
+import glob
 import os
+# Other (azure related)
+from azure.storage.blob import BlockBlobService
 
 
 @background(schedule=1)
@@ -40,4 +47,37 @@ def run_cowbat(sequencing_run_pk):
     # We should now have a file in /sequences/run_name called run_name.zip - this is what we'll upload.
 
     SequencingRun.objects.filter(pk=sequencing_run_pk).update(status='Complete')
-    # TODO: Upload results to blob storage and then get rid of everything except for reports and storage.
+
+    # Upload results to blob storage and then get rid of everything except for reports and storage.
+    # Blobs don't like folders, so create a zip folder out of the whole run.
+    shutil.make_archive('olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run)),
+                        'zip',
+                        'olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run)))
+    # Now login to blob service and upload ye olde zip file as blob to container.
+    # Make the container with _ replaced with - and all lower case.
+    container_name = str(sequencing_run).replace('_', '-').lower()
+    blob_service = BlockBlobService(account_name=settings.AZURE_ACCOUNT_NAME,
+                                    account_key=settings.AZURE_ACCOUNT_KEY)
+    blob_service.create_container(container_name)
+    blob_service.create_blob_from_path(container_name, str(sequencing_run) + '.zip',
+                                       'olc_webportalv2/media/{run_name}.zip'.format(run_name=str(sequencing_run)))
+    os.remove('olc_webportalv2/media/{run_name}.zip'.format(run_name=str(sequencing_run)))
+
+    # Finally, to save space on storage, get rid of everything except for the reports/assemblies zipfile
+    # in the run folder, since we've gotten everything uploaded to blob land.
+    files_in_run_folder = glob.glob('olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run)))
+    for item in files_in_run_folder:
+        if not item.endswith('.zip'):
+            if os.path.isfile(item):
+                shutil.rmtree(item)
+            elif os.path.isfile(item):
+                os.remove(item)
+    # Finally (but actually this time) send an email to relevant people to let them know that things have worked.
+    # Uncomment this on the cloud where email sending actually works
+    """
+    send_mail(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
+              message='If you are Andrew or Adam, please download blob container {} to local OLC storage.'
+                      ' If you\'re Paul, please add this data to the OLC database.'.format(container_name),
+              from_email='olcbioinformatics@gmail.com',
+              recipient_list=['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca'])
+    """
