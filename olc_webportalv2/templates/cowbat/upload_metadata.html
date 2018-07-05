@@ -52,11 +52,12 @@
   <link rel="stylesheet" type="text/css" href="{% static 'css/basic.css' %}"/>
   <link rel="stylesheet" type="text/css" href="{% static 'css/dropzone.css' %}"/>
   <script src={% static 'js/dropzone.js' %}></script>
+  <script src={% static 'js/papaparse.min.js' %}></script>
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
   <script type="text/javascript">
   function validateForm() {
       var x = document.forms["file-form"]["run_name"].value;
-      var run_name_regex = /\d{6}_[A-Z]+/;
+      var run_name_regex = /\d{6}_[A-Z]+$/;
       if (x === "") {
         alert("Must enter a run name");
         return false
@@ -81,7 +82,6 @@
     timeout: 3600000,
 
     init : function() {
-      // TODO: Add validation that SEQIDs are correctly formatted. Don't let user proceed unless they are.
                 var submitButton = document.querySelector("#submit");
                 var validateButton = document.querySelector("#validate");
                 var myDropzone = this;
@@ -126,8 +126,45 @@
                           validationSuccess = false;
                         }
                       }
+                      // Also check that all SEQIDs submitted are valid.
+                      // in this list.
+                      var seqid_validated = true;
+                      for(var i=0; i < filesAccepted.length; i++) {
+                        if (filesAccepted[i].name.includes('SampleSheet.csv')) {
+                          var reader = new FileReader();
+                          reader.readAsText(filesAccepted[i]);
+                          reader.onload = function (event) {
+                            var csv = event.target.result;
+                            var csvdata = Papa.parse(csv);
+                            // at this point we should try to get a list of SEQIDs out of the SampleSheet - Make sure
+                            // that they're in the correct format, and raise an error if not.
+                            var sampleSheetData = csvdata['data'];
+                            var seqidstart = false;
+                            var seqidregex = /\d{4}-[A-Z]+-\d{4}$/;
+                            var seqidlist = []; // Keep things that are supposed to be SEQIDs but not properly formatted
+                            // Make a regex to tell of SEQID matches.
+                            for (var i = 0; i < sampleSheetData.length; i++) {
+                              // Check that we are on the SEQIDs but not blank (sometimes get a blank row at EOF)
+                              if (seqidstart === true && sampleSheetData[i][0] !== '') {
+                                if (sampleSheetData[i][0].search(seqidregex) === -1) {
+                                  seqidlist.push(sampleSheetData[i][0]);
+                                }
+                              }
+                              if (sampleSheetData[i][0] === 'Sample_ID') {
+                                seqidstart = true;
+                              }
+                            }
+                            if(seqidlist.length > 0) {
+                              seqid_validated = false;
+                              $('#submit').prop('disabled', true);
+                              alert('One or more SEQIDs specified on SampleSheet.csv did not have correct formatting.\n' +
+                                'Correct format is YYYY-LAB-####.\nIncorrectly formatted SEQIDs: ' + seqidlist.toString());
+                            }
+                          }
+                        }
+                      }
                       var form_is_valid = validateForm();
-                      if (validationSuccess === true && form_is_valid === true) {
+                      if (validationSuccess === true && form_is_valid === true && seqid_validated === true) {
                         $('#submit').prop('disabled', false);
                       }
                 });
