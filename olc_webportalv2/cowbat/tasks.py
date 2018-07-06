@@ -2,11 +2,11 @@
 from django.core.mail import send_mail  # To be used eventually, only works in cloud
 from background_task import background
 from olc_webportalv2.cowbat.models import SequencingRun
+# For some reason settings get imported from base.py - in views they come from prod.py. Weird.
 from django.conf import settings  # To access azure credentials
 # Standard python stuff
 from subprocess import check_output
 import shutil
-import glob
 import os
 # Other (azure related)
 from azure.storage.blob import BlockBlobService
@@ -29,7 +29,8 @@ def run_cowbat(sequencing_run_pk):
 
     # With the sequencing run done, need to put create a zipfile with assemblies and reports for user to download.
     # First create a folder.
-    os.makedirs('olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
+    if not os.path.isdir('olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run))):
+        os.makedirs('olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
     # Now copy the reports and assemblies to the created folder.
     cmd = 'cp -r {best_assemblies} ' \
           '{download_folder}'.format(best_assemblies='olc_webportalv2/media/{run_name}/BestAssemblies'.format(run_name=str(sequencing_run)),
@@ -63,15 +64,8 @@ def run_cowbat(sequencing_run_pk):
                                        'olc_webportalv2/media/{run_name}.zip'.format(run_name=str(sequencing_run)))
     os.remove('olc_webportalv2/media/{run_name}.zip'.format(run_name=str(sequencing_run)))
 
-    # Finally, to save space on storage, get rid of everything except for the reports/assemblies zipfile
-    # in the run folder, since we've gotten everything uploaded to blob land.
-    files_in_run_folder = glob.glob('olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run)))
-    for item in files_in_run_folder:
-        if not item.endswith('.zip'):
-            if os.path.isfile(item):
-                shutil.rmtree(item)
-            elif os.path.isfile(item):
-                os.remove(item)
+    # Finally, to save space on storage, get rid of raw data, since that's been uploaded to the cloud.
+    os.system = 'rm olc_webportalv2/media/{run_name}/*.fastq.gz'.format(run_name=str(sequencing_run))
     # Finally (but actually this time) send an email to relevant people to let them know that things have worked.
     # Uncomment this on the cloud where email sending actually works
     """

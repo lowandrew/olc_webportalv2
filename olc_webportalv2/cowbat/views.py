@@ -14,6 +14,7 @@ from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
 from olc_webportalv2.cowbat.tasks import run_cowbat
 
+
 log = logging.getLogger(__name__)
 
 

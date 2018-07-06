@@ -122,14 +122,6 @@ FIXTURE_DIRS = (
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-# Setup gmail to do things (for now).
-# TODO: Move to an actual email client.
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-# Uncomment these when you want to have emails sent - can't be done when on your local machine due to firewall? (I think)
-# EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
