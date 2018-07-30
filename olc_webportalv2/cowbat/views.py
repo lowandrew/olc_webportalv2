@@ -45,6 +45,7 @@ def cowbat_processing(request, sequencing_run_pk):
         progress = 0
     progress = int(progress)
     # TODO: Send email to user (optionally) when run is complete.
+    # This should actually be handled by the run_cowbat task.
     return render(request,
                   'cowbat/cowbat_processing.html',
                   {
@@ -136,12 +137,25 @@ def upload_interop(request, sequencing_run_pk):
 def upload_sequence_data(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
     if request.method == 'POST':
-        files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
-        for item in files:
+        # This appears to be creating giant memory usage issues. Files get read into memory by dropzone,
+        # and then read into memory again when I call this, which seems horrendously inefficient (and causes
+        # crashes when we run OOM). Need to either - get dropzone to write directly to disk (which I don't think
+        # can happen since its only client side) OR just put one file at a time to disk.
+
+        # I think this should do the only put one file at a time to disk trick. Commented out code below that
+        # is previous bad implementation that read everything into memory again.
+        for i in range(0, len(request.FILES)):
+            item = request.FILES.get('file[%d]' % i)
             log.debug(item.name)
             instance = DataFile(sequencing_run=sequencing_run,
                                 data_file=item)
             instance.save()
+        # files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
+        # for item in files:
+        #     log.debug(item.name)
+        #     instance = DataFile(sequencing_run=sequencing_run,
+        #                         data_file=item)
+        #     instance.save()
         if sequencing_run.status == 'Unprocessed':
             SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
             run_cowbat(sequencing_run_pk=sequencing_run.pk)

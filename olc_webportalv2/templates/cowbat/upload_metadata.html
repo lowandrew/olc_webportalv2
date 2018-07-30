@@ -57,13 +57,15 @@
   <script type="text/javascript">
   function validateForm() {
       var x = document.forms["file-form"]["run_name"].value;
-      var run_name_regex = /\d{6}_[A-Z]+$/;
+      var external_regex = /\d{6}_[A-Z]+$/;
+      var olc_regex = /\d{6}_M\d+$/;
       if (x === "") {
         alert("Must enter a run name");
         return false
       }
-      var found = x.match(run_name_regex);
-      if (found === null) {
+      var found_external = x.match(external_regex);
+      var found_olc = x.match(olc_regex);
+      if (found_external === null && found_olc === null) {
         alert("Invalid Run Name. Correct format is YYMMDD_LAB");
         return false
       }
