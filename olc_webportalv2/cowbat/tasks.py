@@ -7,6 +7,8 @@ from django.conf import settings  # To access azure credentials
 # Standard python stuff
 from subprocess import check_output
 import shutil
+import time
+import glob
 import os
 # Other (azure related)
 from azure.storage.blob import BlockBlobService
@@ -15,6 +17,15 @@ from azure.storage.blob import BlockBlobService
 @background(schedule=1)
 def run_cowbat(sequencing_run_pk):
     sequencing_run = SequencingRun.objects.get(pk=sequencing_run_pk)
+    # Wait for all the files to actually be present.
+    all_files_present = False
+
+    while all_files_present is False:
+        all_files_present = True
+        for seqid in sequencing_run.seqids:
+            if len(glob.glob('olc_webportalv2/media/{run_name}/{seqid}*.fastq.gz'.format(run_name=str(sequencing_run), seqid=seqid))) != 2:
+                all_files_present = False
+        time.sleep(60)
     # Run COWBAT container - cowbat image is made with user as ubuntu, which causes permission issues
     # when files are uploaded. Hopefully setting user to root fixes that.
     cmd = 'docker exec -u root:root ' \
