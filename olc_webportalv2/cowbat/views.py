@@ -150,12 +150,7 @@ def upload_sequence_data(request, sequencing_run_pk):
             instance = DataFile(sequencing_run=sequencing_run,
                                 data_file=item)
             instance.save()
-        # files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
-        # for item in files:
-        #     log.debug(item.name)
-        #     instance = DataFile(sequencing_run=sequencing_run,
-        #                         data_file=item)
-        #     instance.save()
+
         if sequencing_run.status == 'Unprocessed':
             SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
             run_cowbat(sequencing_run_pk=sequencing_run.pk)
@@ -163,5 +158,5 @@ def upload_sequence_data(request, sequencing_run_pk):
     return render(request,
                   'cowbat/upload_sequence_data.html',
                   {
-                      'sequencing_run': sequencing_run
+                      'sequencing_run': sequencing_run,
                   })

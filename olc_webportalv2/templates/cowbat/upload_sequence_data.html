@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {#Head container#}
+{% load progress_bar %}
 {% load staticfiles %}
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
@@ -90,9 +91,10 @@
     // Prevents Dropzone from uploading dropped files immediately
     autoProcessQueue: false,
     addRemoveLinks: true,
+    createImageThumbnails: false,
     acceptedFiles: '.fastq.gz',
     maxFilesize: 1024, // This is in MB. Shouldn't ever have files bigger than this.
-    parallelUploads: 200, // Number of files allowed to upload at one. Shouldn't ever be bigger than this
+    parallelUploads: 2, // Number of files allowed to upload at one. Shouldn't ever be bigger than this
     uploadMultiple: true,
     maxFiles: 200,
     timeout: 3600000,
@@ -103,6 +105,9 @@
 
                 this.on("queuecomplete", function () {
                   $("#myDropzone").submit();
+                });
+                this.on("success", function () {
+                  myDropzone.options.autoProcessQueue = true;
                 });
                 validateButton.addEventListener("click", function(e) {
                       var filesAccepted = myDropzone.getAcceptedFiles();
