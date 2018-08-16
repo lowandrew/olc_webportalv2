@@ -93,7 +93,7 @@
     createImageThumbnails: false,
     acceptedFiles: '.fastq.gz',
     maxFilesize: 1024, // This is in MB. Shouldn't ever have files bigger than this.
-    parallelUploads: 2, // Number of files allowed to upload at one. Shouldn't ever be bigger than this
+    parallelUploads: 2, // Number of files allowed to upload at once. Keep this number low in order to keep memory usage low
     uploadMultiple: true,
     maxFiles: 200,
     timeout: 3600000,
@@ -102,9 +102,13 @@
                 var validateButton = document.querySelector("#validate");
                 var myDropzone = this;
 
+                // Without this the redirect to processing page doesn't ever happen.
                 this.on("queuecomplete", function () {
-                  $("#myDropzone").submit();
+                  window.location.replace({% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %});
+                  //$("#myDropzone").submit();
                 });
+                // Without this only the number specified by parallelUploads gets uploaded, and the 'Upload' button
+                // has to keep getting pressed. This makes it so upload button only has to be pressed once.
                 this.on("success", function () {
                   myDropzone.options.autoProcessQueue = true;
                 });

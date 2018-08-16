@@ -80,7 +80,9 @@ LOCAL_APPS = [
 
     # django-widget-tweaks
     'widget_tweaks',
+
 ]
+
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -356,3 +358,10 @@ LOGGING = {
 # Azure storage related stuff - credentials
 AZURE_ACCOUNT_NAME = env('AZURE_ACCOUNT_NAME')
 AZURE_ACCOUNT_KEY = env('AZURE_ACCOUNT_KEY')
+BATCH_ACCOUNT_NAME = env('BATCH_ACCOUNT_NAME')
+BATCH_ACCOUNT_URL = env('BATCH_ACCOUNT_URL')
+BATCH_ACCOUNT_KEY = env('BATCH_ACCOUNT_KEY')
+VM_IMAGE = env('VM_IMAGE')
+VM_CLIENT_ID = env('VM_CLIENT_ID')
+VM_SECRET = env('VM_SECRET')
+VM_TENANT = env('VM_TENANT')

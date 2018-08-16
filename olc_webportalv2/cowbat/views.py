@@ -12,7 +12,7 @@ import os
 # Portal-specific things.
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
-from olc_webportalv2.cowbat.tasks import run_cowbat
+from olc_webportalv2.cowbat.tasks import run_cowbat_batch, cowbat_cleanup
 
 
 log = logging.getLogger(__name__)
@@ -22,35 +22,21 @@ log = logging.getLogger(__name__)
 @login_required
 def cowbat_processing(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
-    number_of_samples = len(glob.glob('olc_webportalv2/media/{run_folder}/*_R1*.fastq.gz'.format(run_folder=str(sequencing_run))))
-    # Each sample ends up with its own folder that has 17 analysis-related subfolders (except for undetermined? Might have to
-    # factor that in). To get rough idea of progress, figure out total number of folders we should end up with,
-    # which is number of samples * 17, and do a check on how many subfolders we have
-    total_num_folders = number_of_samples * 17
-    num_subfolders = 0
-    seqid_regex = '\d{4}-[A-Z]+-\d{4}'
-    # Get list of all folders in sequencing directory. Use regex to figure out which ones to look into(they should be formatted
-    # as seqids.
-    folders = glob.glob('olc_webportalv2/media/{run_folder}/*/'.format(run_folder=str(sequencing_run)))
-    for folder in folders:
-        log.debug(folder)
-        # Count number of subfolders if folder we're looking at is a seqid
-        if re.search(seqid_regex, folder) is not None:
-            num_subfolders += len(next(os.walk(folder))[1])
-    # Use this as our marker of progress.
-    log.debug(str(num_subfolders))
-    if total_num_folders != 0:
-        progress = 100.0 * (float(num_subfolders)/float(total_num_folders))
-    else:
-        progress = 0
-    progress = int(progress)
-    # TODO: Send email to user (optionally) when run is complete.
-    # This should actually be handled by the run_cowbat task.
+    if sequencing_run.status == 'Unprocessed':
+        SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
+        run_cowbat_batch(sequencing_run_pk=sequencing_run.pk)
+
+    # If the reports folder has shown up, that means that the sequencing run is complete.
+    # Run a task that cleans up all the files we don't care about, creates a zip of the important ones to be
+    # downloaded by users, and sets the status of the task to complete
+    # TODO: This will currently only trigger if someone is on the processing page for that run.
+    # Should create a cron job or something that will watch for completed things and run tasks as necessary.
+    if len(glob.glob('olc_webportalv2/media/{run_folder}/reports/*'.format(run_folder=str(sequencing_run)))) > 1 and sequencing_run.status != 'Complete':
+        cowbat_cleanup(sequencing_run_pk=sequencing_run_pk)
     return render(request,
                   'cowbat/cowbat_processing.html',
                   {
                       'sequencing_run': sequencing_run,
-                      'progress': str(progress),
                   })
 
 
@@ -133,6 +119,8 @@ def upload_interop(request, sequencing_run_pk):
                   })
 
 
+# TODO: This should be refactored - have one function for uploading and saving the files, and
+# a different function that gets called when all have been uploaded that submits the task
 @login_required
 def upload_sequence_data(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
@@ -151,9 +139,6 @@ def upload_sequence_data(request, sequencing_run_pk):
                                 data_file=item)
             instance.save()
 
-        if sequencing_run.status == 'Unprocessed':
-            SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
-            run_cowbat(sequencing_run_pk=sequencing_run.pk)
         return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
     return render(request,
                   'cowbat/upload_sequence_data.html',
