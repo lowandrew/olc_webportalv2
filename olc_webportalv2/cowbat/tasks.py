@@ -60,6 +60,7 @@ def run_cowbat_batch(sequencing_run_pk):
         f.write('INPUT:={} {}\n'.format(os.path.join(run_folder, 'InterOp', '*'), os.path.join(str(sequencing_run), 'InterOp')))
         f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'reports', '*')))
         f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'BestAssemblies', '*')))
+        f.write('COMMAND:=source $CONDA/activate /envs/cowbat && assembly_pipeline.py -s {} -r /databases/0.3.3\n'.format(str(sequencing_run)))
 
     # With that done, we can submit the file to batch with our package.
     # Use Popen to run in background so that task is considered complete.
