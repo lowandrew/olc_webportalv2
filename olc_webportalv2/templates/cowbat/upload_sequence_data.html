@@ -104,8 +104,8 @@
 
                 // Without this the redirect to processing page doesn't ever happen.
                 this.on("queuecomplete", function () {
-                  window.location.replace({% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %});
-                  //$("#myDropzone").submit();
+                  //window.location.replace({% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %});
+                  $("#myDropzone").submit();
                 });
                 // Without this only the number specified by parallelUploads gets uploaded, and the 'Upload' button
                 // has to keep getting pressed. This makes it so upload button only has to be pressed once.

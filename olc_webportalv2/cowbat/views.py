@@ -26,6 +26,8 @@ def cowbat_processing(request, sequencing_run_pk):
         SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
         run_cowbat_batch(sequencing_run_pk=sequencing_run.pk)
 
+    # TODO: Should be able to use the Azure Batch API to figure out roughly how far along the assembly is.
+    # Implement a progress bar (again).
     # If the reports folder has shown up, that means that the sequencing run is complete.
     # Run a task that cleans up all the files we don't care about, creates a zip of the important ones to be
     # downloaded by users, and sets the status of the task to complete

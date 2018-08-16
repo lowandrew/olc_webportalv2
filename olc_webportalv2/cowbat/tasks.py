@@ -12,7 +12,6 @@ import time
 import glob
 import os
 # Other (azure related)
-from azure.storage.blob import BlockBlobService
 
 
 @background(schedule=1)
@@ -28,18 +27,7 @@ def run_cowbat_batch(sequencing_run_pk):
                 all_files_present = False
         time.sleep(60)
 
-    # Upload the files we've gotten to Azure Blob Storage - to be downloaded to local storage later.
-    container_name = str(sequencing_run).replace('_', '-').lower()
-    blob_service = BlockBlobService(account_name=settings.AZURE_ACCOUNT_NAME,
-                                    account_key=settings.AZURE_ACCOUNT_KEY)
-    blob_service.create_container(container_name)
-    # List all the files!
-    files_to_upload = glob.glob('olc_webportalv2/media/{run_name}/*'.format(run_name=str(sequencing_run)))
-    files_to_upload += glob.glob('olc_webportalv2/media/{run_name}/InterOp/*'.format(run_name=str(sequencing_run)))
-    for filename in files_to_upload:
-        blob_service.create_blob_from_path(container_name,
-                                           os.path.split(filename)[-1],
-                                           os.path.abspath(filename))
+    container_name = sequencing_run.replace('_', '-').lower()
 
     # Create a configuration file to be used by my Azure batch script.
     batch_config_file = os.path.join(run_folder, 'batch_config.txt')
@@ -64,7 +52,7 @@ def run_cowbat_batch(sequencing_run_pk):
 
     # With that done, we can submit the file to batch with our package.
     # Use Popen to run in background so that task is considered complete.
-    subprocess.Popen('AzureBatch -c {}/batch_config.txt')
+    subprocess.Popen('AzureBatch -k -c {}/batch_config.txt')
 
 
 @background(schedule=1)
