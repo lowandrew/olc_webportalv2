@@ -1,11 +1,10 @@
 # Django-related imports
 from django.core.mail import send_mail  # To be used eventually, only works in cloud
 from background_task import background
-from olc_webportalv2.cowbat.models import SequencingRun
+from olc_webportalv2.cowbat.models import SequencingRun, AzureTask
 # For some reason settings get imported from base.py - in views they come from prod.py. Weird.
 from django.conf import settings  # To access azure credentials
 # Standard python stuff
-from subprocess import check_output
 import subprocess
 import shutil
 import time
@@ -49,13 +48,20 @@ def run_cowbat_batch(sequencing_run_pk):
             f.write('INPUT:={} {}\n'.format(os.path.join(run_folder, 'InterOp', '*'), os.path.join(str(sequencing_run), 'InterOp')))
             f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'reports', '*')))
             f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'BestAssemblies', '*')))
-            f.write('COMMAND:=source $CONDA/activate /envs/cowbat && assembly_pipeline.py -s {} -r /databases/0.3.3\n'.format(str(sequencing_run)))
+            f.write('COMMAND:=source $CONDA/activate /envs/cowbat && assembly_pipeline.py -s {} -r /databases/0.3.2\n'.format(str(sequencing_run)))
 
         # With that done, we can submit the file to batch with our package.
         # Use Popen to run in background so that task is considered complete.
-        subprocess.Popen('AzureBatch -k -c {}/batch_config.txt'.format(run_folder), shell=True)
+        subprocess.Popen('AzureBatch -k -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt'.format(run_folder=run_folder), shell=True)
+        AzureTask.objects.create(sequencing_run=sequencing_run,
+                                 exit_code_file=os.path.join(run_folder, 'exit_codes.txt'))
     except:
-        # TODO: Have this send me an email so I can troubleshoot
+        """
+        send_mail(subject='Assembly Error - Run {} was not successfully submitted to Azure Batch.'.format(str(sequencing_run)),
+                  message='Fix it!',
+                  from_email=settings.EMAIL_HOST_USER,
+                  recipient_list=['andrew.low@canada.ca'])
+        """
         SequencingRun.objects.filter(pk=sequencing_run_pk).update(status='Error')
 
 
@@ -90,7 +96,7 @@ def cowbat_cleanup(sequencing_run_pk):
     send_mail(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
               message='If you are Andrew or Adam, please download blob container {} to local OLC storage.'
                       ' If you\'re Paul, please add this data to the OLC database.'.format(container_name),
-              from_email='olcbioinformatics@gmail.com',
+              from_email=settings.EMAIL_HOST_USER,
               recipient_list=['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca'])
     """
 

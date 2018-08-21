@@ -6,13 +6,11 @@ from django.core.mail import send_mail
 # Standard libraries
 import mimetypes
 import logging
-import glob
-import re
 import os
 # Portal-specific things.
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
-from olc_webportalv2.cowbat.tasks import run_cowbat_batch, cowbat_cleanup
+from olc_webportalv2.cowbat.tasks import run_cowbat_batch
 
 
 log = logging.getLogger(__name__)
@@ -28,13 +26,6 @@ def cowbat_processing(request, sequencing_run_pk):
 
     # TODO: Should be able to use the Azure Batch API to figure out roughly how far along the assembly is.
     # Implement a progress bar (again).
-    # If the reports folder has shown up, that means that the sequencing run is complete.
-    # Run a task that cleans up all the files we don't care about, creates a zip of the important ones to be
-    # downloaded by users, and sets the status of the task to complete
-    # TODO: This will currently only trigger if someone is on the processing page for that run.
-    # Should create a cron job or something that will watch for completed things and run tasks as necessary.
-    if len(glob.glob('olc_webportalv2/media/{run_folder}/reports/*'.format(run_folder=str(sequencing_run)))) > 1 and sequencing_run.status != 'Complete':
-        cowbat_cleanup(sequencing_run_pk=sequencing_run_pk)
     return render(request,
                   'cowbat/cowbat_processing.html',
                   {

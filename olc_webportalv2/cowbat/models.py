@@ -30,3 +30,8 @@ class DataFile(models.Model):
 class InterOpFile(models.Model):
     sequencing_run = models.ForeignKey(SequencingRun, on_delete=models.CASCADE, related_name='interop')
     interop_file = models.FileField(upload_to=get_interop_name)
+
+
+class AzureTask(models.Model):
+    sequencing_run = models.ForeignKey(SequencingRun, on_delete=models.CASCADE, related_name='azuretask')
+    exit_code_file = models.CharField(max_length=256)
