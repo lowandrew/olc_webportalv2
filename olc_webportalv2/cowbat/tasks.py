@@ -48,11 +48,15 @@ def run_cowbat_batch(sequencing_run_pk):
             f.write('INPUT:={} {}\n'.format(os.path.join(run_folder, 'InterOp', '*'), os.path.join(str(sequencing_run), 'InterOp')))
             f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'reports', '*')))
             f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'BestAssemblies', '*')))
-            f.write('COMMAND:=source $CONDA/activate /envs/cowbat && assembly_pipeline.py -s {} -r /databases/0.3.2\n'.format(str(sequencing_run)))
+            # The CLARK part of the pipeline needs absolute path specified, so the $AZ_BATCH_TASK_WORKING_DIR has to
+            # be specifiec as part of the command in order to have the absolute path of our sequences propagate to it.
+            f.write('COMMAND:=source $CONDA/activate /envs/cowbat && assembly_pipeline.py '
+                    '-s $AZ_BATCH_TASK_WORKING_DIR/{run_name} -r /databases/0.3.2\n'.format(run_name=str(sequencing_run)))
 
         # With that done, we can submit the file to batch with our package.
         # Use Popen to run in background so that task is considered complete.
-        subprocess.Popen('AzureBatch -k -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt'.format(run_folder=run_folder), shell=True)
+        subprocess.Popen('AzureBatch -k -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt '
+                         '-o olc_webportalv2/media'.format(run_folder=run_folder), shell=True)
         AzureTask.objects.create(sequencing_run=sequencing_run,
                                  exit_code_file=os.path.join(run_folder, 'exit_codes.txt'))
     except:
@@ -94,7 +98,7 @@ def cowbat_cleanup(sequencing_run_pk):
     # Uncomment this on the cloud where email sending actually works
     """
     send_mail(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
-              message='If you are Andrew or Adam, please download blob container {} to local OLC storage.'
+              message='If you are Andrew or Adam, please download the blob container to local OLC storage.'
                       ' If you\'re Paul, please add this data to the OLC database.'.format(container_name),
               from_email=settings.EMAIL_HOST_USER,
               recipient_list=['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca'])
