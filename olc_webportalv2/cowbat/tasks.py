@@ -99,7 +99,7 @@ def cowbat_cleanup(sequencing_run_pk):
     """
     send_mail(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
               message='If you are Andrew or Adam, please download the blob container to local OLC storage.'
-                      ' If you\'re Paul, please add this data to the OLC database.'.format(container_name),
+                      ' If you\'re Paul, please add this data to the OLC database.',
               from_email=settings.EMAIL_HOST_USER,
               recipient_list=['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca'])
     """
