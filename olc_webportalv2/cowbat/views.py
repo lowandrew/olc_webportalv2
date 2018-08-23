@@ -2,18 +2,44 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.core.mail import send_mail
+from django.conf import settings
 # Standard libraries
 import mimetypes
 import logging
+import re
 import os
 # Portal-specific things.
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
 from olc_webportalv2.cowbat.tasks import run_cowbat_batch
-
+# Azure!
+import azure.batch.batch_service_client as batch
+import azure.batch.batch_auth as batch_auth
+import azure.batch.models as batchmodels
 
 log = logging.getLogger(__name__)
+
+
+def find_percent_complete(sequencing_run):
+    try:
+        job_id = str(sequencing_run).lower().replace('_', '-')
+        credentials = batch_auth.SharedKeyCredentials(settings.BATCH_ACCOUNT_NAME, settings.BATCH_ACCOUNT_KEY)
+        batch_client = batch.BatchServiceClient(credentials, base_url=settings.BATCH_ACCOUNT_URL)
+        node_files = batch_client.file.list_from_task(job_id=job_id, task_id=job_id, recursive=True)
+        seqid_regex = '\d{4}-[A-Z]+-\d{4}'
+        final_num_subfolders = len(sequencing_run.seqids) * 20
+        current_subfolders = 0
+        for node_file in node_files:
+            if len(node_file.name.split('/')) == 4 and '.' not in os.path.split(node_file.name)[1] and re.search(seqid_regex, node_file.name) is not None:
+                    current_subfolders += 1
+        if final_num_subfolders == 0:
+            percent_completed = 1
+        else:
+            percent_completed = int(100.0 * (current_subfolders/final_num_subfolders))
+
+    except batchmodels.BatchErrorException:  # Means task and job have not yet been created
+        percent_completed = 1
+    return percent_completed
 
 
 # Create your views here.
@@ -24,12 +50,17 @@ def cowbat_processing(request, sequencing_run_pk):
         SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Processing')
         run_cowbat_batch(sequencing_run_pk=sequencing_run.pk)
 
-    # TODO: Should be able to use the Azure Batch API to figure out roughly how far along the assembly is.
-    # Implement a progress bar (again).
+    # Find percent complete (approximately). Not sure that having calls to azure batch API in views is a good thing.
+    # Will have to see if performance is terrible because of it.
+    if sequencing_run.status == 'Processing':
+        progress = find_percent_complete(sequencing_run)
+    else:
+        progress = 1
     return render(request,
                   'cowbat/cowbat_processing.html',
                   {
                       'sequencing_run': sequencing_run,
+                      'progress': str(progress)
                   })
 
 

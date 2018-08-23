@@ -12,6 +12,14 @@
     <button class="btn btn-danger btn-block" disabled>{{ sequencing_run.status }}</button>
 {% elif sequencing_run.status == 'Processing' %}
   <button class="btn btn-info btn-block" disabled>{{ sequencing_run.status }}</button>
+  <br><br>
+  <div style="text-align: center">
+      <h4>Run Progress</h4>
+      <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0"
+          aria-valuemax="100" style="width:{{ progress }}%">{{ progress }}%</div>
+      </div>
+  </div>
   <br>
   <p>This page will automatically refresh - an assembly run usually takes at least 4-5 hours.</p>
 {% elif sequencing_run.status == 'Complete' %}

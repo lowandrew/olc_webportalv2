@@ -10,9 +10,8 @@ import shutil
 import time
 import glob
 import os
-# Other (azure related)
 
-# Not quite working yet. Run tomorrow.
+
 @background(schedule=1)
 def run_cowbat_batch(sequencing_run_pk):
     try:
@@ -46,8 +45,7 @@ def run_cowbat_batch(sequencing_run_pk):
             f.write('INPUT:={} {}\n'.format(os.path.join(run_folder, '*.xml'), str(sequencing_run)))
             f.write('INPUT:={} {}\n'.format(os.path.join(run_folder, '*.csv'), str(sequencing_run)))
             f.write('INPUT:={} {}\n'.format(os.path.join(run_folder, 'InterOp', '*'), os.path.join(str(sequencing_run), 'InterOp')))
-            f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'reports', '*')))
-            f.write('OUTPUT:={}\n'.format(os.path.join(run_folder, 'BestAssemblies', '*')))
+            f.write('OUTPUT:={}\n'.format(str(sequencing_run) + '/'))
             # The CLARK part of the pipeline needs absolute path specified, so the $AZ_BATCH_TASK_WORKING_DIR has to
             # be specifiec as part of the command in order to have the absolute path of our sequences propagate to it.
             f.write('COMMAND:=source $CONDA/activate /envs/cowbat && assembly_pipeline.py '
@@ -76,6 +74,7 @@ def cowbat_cleanup(sequencing_run_pk):
     # First create a folder.
     if not os.path.isdir('olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run))):
         os.makedirs('olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
+
     # Now copy the reports and assemblies to the created folder.
     cmd = 'cp -r {best_assemblies} ' \
           '{download_folder}'.format(best_assemblies='olc_webportalv2/media/{run_name}/BestAssemblies'.format(run_name=str(sequencing_run)),
@@ -91,7 +90,8 @@ def cowbat_cleanup(sequencing_run_pk):
                         'zip', 'olc_webportalv2/media/{run_name}/reports_and_assemblies'.format(run_name=str(sequencing_run)))
 
     # Finally, to save space on storage, get rid of raw data, since that's been uploaded to the cloud.
-    os.system = 'rm olc_webportalv2/media/{run_name}/*.fastq.gz'.format(run_name=str(sequencing_run))
+    cmd = 'rm olc_webportalv2/media/{run_name}/*.fastq.gz'.format(run_name=str(sequencing_run))
+    os.system(cmd)
     # Run is now considered complete! Update to let user know and send email to people that need to know.
     SequencingRun.objects.filter(pk=sequencing_run_pk).update(status='Complete')
     # Finally (but actually this time) send an email to relevant people to let them know that things have worked.

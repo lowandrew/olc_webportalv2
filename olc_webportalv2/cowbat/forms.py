@@ -11,6 +11,3 @@ class RunNameForm(forms.Form):
         if not (re.match('\d{6}_[A-Z]+', run_name) or re.match('\d{6}_M\d+', run_name)):
             raise forms.ValidationError('Invalid run name. Format must be YYMMDD_LAB')
         return run_name
-
-
-
