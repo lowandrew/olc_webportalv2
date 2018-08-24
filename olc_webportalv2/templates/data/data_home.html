@@ -21,7 +21,11 @@
     <tbody>
     {% for data_request in data_requests %}
       <tr>
-        <td>{{ data_request.seqids }}</td>
+        <td>
+          {% for seqid in data_request.seqids %}
+            <p style="font-size:14px">{{ seqid }}</p>
+          {% endfor %}
+        </td>
 
          {% if data_request.status == 'Complete' %}
              <td><a href="{% url 'data:data_download' data_request_pk=data_request.pk %}" class="btn btn-success" role="button">{{ data_request.status }}</a></td>

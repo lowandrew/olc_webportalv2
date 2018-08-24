@@ -4,11 +4,13 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
-  <h2>RAW DATA</h2>
+  <h2>Raw Data Request</h2>
+  <p>Enter the SEQIDs you want to retrieve FASTQ files for below, one per line.</p>
   <br>
   <form action='' method="post">
     {{ form }}
   {% csrf_token %}
-  <button type="submit" class="btn btn-primary">Get Files</button>
+    <br>
+  <button type="submit" class="btn btn-primary btn">Get Files</button>
   </form>
 {% endblock %}
