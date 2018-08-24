@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>Welcome to the data section of the web portal!</h2>
+  <br>
+  <p>Here, you can download raw or assembled data, or generate links to the data that are shareable with
+  collaborators.</p>
+  <br>
+  <a href="{% url 'data:raw_data' %}" class="btn btn-outline-dark btn-block" role="button" aria-pressed="true">Get Raw (FASTQ) Data</a>
+  <br>
+  <a href="{% url 'data:assembled_data' %}" class="btn btn-outline-primary btn-block" role="button" aria-pressed="true">Get Processed (FASTA) Data</a>
+{% endblock %}

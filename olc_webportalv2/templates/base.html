@@ -43,10 +43,13 @@
             <li class="nav-item active">
               <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
             </li>
-
-              <li class="nav-item active">
-                  <a class="nav-link" href="{% url 'new_multisample:new_multisample' %}">Projects</a>
-              </li>
+{#            Put this back in once all the programs required for it have been added to batch service#}
+{#              <li class="nav-item active">#}
+{#                  <a class="nav-link" href="{% url 'new_multisample:new_multisample' %}">Projects</a>#}
+{#              </li>#}
+            <li class="nav-item active">
+              <a class="nav-link" href="{% url 'data:data_home' %}">Get Data</a>
+             </li>
 
             <li class="nav-item active">
               <a class="nav-link" href="{% url 'cowbat:assembly_home' %}">Assembly</a>
