@@ -60,6 +60,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     'olc_webportalv2.new_multisample.apps.NewMultisampleConfig',
     'olc_webportalv2.cowbat.apps.CowbatConfig',
+    'olc_webportalv2.data.apps.DataConfig',
 
     # Need this to get django-multiselectfield to work
     'multiselectfield',
