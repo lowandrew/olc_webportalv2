@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from olc_webportalv2.geneseekr.forms import GeneSeekrForm
 from olc_webportalv2.geneseekr.models import GeneSeekrRequest
+from olc_webportalv2.geneseekr.tasks import run_geneseekr
 
 
 # Create your views here.
@@ -33,8 +34,9 @@ def geneseekr_query(request):
                 input_sequence_file.seek(0)
                 input_sequence = input_sequence_file.read()
                 geneseekr_request.query_sequence = input_sequence
+            geneseekr_request.status = 'Processing'
             geneseekr_request.save()
-            # TODO: Submit task that runs geneseekr
+            run_geneseekr(geneseekr_request_pk=geneseekr_request.pk)
             return redirect('geneseekr:geneseekr_processing', geneseekr_request_pk=geneseekr_request.pk)
     return render(request,
                   'geneseekr/geneseekr_query.html',

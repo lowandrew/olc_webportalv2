@@ -12,3 +12,8 @@ class GeneSeekrRequest(models.Model):
     status = models.CharField(max_length=64, default='Unprocessed')
     download_link = models.CharField(max_length=256, blank=True)
     created_at = models.DateField(auto_now_add=True)
+
+
+class AzureGeneSeekrTask(models.Model):
+    geneseekr_request = models.ForeignKey(GeneSeekrRequest, on_delete=models.CASCADE, related_name='azuretask')
+    exit_code_file = models.CharField(max_length=256)

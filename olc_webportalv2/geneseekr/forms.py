@@ -26,7 +26,7 @@ class GeneSeekrForm(forms.Form):
                                         'Invalid SEQIDS: {}'.format(bad_seqids))
 
         # TODO: Ensure that input is in valid FASTA format.
-        # TODO: Ensure that user didn't try both a file and a pasted sequence.
+        # TODO: Make sure file size isn't greater than 10KB
         # Ensure that query sequence or query file was submitted
         if query_sequence == '' and query_file is None:
             raise forms.ValidationError('No input found! You must submit a FASTA sequence by pasting it into the text '
