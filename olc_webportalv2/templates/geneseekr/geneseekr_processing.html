@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>GeneSeekr Processing</h2>
+  <br>
+  {% if geneseekr_request.status == 'Processing' %}
+      <button class="btn btn-info btn-block progress-bar-striped progress-bar-animated" disabled>{{ geneseekr_request.status }}</button>
+      <br>
+      <p>This page will automatically refresh.</p>
+  {% elif geneseekr_request.status == 'Unprocessed' %}
+    <button class="btn btn-info btn-block progress-bar-striped" disabled>{{ geneseekr_request.status }}</button>
+    <br>
+    <p>This page will automatically refresh.</p>
+  {% elif geneseekr_request.status == 'Complete' %}
+    <button class="btn btn-success btn-block" disabled>{{ geneseekr_request.status }}</button>
+    <br>
+    <p>These files will be available for 7 days.</p>
+    <br>
+    <div style="text-align: center">
+        <a href="{{ geneseekr_request.download_link }}" class="btn btn-outline-dark" role="button">Download Assemblies</a>
+        <br>
+        <br>
+    <div class="alert alert-primary" role="alert" align="center">
+        <p>Shareable link: {{ geneseekr_request.download_link }}</p>
+    </div>
+    </div>
+  {% endif %}
+{% endblock %}
