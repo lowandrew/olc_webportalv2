@@ -3,7 +3,7 @@ import re
 
 
 class GeneSeekrForm(forms.Form):
-    seqids = forms.CharField(max_length=2048, widget=forms.Textarea, label='')
+    seqids = forms.CharField(max_length=100000, widget=forms.Textarea, label='')
     query_sequence = forms.CharField(max_length=10000, widget=forms.Textarea, label='', required=False)
     query_file = forms.FileField(label='', required=False)
 

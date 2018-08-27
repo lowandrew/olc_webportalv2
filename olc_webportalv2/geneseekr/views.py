@@ -4,14 +4,17 @@ from olc_webportalv2.geneseekr.forms import GeneSeekrForm
 from olc_webportalv2.geneseekr.models import GeneSeekrRequest
 from olc_webportalv2.geneseekr.tasks import run_geneseekr
 
+import datetime
 
 # Create your views here.
 @login_required
 def geneseekr_home(request):
+    one_week_ago = datetime.date.today() - datetime.timedelta(days=7)
+    geneseekr_requests = GeneSeekrRequest.objects.filter(user=request.user).filter(created_at__gte=one_week_ago)
     return render(request,
                   'geneseekr/geneseekr_home.html',
                   {
-
+                      'geneseekr_requests': geneseekr_requests
                   })
 
 

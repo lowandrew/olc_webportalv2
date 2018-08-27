@@ -12,6 +12,7 @@ class GeneSeekrRequest(models.Model):
     status = models.CharField(max_length=64, default='Unprocessed')
     download_link = models.CharField(max_length=256, blank=True)
     created_at = models.DateField(auto_now_add=True)
+    geneseekr_type = models.CharField(max_length=48, default='BLASTN')
 
 
 class AzureGeneSeekrTask(models.Model):

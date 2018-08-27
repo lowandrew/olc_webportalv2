@@ -4,6 +4,7 @@ from olc_webportalv2.geneseekr.models import GeneSeekrRequest, AzureGeneSeekrTas
 from django.core.mail import send_mail  # To be used eventually, only works in cloud
 from django.conf import settings
 from olc_webportalv2.cowbat.tasks import cowbat_cleanup
+import datetime
 import shutil
 import time
 import os
@@ -27,6 +28,7 @@ def monitor_tasks():
                     line = line.rstrip()
                     if int(line.split(',')[1]) != 0:
                         SequencingRun.objects.filter(pk=sequencing_run.pk).update(status='Error')
+                        AzureTask.objects.filter(id=task.id).delete()
                         """
                         send_mail(subject='Assembly Error - Run {} was successfully submitted Azure Batch, but did not complete assembly'.format(str(sequencing_run)),
                                   message='Fix it!',
@@ -51,11 +53,34 @@ def monitor_tasks():
                     line = line.rstrip()
                     if int(line.split(',')[1]) != 0:
                         GeneSeekrRequest.objects.filter(pk=geneseekr_task.pk).update(status='Error')
+                        AzureGeneSeekrTask.objects.filter(id=task.id).delete()
                     else:
                         # Upload result file to Blob storage, create download link, and clean up files.
-                        # TODO Once we actually know exactly what geneseekr results we want.
+                        # Upload entirety of reports folder for now. Maybe add visualisations of results in a bit?
+                        shutil.make_archive('olc_webportalv2/media/geneseekr-{}/reports'.format(geneseekr_task.pk),
+                                            'zip',
+                                            'olc_webportalv2/media/geneseekr-{}/reports'.format(geneseekr_task.pk))
+                        blob_client = BlockBlobService(account_key=settings.AZURE_ACCOUNT_KEY,
+                                                       account_name=settings.AZURE_ACCOUNT_NAME)
+                        geneseekr_result_container = 'geneseekr-{}'.format(geneseekr_task.pk)
+                        blob_client.create_container(geneseekr_result_container)
+                        blob_name = os.path.split('olc_webportalv2/media/geneseekr-{}/reports.zip'.format(geneseekr_task.pk))[1]
+                        blob_client.create_blob_from_path(container_name=geneseekr_result_container,
+                                                          blob_name=blob_name,
+                                                          file_path='olc_webportalv2/media/geneseekr-{}/reports.zip'.format(geneseekr_task.pk))
+                        # Generate an SAS url with read access that users will be able to use to download their sequences.
+                        print('Creating Download Link')
+                        sas_token = blob_client.generate_container_shared_access_signature(container_name=geneseekr_result_container,
+                                                                                           permission=BlobPermissions.READ,
+                                                                                           expiry=datetime.datetime.utcnow() + datetime.timedelta(days=8))
+                        sas_url = blob_client.make_blob_url(container_name=geneseekr_result_container,
+                                                            blob_name=blob_name,
+                                                            sas_token=sas_token)
+                        geneseekr_task.download_link = sas_url
+                        shutil.rmtree('olc_webportalv2/media/geneseekr-{}/'.format(geneseekr_task.pk))
                         # Delete task so we don't have to keep checking up on it.
                         AzureGeneSeekrTask.objects.filter(id=task.id).delete()
+                        geneseekr_task.save()
         time.sleep(30)
 
 

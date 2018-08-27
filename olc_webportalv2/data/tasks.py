@@ -55,7 +55,7 @@ def get_assembled_data(data_request_pk):
         print('Creating Download Link')
         sas_token = blob_client.generate_container_shared_access_signature(container_name=data_request_container,
                                                                            permission=BlobPermissions.READ,
-                                                                           expiry=datetime.datetime.utcnow() + datetime.timedelta(days=7))
+                                                                           expiry=datetime.datetime.utcnow() + datetime.timedelta(days=8))
         sas_url = blob_client.make_blob_url(container_name=data_request_container,
                                             blob_name=blob_name,
                                             sas_token=sas_token)
@@ -122,7 +122,7 @@ def get_raw_data(data_request_pk):
         print('Creating Download Link')
         sas_token = blob_client.generate_container_shared_access_signature(container_name=data_request_container,
                                                                            permission=BlobPermissions.READ,
-                                                                           expiry=datetime.datetime.utcnow() + datetime.timedelta(days=7))
+                                                                           expiry=datetime.datetime.utcnow() + datetime.timedelta(days=8))
         sas_url = blob_client.make_blob_url(container_name=data_request_container,
                                             blob_name=blob_name,
                                             sas_token=sas_token)
