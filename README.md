@@ -6,7 +6,6 @@ A web portal for accessing CFIA genomic data, with some tools included.
 The portal itself runs via docker-compose, and submits jobs to Azure Batch Service.
 
 ## Installing
-=============
 
 You will need to: 
 
@@ -15,10 +14,8 @@ You will need to:
 - have an azure storage and azure batch account
 
 ## Setup
-========
 
 #### Azure Setup
-================
 - create a custom VM image with tools you want to be able to run through the portal installed, and have it registered
 as an app through the azure portal that has access to batch service. This image must be in the same subscription as
 your Azure Batch account
@@ -32,7 +29,6 @@ assumed that they're named in the format seqid.fasta
 
 
 #### Making Your Env File
-=========================
 
 Create a file called `env` that has the following variables that the portal will use:
 
@@ -57,7 +53,6 @@ VM_TENANT=vm_tenant_id
 ```
 
 #### Booting up the portal
-==========================
 
 Add your IP address to ALLOWED_HOSTS in `prod.yml`, and make a directory called
 `postgres-data` in the root of your cloned dir. You should now be able to boot up the portal. You'll need the following commands (in this order, run in the root
