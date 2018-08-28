@@ -7,7 +7,14 @@
   <h2>Metadata</h2>
   <br>
   <form action='' method="post">
-    {{ form }}
+     {% if form.errors %}
+     <div class="alert alert-danger" role="alert" align="center">
+     {{ form.non_field_errors|escape }}
+    </div>
+   {% endif %}
+    <p>Enter your genus of interest:</p> {{ form.genus }}
+  <br><br>
+    <p>Enter your desired assembly quality: </p>{{ form.quality }}
   {% csrf_token %}
     <br>
   <button type="submit" class="btn btn-primary btn">Get SEQIDs</button>

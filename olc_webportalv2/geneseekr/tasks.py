@@ -35,12 +35,11 @@ def run_geneseekr(geneseekr_request_pk):
             f.write('VM_TENANT:={}\n'.format(settings.VM_TENANT))
             f.write('INPUT:={} targets\n'.format(os.path.join(geneseekr_dir, 'query.tfa')))
             for seqid in geneseekr_request.seqids:
-                f.write('CLOUD_IN:=processed-data/{}.fasta\n'.format(seqid))
-            f.write('OUTPUT:=reports/\n')  # Figure out exactly what outputs we need from
-            # The CLARK part of the pipeline needs absolute path specified, so the $AZ_BATCH_TASK_WORKING_DIR has to
-            # be specifiec as part of the command in order to have the absolute path of our sequences propagate to it.
-            f.write('COMMAND:=source $CONDA/activate /envs/geneseekr && GeneSeekr blastn -s {} '
-                    '-t {} -r reports\n')
+                f.write('CLOUDIN:=processed-data/{}.fasta sequences\n'.format(seqid))
+            f.write('OUTPUT:=reports/*\n')
+            # Need to include these exports or click freaks out about python3 ascii encoding.
+            f.write('COMMAND:=export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && source $CONDA/activate /envs/geneseekr '
+                    '&& GeneSeekr blastn -s sequences -t targets -r reports\n')
         # Get process running in background, and create an azureTask that looks for the exit code file
         subprocess.Popen('AzureBatch -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt '
                          '-o {run_folder}'.format(run_folder=geneseekr_dir), shell=True)

@@ -109,75 +109,48 @@
                 <div class="jumbotron">
                     <p class="lead h6">
                         <span class="h2">Welcome to the <b>OLC Webportal</b></span><br>
-                        A variety of tools to process raw NGS sequence data are available.
-                        Click a tool to view its description.
+                      A variety of tools are available. Click on a tool to see its description.
                     </p>
                     <br>
+                  <button type="button" class="btn btn-primary btn-lg" data-toggle="collapse" data-target="#sendsketch-button">Explore Data</button>
+                  <div id="sendsketch-button" class="collapse">
+                    <br>
+                    <div class="container">
+                      <p>This is used to figure out what SeqIDs you want to use for analysis. Search for your genus of
+                       interest at differing levels of assembly quality and get back a list of SeqIDs. More search options
+                      coming soon - email andrew.low@canada.ca with any requests.</p>
+                    </div>
+                  </div>
+                  <br><br>
 
-                    <button type="button" class="btn btn-success btn-lg" data-toggle="collapse" data-target="#genesippr-button">GenesipprV2</button>
+                    <button type="button" class="btn btn-success btn-lg" data-toggle="collapse" data-target="#genesippr-button">Get Data</button>
                         <div id="genesippr-button" class="collapse">
                             <br>
                             <div class="container">
-                                <p>This pipeline searches for gene targets in FASTQ files.
-                                    These files may be previously generated,
-                                    or created from BCL files from a run of an Illumina MiSeq as part of the pipeline.
-                                    The latter functionality is to allow for the creation
-                                    of FASTQ files from an in progress MiSeq run.
-                                </p>
+                                <p>Used to get copies of files stored at OLC for you to analyze locally. Enter the SeqIDs
+                                 you want either assemblies (FASTA) or raw data (FASTQ) for, and a link to those files
+                                 will be created. A shareable link for distribution to collaborators is also created.
+                                 Files created with this tool are available for seven (7) days.</p>
                             </div>
                         </div>
 
                     <br><br>
-
-                    <button type="button" class="btn btn-primary btn-lg" data-toggle="collapse" data-target="#sendsketch-button">sendsketch</button>
-                        <div id="sendsketch-button" class="collapse">
-                            <br>
-                            <div class="container">
-                                <p>BBMap's Sketch tools use a technique called MinHash to rapidly compare large sequences.
-                                    The result is similar to BLAST: a list of hits from a query sequence to various reference sequences,
-                                    sorted by similarity, but the mechanisms are very different.
-                                    <br><br>
-                                    Sketch is designed to be extremely fast (potentially thousands of times faster than
-                                    BLAST) while having a very low disk and memory footprint, but gives more
-                                    approximate results and does not produce alignments.
-                                    <br><br>
-                                    The sensitivity is typically lower compared to alignment
-                                    when seeking remote homology, though default parameters are
-                                    adequate to identify the species of a raw PacBio library
-                                    (~85% identity to reference), and detect homology between full bacterial genomes
-                                    with 76% identity.</p>
-                            </div>
-                        </div>
-
-                    <br><br>
-                    <button type="button" class="btn btn-info btn-lg" data-toggle="collapse" data-target="#confindr-button">confindr</button>
+                    <button type="button" class="btn btn-info btn-lg" data-toggle="collapse" data-target="#confindr-button">Assembly</button>
                     <div id="confindr-button" class="collapse">
                         <br>
                         <div class="container">
-                            ConFindr is a tool to find intra-species or inter-species contamination within raw sequencing
-                            reads. It is sensitive enough to find contamination from samples of the same species that
-                            are as closely related as 500 SNPs. Full information on ConFindr can be found
-                            <a href="https://lowandrew.github.io/ConFindr/">here</a>. Only available for raw reads.
+                          <p>Use this tool to submit your raw sequence data for assembly. You can also use this to get reports
+                          and assemblies from previous runs.</p>
                         </div>
                     </div>
                     <br><br>
-                    <button type="button" class="btn btn-secondary btn-lg" data-toggle="collapse" data-target="#genomeqaml-button">GenomeQAML</button>
+                    <button type="button" class="btn btn-secondary btn-lg" data-toggle="collapse" data-target="#genomeqaml-button">Find Genes</button>
                     <div id="genomeqaml-button" class="collapse">
                         <br>
                         <div class="container">
-                            <p>GenomeQAML looks at genome assemblies and uses a machine learning model in order to determine
-                            whether the assembly is very good (Reference), acceptable (Pass) or bad (Fail) quality. It specialises
-                            in Listeria, Salmonella, and Escherichia genomes, but can work with other bacteria too. Further detail
-                            can also show the percent chance of each class. Only available for assemblies, not raw reads.</p>
-                        </div>
-                    </div>
-                    <br><br>
-                    <button type="button" class="btn btn-dark btn-lg" data-toggle="collapse" data-target="#amr-button">AMR Detection</button>
-                    <div id="amr-button" class="collapse">
-                        <br>
-                        <div class="container">
-                            <p>The OLC Webportal is capable of finding Anti-microbial resistance in raw reads or
-                            genome assemblies.</p>
+                          <p>Uses OLC's GeneSeekr tool to search for any gene of interest in our collection. You specify which
+                          sequences you want to search using SeqIDs, and also provide a gene (or genes) you want to search
+                          for in FASTA format.</p>
                         </div>
                     </div>
                 </div>

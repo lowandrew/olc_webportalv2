@@ -19,15 +19,21 @@ def upload_metadata(metadata_csv):
         reader = csv.DictReader(csvFile)
         for row in reader:
             if row['SeqID'] not in seqids_in_cloud:
-                raise AttributeError('SeqID {} was listed on metadata sheet, but is not stored in cloud.'.format(row['SeqID']))
+                print('WARNING: SeqID {} was listed on metadata sheet, but is not stored in cloud.'.format(row['SeqID']))
+                continue
             if row['Quality'] not in acceptable_qualities:
                 raise AttributeError('Quality for SeqID {} was listed as {}. Only acceptable values are Pass, Fail, and'
                                      ' Reference.'.format(row['SeqID'], row['Quality']))
-            # Check we don't already have the listed SEQID in database. If we do, don't do anything.
-            if not SequenceData.objects.exists(seqid=row['SeqID']):
+            # Check we don't already have the listed SEQID in database. If we do, update..
+            if not SequenceData.objects.filter(seqid=row['SeqID']).exists():
                 SequenceData.objects.create(seqid=row['SeqID'],
                                             quality=row['Quality'],
                                             genus=row['Genus'])
+            else:
+                sequence_data = SequenceData.objects.get(seqid=row['SeqID'])
+                sequence_data.quality = row['Quality']
+                sequence_data.genus = row['Genus']
+                sequence_data.save()
 
 
 class Command(BaseCommand):

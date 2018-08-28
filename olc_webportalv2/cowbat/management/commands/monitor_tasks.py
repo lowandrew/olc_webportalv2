@@ -80,6 +80,7 @@ def monitor_tasks():
                         shutil.rmtree('olc_webportalv2/media/geneseekr-{}/'.format(geneseekr_task.pk))
                         # Delete task so we don't have to keep checking up on it.
                         AzureGeneSeekrTask.objects.filter(id=task.id).delete()
+                        geneseekr_task.status = 'Complete'
                         geneseekr_task.save()
         time.sleep(30)
 

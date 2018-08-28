@@ -4,7 +4,7 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
-  <h2>GENESEEKR</h2>
+  <h2>GeneSeekr</h2>
   <table id="geneseekr-request-table" class="table table-hover">
   <thead>
     <tr>
@@ -12,7 +12,7 @@
        <th>Status</th>
        <th>Download</th>
        <th>Request Date</th>
-       <th>Type</th>
+{#       <th>Type</th>#}
     </tr>
   </thead>
 
@@ -41,17 +41,18 @@
           {% endif %}
 
         <td>{{ geneseekr_request.created_at }}</td>
-        {% if geneseekr_request.request_type == 'BLASTN' %}
-          <td><button class="btn btn-secondary" disabled>BLASTN</button></td>
+{#        {% if geneseekr_request.request_type == 'BLASTN' %}#}
+{#          <td><button class="btn btn-secondary" disabled>BLASTN</button></td>#}
 {#          TODO: Add other geneseekr blast options once they're implemented.#}
-        {% else %}
-          <td><button class="btn btn-dark" disabled>Other</button></td>
-        {% endif %}
+{#        {% else %}#}
+{#          <td><button class="btn btn-dark" disabled>Other</button></td>#}
+{#        {% endif %}#}
      </tr>
      {% endfor %}
   </tbody>
 
   </table>
+  <br>
   <a href="{% url 'geneseekr:geneseekr_query' %}" class="btn btn-primary btn-block" role="button" aria-pressed="true">Create A GeneSeekr Query</a>
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
   <script src="{% static 'js/datatables.min.js' %}"></script>
