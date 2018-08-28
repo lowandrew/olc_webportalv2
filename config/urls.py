@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^cowbat/', include('olc_webportalv2.cowbat.urls', namespace='cowbat')),
     url(r'^data/', include('olc_webportalv2.data.urls', namespace='data')),
     url(r'^geneseekr/', include('olc_webportalv2.geneseekr.urls', namespace='geneseekr')),
+    url(r'^metadata/', include('olc_webportalv2.metadata.urls', namespace='metadata')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

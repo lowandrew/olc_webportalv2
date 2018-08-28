@@ -5,4 +5,18 @@
 {% load i18n widget_tweaks %}
 {% block content %}
   <h2>Metadata Results</h2>
+  <table class="table table-hover compact">
+  <thead>
+    <tr>
+      <th>SeqID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for seqid in metadata_result.seqids %}
+      <tr>
+        <td>{{ seqid }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+  </table>
 {% endblock %}

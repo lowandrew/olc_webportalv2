@@ -41,11 +41,11 @@ def run_geneseekr(geneseekr_request_pk):
             # be specifiec as part of the command in order to have the absolute path of our sequences propagate to it.
             f.write('COMMAND:=source $CONDA/activate /envs/geneseekr && GeneSeekr blastn -s {} '
                     '-t {} -r reports\n')
-        # TODO: Uncomment once I have VM image updated with GeneSeekr
-        # subprocess.Popen('AzureBatch -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt '
-        #                  '-o {run_folder}'.format(run_folder=geneseekr_dir), shell=True)
-        # AzureGeneSeekrTask.objects.create(geneseekr_request=geneseekr_request,
-        #                                   exit_code_file=os.path.join(geneseekr_dir, 'exit_codes.txt'))
+        # Get process running in background, and create an azureTask that looks for the exit code file
+        subprocess.Popen('AzureBatch -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt '
+                         '-o {run_folder}'.format(run_folder=geneseekr_dir), shell=True)
+        AzureGeneSeekrTask.objects.create(geneseekr_request=geneseekr_request,
+                                          exit_code_file=os.path.join(geneseekr_dir, 'exit_codes.txt'))
     except:
         geneseekr_request.status = 'Error'
         geneseekr_request.save()
