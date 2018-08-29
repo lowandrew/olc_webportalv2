@@ -54,6 +54,7 @@ def monitor_tasks():
                     if int(line.split(',')[1]) != 0:
                         GeneSeekrRequest.objects.filter(pk=geneseekr_task.pk).update(status='Error')
                         AzureGeneSeekrTask.objects.filter(id=task.id).delete()
+                        shutil.rmtree('olc_webportalv2/media/geneseekr-{}/'.format(geneseekr_task.pk))
                     else:
                         # Upload result file to Blob storage, create download link, and clean up files.
                         # Upload entirety of reports folder for now. Maybe add visualisations of results in a bit?

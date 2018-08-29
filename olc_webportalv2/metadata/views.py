@@ -18,7 +18,7 @@ def metadata_home(request):
                 sequence_data_matching_query = SequenceData.objects.filter(genus__iexact=genus).exclude(quality='Fail')
             elif quality == 'Reference':
                 sequence_data_matching_query = SequenceData.objects.filter(genus__iexact=genus).filter(quality='Reference')
-            metadata_request = MetaDataRequest()
+            metadata_request = MetaDataRequest.objects.create()
             for sequence_data in sequence_data_matching_query:
                 metadata_request.seqids.append(sequence_data.seqid)
             metadata_request.save()

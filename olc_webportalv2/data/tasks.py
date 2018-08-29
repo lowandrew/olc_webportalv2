@@ -65,7 +65,10 @@ def get_assembled_data(data_request_pk):
         print('Cleaning up')
         shutil.rmtree(data_dir)
         os.remove(data_dir + '.zip')
-        data_request.status = 'Complete'
+        if len(data_request.missing_seqids) == 0:
+            data_request.status = 'Complete'
+        else:
+            data_request.status = 'Warning'
         data_request.save()
     except:
         data_request.status = 'Error'
@@ -132,7 +135,10 @@ def get_raw_data(data_request_pk):
         print('Cleaning up')
         shutil.rmtree(data_dir)
         os.remove(data_dir + '.zip')
-        data_request.status = 'Complete'
+        if len(data_request.missing_seqids) == 0:
+            data_request.status = 'Complete'
+        else:
+            data_request.status = 'Warning'
         data_request.save()
     except:
         data_request.status = 'Error'

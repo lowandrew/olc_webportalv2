@@ -4,7 +4,7 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
-  <h2>GeneSeekr Processing</h2>
+  <h2>GeneSeekr Results</h2>
   <br>
   {% if geneseekr_request.status == 'Processing' %}
       <button class="btn btn-info btn-block progress-bar-striped progress-bar-animated" disabled>{{ geneseekr_request.status }}</button>
@@ -12,6 +12,9 @@
       <p>This page will automatically refresh.Your GeneSeekr request should be complete in 5-10 minutes.</p>
   {% elif geneseekr_request.status == 'Unprocessed' %}
     <button class="btn btn-info btn-block progress-bar-striped" disabled>{{ geneseekr_request.status }}</button>
+    <br>
+  {% elif geneseekr_request.status == 'Error' %}
+    <button class="btn btn-danger btn-block" disabled>{{ geneseekr_request.status }}</button>
     <br>
   {% elif geneseekr_request.status == 'Complete' %}
     <button class="btn btn-success btn-block" disabled>{{ geneseekr_request.status }}</button>

@@ -22,13 +22,18 @@
     {% for data_request in data_requests %}
       <tr>
         <td>
-          {% for seqid in data_request.seqids %}
+          {% for seqid in data_request.seqids|slice:":3" %}
             <p style="font-size:14px">{{ seqid }}</p>
           {% endfor %}
+          {% if data_request.seqids|length > 3 %}
+              <p style="font-size:14px">...and {{ data_request.seqids|length|add:'-3' }} more</p>
+          {% endif %}
         </td>
 
          {% if data_request.status == 'Complete' %}
              <td><a href="{% url 'data:data_download' data_request_pk=data_request.pk %}" class="btn btn-success" role="button">{{ data_request.status }}</a></td>
+         {% elif data_request.status == 'Warning' %}
+          <td><a href="{% url 'data:data_download' data_request_pk=data_request.pk %}" class="btn btn-warning" role="button">{{ data_request.status }}</a></td>
           {% elif data_request.status == 'Processing' %}
              <td><a href="{% url 'data:data_download' data_request_pk=data_request.pk %}" class="btn progress-bar progress-bar-striped progress-bar-animated bg-info" role="button">{{ data_request.status }}</a></td>
           {% elif data_request.status == 'Error' %}
@@ -37,7 +42,7 @@
              <td><a href="{% url 'data:data_download' data_request_pk=data_request.pk %}" class="btn btn-secondary" role="button">{{ data_request.status }}</a></td>
           {% endif %}
 
-          {% if data_request.status == 'Complete' %}
+          {% if data_request.status == 'Complete' or data_request.status == 'Warning' %}
             <td><a href="{{ data_request.download_link }}" class="btn btn-outline-dark" role="button">Download</a></td>
           {% else %}
             <td><button class="btn-dark" disabled>Not Available</button></td>

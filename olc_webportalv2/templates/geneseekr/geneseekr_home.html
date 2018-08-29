@@ -5,6 +5,9 @@
 {% load i18n widget_tweaks %}
 {% block content %}
   <h2>GeneSeekr</h2>
+  <br>
+  <a href="{% url 'geneseekr:geneseekr_query' %}" class="btn btn-primary btn-block" role="button" aria-pressed="true">Create A GeneSeekr Query</a>
+  <br>
   <table id="geneseekr-request-table" class="table table-hover">
   <thead>
     <tr>
@@ -20,9 +23,12 @@
      {% for geneseekr_request in geneseekr_requests %}
      <tr>
        <td>
-          {% for seqid in geneseekr_request.seqids %}
+          {% for seqid in geneseekr_request.seqids|slice:":3" %}
             <p style="font-size:14px">{{ seqid }}</p>
           {% endfor %}
+         {% if geneseekr_request.seqids|length > 3 %}
+           <p style="font-size:14px">...and {{ geneseekr_request.seqids|length|add:'-3' }} more</p>
+         {% endif %}
        </td>
           {% if geneseekr_request.status == 'Complete' %}
              <td><a href="{% url 'geneseekr:geneseekr_processing' geneseekr_request_pk=geneseekr_request.pk %}" class="btn btn-success" role="button">{{ geneseekr_request.status }}</a></td>
@@ -52,8 +58,6 @@
   </tbody>
 
   </table>
-  <br>
-  <a href="{% url 'geneseekr:geneseekr_query' %}" class="btn btn-primary btn-block" role="button" aria-pressed="true">Create A GeneSeekr Query</a>
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
   <script src="{% static 'js/datatables.min.js' %}"></script>
   <link rel="stylesheet" type="text/css" href="{% static '/css/datatables.min.css' %}"/>

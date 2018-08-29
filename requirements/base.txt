@@ -60,4 +60,4 @@ django-debug-toolbar
 django-test-plus
 azure-storage
 azure-batch
-KubeJobSub>=0.1.11
+KubeJobSub>=0.1.13
