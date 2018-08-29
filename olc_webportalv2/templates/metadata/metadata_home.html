@@ -12,9 +12,9 @@
      {{ form.non_field_errors|escape }}
     </div>
    {% endif %}
-    <p>Enter your genus of interest:</p> {{ form.genus }}
-  <br><br>
-    <p>Enter your desired assembly quality: </p>{{ form.quality }}
+    <p>Enter your genus of interest: {{ form.genus }}</p>
+    <p>Return all sequences <strong>except for</strong> selected genus: {{ form.everything_but }}</p>
+    <p>Choose your desired assembly quality: {{ form.quality }}</p>
   {% csrf_token %}
     <br>
   <button type="submit" class="btn btn-primary btn">Get SEQIDs</button>

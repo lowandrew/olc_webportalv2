@@ -48,5 +48,12 @@
     $(document).ready(function () {
         $('#assembly-table').dataTable()
     });
+    setInterval(function () {
+      {% for sequenceing_run in sequencing_runs %}
+        {% if sequenceing_run.status == 'Processing' %}
+          window.location = window.location.href;
+        {% endif %}
+      {% endfor %}
+    }, 60000) // This should refresh the page every 60 seconds as long as run status is processing
   </script>
 {% endblock %}

@@ -10,6 +10,7 @@ quality_choices = (
 class MetaDataRequestForm(forms.Form):
     # TODO: Make this an autocomplete field
     genus = forms.CharField(max_length=48, label='')
+    everything_but = forms.BooleanField(required=False)
     quality = forms.ChoiceField(choices=quality_choices)
 
 

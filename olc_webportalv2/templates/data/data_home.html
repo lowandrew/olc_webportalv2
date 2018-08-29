@@ -69,5 +69,12 @@
     $(document).ready(function () {
         $('#data-request-table').dataTable()
     });
+    setInterval(function () {
+      {% for data_request in data_requests %}
+          {% if data_request.status == 'Processing' %}
+              window.location = window.location.href;
+          {% endif %}
+      {% endfor %}
+    }, 60000) // This should refresh the page every 60 seconds as long as data request status is processing.
   </script>
 {% endblock %}

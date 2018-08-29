@@ -65,5 +65,12 @@
     $(document).ready(function () {
         $('#geneseekr-request-table').dataTable()
     });
+    setInterval(function () {
+      {% for geneseekr_request in geneseekr_requests %}
+        {% if geneseekr_request.status == 'Processing' %}
+          window.location = window.location.href;
+        {% endif %}
+      {% endfor %}
+    }, 60000) // This should refresh the page every 60 seconds as long as run status is processing
   </script>
 {% endblock %}
