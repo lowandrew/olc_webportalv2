@@ -29,7 +29,7 @@
           {% endif %}
           <td>
           {% if sequencing_run.status == 'Complete' %}
-            <a href="{% url 'cowbat:download_run_info' run_folder=sequencing_run.run_name %}" class="btn btn-outline-dark"
+            <a href="{{ sequencing_run.download_link }}" class="btn btn-outline-dark"
        role="button">Download {{ sequencing_run.run_name }}</a>
           {% else %}
             <button class="btn-dark" disabled>Not Available</button>

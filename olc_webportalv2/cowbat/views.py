@@ -13,6 +13,7 @@ from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
 from olc_webportalv2.cowbat.tasks import run_cowbat_batch
 # Azure!
+from azure.storage.blob import BlockBlobService
 import azure.batch.batch_service_client as batch
 import azure.batch.batch_auth as batch_auth
 import azure.batch.models as batchmodels
@@ -65,21 +66,6 @@ def cowbat_processing(request, sequencing_run_pk):
 
 
 @login_required
-def download_run_info(request, run_folder):
-    # Found at: http://voorloopnul.com/blog/serving-large-and-small-files-with-django/
-    # Note that this is probably not optimal, but given how few people should be accessing the web portal,
-    # this shouldn't matter too much.
-    filepath = 'olc_webportalv2/media/{run_folder}/{run_folder}.zip'.format(run_folder=run_folder)
-    with open(filepath, 'rb') as f:
-        data = f.read()
-
-    response = HttpResponse(data, content_type=mimetypes.guess_type(filepath)[0])
-    response['Content-Disposition'] = 'attachment; filename={}.zip'.format(run_folder)
-    response['Content-Length'] = os.path.getsize(filepath)
-    return response
-
-
-@login_required
 def assembly_home(request):
     sequencing_runs = SequencingRun.objects.filter()
     return render(request,
@@ -101,12 +87,18 @@ def upload_metadata(request):
             else:
                 sequencing_run = SequencingRun.objects.get(run_name=form.cleaned_data.get('run_name'))
             files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
+            container_name = sequencing_run.run_name.lower().replace('_', '-')
+            blob_client = BlockBlobService(account_name=settings.AZURE_ACCOUNT_NAME,
+                                           account_key=settings.AZURE_ACCOUNT_KEY)
+            blob_client.create_container(container_name)
             for item in files:
-                instance = DataFile(sequencing_run=sequencing_run,
-                                    data_file=item)
-                instance.save()
-                log.debug(item.name)
+                blob_client.create_blob_from_bytes(container_name=container_name,
+                                                   blob_name=item.name,
+                                                   blob=item.read())
                 if item.name == 'SampleSheet.csv':
+                    instance = DataFile(sequencing_run=sequencing_run,
+                                        data_file=item)
+                    instance.save()
                     with open('olc_webportalv2/media/{run_name}/SampleSheet.csv'.format(run_name=str(sequencing_run))) as f:
                         lines = f.readlines()
                     seqid_start = False
@@ -130,11 +122,16 @@ def upload_metadata(request):
 def upload_interop(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
     if request.method == 'POST':
+            container_name = sequencing_run.run_name.lower().replace('_', '-')
+            blob_client = BlockBlobService(account_name=settings.AZURE_ACCOUNT_NAME,
+                                           account_key=settings.AZURE_ACCOUNT_KEY)
+            blob_client.create_container(container_name)
             files = [request.FILES.get('file[%d]' % i) for i in range(0, len(request.FILES))]
             for item in files:
-                instance = InterOpFile(sequencing_run=sequencing_run,
-                                       interop_file=item)
-                instance.save()
+
+                blob_client.create_blob_from_bytes(container_name=container_name,
+                                                   blob_name=os.path.join('InterOp', item.name),
+                                                   blob=item.read())
             return redirect('cowbat:upload_sequence_data', sequencing_run_pk=sequencing_run.pk)
     return render(request,
                   'cowbat/upload_interop.html',
@@ -143,25 +140,19 @@ def upload_interop(request, sequencing_run_pk):
                   })
 
 
-# TODO: This should be refactored - have one function for uploading and saving the files, and
-# a different function that gets called when all have been uploaded that submits the task
 @login_required
 def upload_sequence_data(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
     if request.method == 'POST':
-        # This appears to be creating giant memory usage issues. Files get read into memory by dropzone,
-        # and then read into memory again when I call this, which seems horrendously inefficient (and causes
-        # crashes when we run OOM). Need to either - get dropzone to write directly to disk (which I don't think
-        # can happen since its only client side) OR just put one file at a time to disk.
-
-        # I think this should do the only put one file at a time to disk trick. Commented out code below that
-        # is previous bad implementation that read everything into memory again.
+        container_name = sequencing_run.run_name.lower().replace('_', '-')
+        blob_client = BlockBlobService(account_name=settings.AZURE_ACCOUNT_NAME,
+                                       account_key=settings.AZURE_ACCOUNT_KEY)
+        blob_client.create_container(container_name)
         for i in range(0, len(request.FILES)):
             item = request.FILES.get('file[%d]' % i)
-            log.debug(item.name)
-            instance = DataFile(sequencing_run=sequencing_run,
-                                data_file=item)
-            instance.save()
+            blob_client.create_blob_from_bytes(container_name=container_name,
+                                               blob_name=item.name,
+                                               blob=item.read())
 
         return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
     return render(request,

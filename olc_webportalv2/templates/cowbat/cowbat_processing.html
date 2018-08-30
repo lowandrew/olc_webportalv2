@@ -33,8 +33,12 @@
     </div>
   </div>
     <br>
-    <a href="{% url 'cowbat:download_run_info' run_folder=sequencing_run.run_name %}" class="btn btn-outline-dark"
+    <a href="{{ sequencing_run.download_link }}" class="btn btn-outline-dark"
        role="button">Download Reports and Assemblies for {{ sequencing_run.run_name }}</a>
+  <br>
+     <div class="alert alert-primary" role="alert" align="center">
+        <p>Shareable link: {{ sequencing_run.download_link }}</p>
+    </div>
 {% endif %}
   <script type="text/javascript">
     setInterval(function () {
