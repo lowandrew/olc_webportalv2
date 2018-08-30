@@ -1,4 +1,6 @@
 from django import forms
+from Bio import SeqIO
+from io import StringIO
 import re
 from olc_webportalv2.metadata.models import SequenceData
 
@@ -47,3 +49,39 @@ class GeneSeekrForm(forms.Form):
         elif query_sequence != '' and query_file is not None:
             raise forms.ValidationError('Multiple inputs found! You must submit a FASTA sequence by pasting it into '
                                         'the text box or uploading a FASTA file, but not both.')
+
+        # Check proper FASTA format. Must have at least one sequence, and that must have only A,C,T,G or N
+        # Check query sequence, if specified.
+        if query_sequence != '':
+            num_sequences = 0
+            sequences = SeqIO.parse(StringIO(query_sequence), 'fasta')
+            valid_bases = set('ACTGN')
+            for sequence in sequences:
+                num_sequences += 1
+                if not set(str(sequence.seq).upper()).issubset(valid_bases):
+                    raise forms.ValidationError('Your FASTA sequence contains invalid characters. Sequence should '
+                                                'only contain valid nucleotides (A, C, T, G, N).')
+
+            if num_sequences == 0:
+                raise forms.ValidationError('Invalid FASTA sequence entered. Correct format is:\n>sequencename\nACTGATCGA')
+
+        # Check query file, if that's what was specified.
+        if query_file is not None:
+            num_nucleotides = 0
+            num_sequences = 0
+            sequence_data = query_file.read().decode('utf-8')
+            sequences = SeqIO.parse(StringIO(sequence_data), 'fasta')
+            valid_bases = set('ACTGN')
+            for sequence in sequences:
+                num_sequences += 1
+                num_nucleotides += len(sequence.seq)
+                if not set(str(sequence.seq).upper()).issubset(valid_bases):
+                    raise forms.ValidationError('Your FASTA sequence contains invalid characters. Sequence should '
+                                                'only contain valid nucleotides (A, C, T, G, N).')
+
+            if num_sequences == 0:
+                raise forms.ValidationError('Invalid FASTA sequence entered. Correct format is:\n>sequencename\nACTGATCGA')
+
+            if num_nucleotides > 10000:
+                raise forms.ValidationError('FASTA sequence length maximum is 10000 bases. Your input sequence '
+                                            'had {} bases.'.format(num_nucleotides))

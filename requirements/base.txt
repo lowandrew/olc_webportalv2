@@ -61,3 +61,4 @@ django-test-plus
 azure-storage
 azure-batch
 KubeJobSub>=0.1.13
+biopython
