@@ -82,6 +82,7 @@ def run_cowbat_batch(sequencing_run_pk):
 @background(schedule=1)
 def cowbat_cleanup(sequencing_run_pk):
     sequencing_run = SequencingRun.objects.get(pk=sequencing_run_pk)
+    print('Cleaning up run {}'.format(sequencing_run.run_name))
     # With the sequencing run done, need to put create a zipfile with assemblies and reports for user to download.
     # First create a folder.
     run_folder = 'olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run))
@@ -101,32 +102,31 @@ def cowbat_cleanup(sequencing_run_pk):
     # List all the things in the container - if it's a file in reports folder or an assembly, download it.
     blobs = blob_client.list_blobs(container_name=container_name)
     for blob in blobs:
-        if fnmatch.fnmatch(blob.name, 'BestAssemblies/*.fasta'):
+        if fnmatch.fnmatch(blob.name, os.path.join(sequencing_run.run_name, 'BestAssemblies/*.fasta')):
             blob_client.get_blob_to_path(container_name=container_name,
                                          blob_name=blob.name,
                                          file_path=os.path.join(assemblies_folder, os.path.split(blob.name)[1]))
-        elif fnmatch.fnmatch(blob.name, 'reports/*.csv'):
+        elif fnmatch.fnmatch(blob.name, os.path.join(sequencing_run.run_name, 'reports/*.csv')):
             blob_client.get_blob_to_path(container_name=container_name,
                                          blob_name=blob.name,
                                          file_path=os.path.join(reports_folder, os.path.split(blob.name)[1]))
-        elif fnmatch.fnmatch(blob.name, 'reports/*.fa'):
+        elif fnmatch.fnmatch(blob.name, os.path.join(sequencing_run.run_name, 'reports/*.fa')):
             blob_client.get_blob_to_path(container_name=container_name,
                                          blob_name=blob.name,
                                          file_path=os.path.join(reports_folder, os.path.split(blob.name)[1]))
-        elif fnmatch.fnmatch(blob.name, 'reports/*.xlsx'):
+        elif fnmatch.fnmatch(blob.name, os.path.join(sequencing_run.run_name, 'reports/*.xlsx')):
             blob_client.get_blob_to_path(container_name=container_name,
                                          blob_name=blob.name,
                                          file_path=os.path.join(reports_folder, os.path.split(blob.name)[1]))
 
     # With that done, create a zipfile.
-    shutil.make_archive(reports_and_assemblies_folder, 'zip', os.path.join(run_folder, container_name))
+    blob_name = sequencing_run.run_name.lower().replace('_', '-') + '.zip'
+    shutil.make_archive(os.path.join(run_folder, sequencing_run.run_name.lower().replace('_', '-')), 'zip', reports_and_assemblies_folder)
     report_assembly_container = 'reports-and-assemblies'
     blob_client.create_container(report_assembly_container)
-    # The container_name var is just the run name, but lowercase and with - instead of _
-    blob_name = container_name + '.zip'
     blob_client.create_blob_from_path(container_name=report_assembly_container,
                                       blob_name=blob_name,
-                                      file_path=reports_and_assemblies_folder + '.zip')
+                                      file_path=os.path.join(run_folder, blob_name))
     # Upload zipfile to cloud, and create an SAS link that lasts a long time (a year?)
     sas_token = blob_client.generate_container_shared_access_signature(container_name=report_assembly_container,
                                                                        permission=BlobPermissions.READ,
@@ -138,6 +138,7 @@ def cowbat_cleanup(sequencing_run_pk):
     shutil.rmtree(os.path.join('olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run))))
     # Run is now considered complete! Update to let user know and send email to people that need to know.
     SequencingRun.objects.filter(pk=sequencing_run_pk).update(status='Complete')
+    print('Complete!')
     # Finally (but actually this time) send an email to relevant people to let them know that things have worked.
     # Uncomment this on the cloud where email sending actually works
     """

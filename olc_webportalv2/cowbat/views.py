@@ -4,14 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.conf import settings
 # Standard libraries
-import mimetypes
 import logging
 import re
 import os
 # Portal-specific things.
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
 from olc_webportalv2.cowbat.forms import RunNameForm
-from olc_webportalv2.cowbat.tasks import run_cowbat_batch
+from olc_webportalv2.cowbat.tasks import run_cowbat_batch, cowbat_cleanup
 # Azure!
 from azure.storage.blob import BlockBlobService
 import azure.batch.batch_service_client as batch

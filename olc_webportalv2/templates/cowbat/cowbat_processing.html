@@ -21,7 +21,8 @@
       </div>
   </div>
   <br>
-  <p>This page will automatically refresh - an assembly run usually takes at least 4-5 hours.</p>
+  <p>This page will automatically refresh. An assembly run usually takes at least 4-5 hours.</p>
+  <p>You don't have to remain on this page - this assembly request will be visible on the <a href="{% url 'cowbat:assembly_home' %}">Assembly homepage.</a> </p>
 {% elif sequencing_run.status == 'Complete' %}
   <button class="btn btn-success btn-block" disabled>{{ sequencing_run.status }}</button>
   <br>
@@ -33,8 +34,10 @@
     </div>
   </div>
     <br>
+  <div align="center">
     <a href="{{ sequencing_run.download_link }}" class="btn btn-outline-dark"
-       role="button">Download Reports and Assemblies for {{ sequencing_run.run_name }}</a>
+       role="button" >Download Reports and Assemblies for {{ sequencing_run.run_name }}</a>
+  </div>
   <br>
      <div class="alert alert-primary" role="alert" align="center">
         <p>Shareable link: {{ sequencing_run.download_link }}</p>
