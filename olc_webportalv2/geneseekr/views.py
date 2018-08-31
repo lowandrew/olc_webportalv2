@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from olc_webportalv2.geneseekr.forms import GeneSeekrForm
-from olc_webportalv2.geneseekr.models import GeneSeekrRequest
+from olc_webportalv2.geneseekr.models import GeneSeekrRequest, GeneSeekrDetail
 from olc_webportalv2.geneseekr.tasks import run_geneseekr
 
 import datetime
@@ -55,4 +55,16 @@ def geneseekr_processing(request, geneseekr_request_pk):
                   'geneseekr/geneseekr_processing.html',
                   {
                      'geneseekr_request': geneseekr_request
+                  })
+
+
+@login_required
+def geneseekr_results(request, geneseekr_request_pk):
+    geneseekr_request = get_object_or_404(GeneSeekrRequest, pk=geneseekr_request_pk)
+    geneseekr_details = GeneSeekrDetail.objects.filter(geneseekr_request=geneseekr_request)
+    return render(request,
+                  'geneseekr/geneseekr_results.html',
+                  {
+                      'geneseekr_request': geneseekr_request,
+                      'geneseekr_details': geneseekr_details
                   })

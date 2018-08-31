@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>GeneSeekr Results</h2>
+  <br>
+  {% if geneseekr_request.status == 'Complete' %}
+    <ul class="nav nav-tabs nav-justified">
+      <li class="active"><a data-toggle="tab" class="btn btn-outline-primary" href="#overall">Overall Results</a></li>
+      <li><a data-toggle="tab" class="btn btn-outline-secondary" href="#sequence-by-sequence">Sequence By Sequence</a></li>
+    </ul>
+    <div class="tab-content">
+        <div id="overall" class="tab-pane fade show active">
+            <br>
+            <p>This graph shows the percentage of sequences in which each query gene was found.</p>
+            <div id="container" style="height: 500px"></div>
+            <button type="button" class="btn btn-outline-primary btn-block" data-toggle="collapse" data-target="#geneseekr-results"><strong>View Table</strong></button>
+            <div id="geneseekr-results" class="collapse">
+            <table id="datatable" class="table table-hover compact">
+              <thead>
+                <tr>
+                  <th>Gene</th>
+                  <th>% sequences where gene was found</th>
+                </tr>
+              </thead>
+              <tbody>
+                  {% for key, value in geneseekr_request.geneseekr_results.items %}
+                    <tr>
+                       <td>{{ key }}</td>
+                       <td>{{ value }}</td>
+                    </tr>
+                  {% endfor %}
+              </tbody>
+            </table>
+            </div>
+        </div>
+        <div id="sequence-by-sequence" class="tab-pane fade">
+           <br>
+           <p>This table shows the percent identity for each sequence for each query gene.</p>
+           <table id="sequence-by-sequence-table" class="table table-hover compact display">
+            <thead>
+              <tr>
+                <th>SeqID</th>
+                {% for key, value in geneseekr_request.geneseekr_results.items %}
+                  <td>{{ key }}</td>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+            {% for geneseekr_detail in geneseekr_details %}
+              <tr>
+              <td>{{ geneseekr_detail.seqid }}</td>
+              {% for gene, percent_id in geneseekr_detail.geneseekr_results.items %}
+                <td>{{ percent_id }}</td>
+              {% endfor %}
+              </tr>
+            {% endfor %}
+
+            </tbody>
+           </table>
+          </div>
+    </div>
+  {% else %}
+    <h2>GeneSeekr request not completed.</h2>
+  {% endif %}
+  <script src="{% static 'js/highcharts.js' %}"></script>
+    <script src="{% static 'js/modules/data.js' %}"></script>
+    <script src="{% static 'js/modules/exporting.js' %}"></script>
+    <script>
+    Highcharts.chart('container', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: ''
+        },
+        xAxis: {
+            title: {
+                text: 'Gene'
+            }
+        },
+        yAxis: {
+            min: 0,
+            max: 100,
+            title: {
+                text: '% sequences where gene was found'
+            }
+        },
+        colors: ['#191b80'],
+        legend: {
+            enabled: false
+        },
+        data: {
+            table: 'datatable'
+        }
+    });
+    </script>
+{% endblock %}
