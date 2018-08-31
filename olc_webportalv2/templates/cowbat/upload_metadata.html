@@ -17,18 +17,6 @@
     </thead>
     <tbody>
         <tr>
-          <td>SampleSheet.csv</td>
-          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
-        </tr>
-        <tr>
-          <td>RunInfo.xml</td>
-          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
-        </tr>
-        <tr>
-          <td>GenerateFASTQRunStatistics.xml</td>
-          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
-        </tr>
-        <tr>
           <td>config.xml</td>
           <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
         </tr>
@@ -37,7 +25,19 @@
           <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
         </tr>
         <tr>
+          <td>GenerateFASTQRunStatistics.xml</td>
+          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
+        </tr>
+        <tr>
+          <td>RunInfo.xml</td>
+          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
+        </tr>
+        <tr>
           <td>runParameters.xml</td>
+          <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
+        </tr>
+        <tr>
+          <td>SampleSheet.csv</td>
           <td class="table-danger" align="center"><i class="fa fa-ban fa-1x"></i></td>
         </tr>
     </tbody>
@@ -106,7 +106,7 @@
                           filesTable.deleteRow(i);
                       }
                       var validationSuccess = true;
-                      var requiredFiles = ['SampleSheet.csv', 'RunInfo.xml', 'GenerateFASTQRunStatistics.xml', 'config.xml', 'CompletedJobInfo.xml', 'runParameters.xml'];
+                      var requiredFiles = ['config.xml', 'CompletedJobInfo.xml', 'GenerateFASTQRunStatistics.xml', 'RunInfo.xml', 'runParameters.xml', 'SampleSheet.csv'];
                       for(var i=0; i<requiredFiles.length; i++ ) {
                         if (filesAcceptedNames.indexOf(requiredFiles[i]) !== -1) {
                           var row = filesTable.insertRow();
