@@ -50,6 +50,7 @@ def run_cowbat_batch(sequencing_run_pk):
             f.write('STORAGE_ACCOUNT_KEY:={}\n'.format(settings.AZURE_ACCOUNT_KEY))
             f.write('JOB_NAME:={}\n'.format(container_name))
             f.write('VM_IMAGE:={}\n'.format(settings.VM_IMAGE))
+            f.write('VM_SIZE:=Standard_D32s_v3\n')  # Need a larger VM than standard, or SKESA will sometimes run out of memory.
             f.write('VM_CLIENT_ID:={}\n'.format(settings.VM_CLIENT_ID))
             f.write('VM_SECRET:={}\n'.format(settings.VM_SECRET))
             f.write('VM_TENANT:={}\n'.format(settings.VM_TENANT))
