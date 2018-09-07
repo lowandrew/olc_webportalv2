@@ -68,11 +68,14 @@ In the first attached instance, run:
 
 - `python3 manage.py makemigrations`
 - `python3 manage.py migrate`
-- `python3 manage.py process_tasks`
+- `python3 manage.py process_tasks > /dev/null &`
 
-In the second, run:
-- `python3 manage.py monitor_tasks`
+Then, disown the process started (command should be `disown %1`) and do the same thing with the `monitor_tasks` command.
 
+- `python3 manage.py monitor_tasks > /dev/null &`
+- `disown %1`
+
+This way, if you lose connection to the VM hosting the site, tasks should still run.
 
 
 
