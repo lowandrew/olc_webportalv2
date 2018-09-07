@@ -10,6 +10,16 @@
     <button class="btn btn-primary btn-block" disabled>{{ sequencing_run.status }}</button>
 {% elif sequencing_run.status == 'Error' %}
     <button class="btn btn-danger btn-block" disabled>{{ sequencing_run.status }}</button>
+{% elif sequencing_run.status == 'UploadError' %}
+  <button class="btn btn-warning btn-block" disabled>{{ sequencing_run.status }}</button>
+  <br>
+  <p>It looks like one or more of your files did not upload successfully. You'll need to delete
+  this sequencing run by clicking the button below, and then try uploading again.</p>
+  <br>
+  <div align="center">
+  <a href="{% url 'cowbat:delete_sequencing_run' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-warning"
+     role="button" >Delete {{ sequencing_run.run_name }}</a>
+  </div>
 {% elif sequencing_run.status == 'Processing' %}
   <button class="btn btn-info btn-block" disabled>{{ sequencing_run.status }}</button>
   <br><br>
@@ -45,7 +55,7 @@
 {% endif %}
   <script type="text/javascript">
     setInterval(function () {
-      {% if sequencing_run.status == 'Processing' %}
+      {% if sequencing_run.status == 'Processing' or sequencing_run == 'Unprocessed' %}
         window.location = window.location.href;
       {% endif %}
     }, 60000) // This should refresh the page every 60 seconds as long as run status is processing.

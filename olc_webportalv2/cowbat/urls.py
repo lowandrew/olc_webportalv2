@@ -6,5 +6,6 @@ urlpatterns = [
     url(r'^assembly_home/', views.assembly_home, name='assembly_home'),
     url(r'^upload_metadata/', views.upload_metadata, name='upload_metadata'),
     url(r'^upload_interop/(?P<sequencing_run_pk>\d+)/$', views.upload_interop, name='upload_interop'),
-    url(r'^upload_sequence_data/(?P<sequencing_run_pk>\d+)/$', views.upload_sequence_data, name='upload_sequence_data')
+    url(r'^upload_sequence_data/(?P<sequencing_run_pk>\d+)/$', views.upload_sequence_data, name='upload_sequence_data'),
+    url(r'^delete_sequencing_run/(?P<sequencing_run_pk>\d+)/$', views.delete_sequencing_run, name='delete_sequencing_run')
 ]

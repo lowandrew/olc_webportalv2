@@ -153,9 +153,17 @@ def upload_sequence_data(request, sequencing_run_pk):
                                                blob_name=item.name,
                                                blob=item.read())
 
-        return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
+        # return redirect('cowbat:cowbat_processing', sequencing_run_pk=sequencing_run.pk)
     return render(request,
                   'cowbat/upload_sequence_data.html',
                   {
                       'sequencing_run': sequencing_run,
                   })
+
+
+@login_required
+def delete_sequencing_run(request, sequencing_run_pk):
+    sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
+    sequencing_run.delete()
+    return render(request,
+                  'cowbat/assembly_home.html')

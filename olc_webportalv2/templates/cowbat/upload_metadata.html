@@ -91,6 +91,7 @@
                 this.on("queuecomplete", function () {
                   $("#myDropzone").submit();
                 });
+
                 validateButton.addEventListener("click", function(e) {
                       var filesAccepted = myDropzone.getAcceptedFiles();
                       var filesTable = document.getElementById('files-required-table');

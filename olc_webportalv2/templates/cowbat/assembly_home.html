@@ -24,6 +24,8 @@
              <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn progress-bar progress-bar-striped progress-bar-animated bg-info" role="button">{{ sequencing_run.status }}</a></td>
           {% elif sequencing_run.status == 'Error' %}
              <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-danger" role="button">{{ sequencing_run.status }}</a></td>
+          {% elif sequencing_run.status == 'UploadError' %}
+            <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-warning" role="button">{{ sequencing_run.status }}</a></td>
           {% elif sequencing_run.status == 'Unprocessed' %}
              <td><a href="{% url 'cowbat:cowbat_processing' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-secondary" role="button">{{ sequencing_run.status }}</a></td>
           {% endif %}

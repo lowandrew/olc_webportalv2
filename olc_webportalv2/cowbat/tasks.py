@@ -9,7 +9,6 @@ import subprocess
 import datetime
 import fnmatch
 import shutil
-import time
 import os
 from azure.storage.blob import BlockBlobService
 from azure.storage.blob import BlobPermissions
@@ -21,24 +20,28 @@ def run_cowbat_batch(sequencing_run_pk):
         blob_client = BlockBlobService(account_key=settings.AZURE_ACCOUNT_KEY,
                                        account_name=settings.AZURE_ACCOUNT_NAME)
         sequencing_run = SequencingRun.objects.get(pk=sequencing_run_pk)
-        # Wait for all the files to actually be present.
-        all_files_present = False
+        # Check that all files are actually present. If not, some upload managed to fail.
+        # Change status to 'UploadError', which will allow user to delete run.
         run_folder = 'olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run))
         if not os.path.isdir(run_folder):
             os.makedirs(run_folder)
         container_name = sequencing_run.run_name.lower().replace('_', '-')
-        while all_files_present is False:
-            blob_filenames = list()
-            blobs = blob_client.list_blobs(container_name=container_name, )
-            for blob in blobs:
-                blob_filenames.append(blob.name)
-            all_files_present = True
-            for seqid in sequencing_run.seqids:
-                forward_reads = fnmatch.filter(blob_filenames, seqid + '*_R1*')
-                reverse_reads = fnmatch.filter(blob_filenames, seqid + '*_R2*')
-                if len(forward_reads) != 1 or len(reverse_reads) != 1:
-                    all_files_present = False
-            time.sleep(60)
+        blob_filenames = list()
+        blobs = blob_client.list_blobs(container_name=container_name, )
+        for blob in blobs:
+            blob_filenames.append(blob.name)
+        all_files_present = True
+        for seqid in sequencing_run.seqids:
+            forward_reads = fnmatch.filter(blob_filenames, seqid + '*_R1*')
+            reverse_reads = fnmatch.filter(blob_filenames, seqid + '*_R2*')
+            if len(forward_reads) != 1 or len(reverse_reads) != 1:
+                all_files_present = False
+
+        if all_files_present is False:
+            sequencing_run.status = 'UploadError'
+            sequencing_run.save()
+            return
+
 
         # Create a configuration file to be used by my Azure batch script.
         batch_config_file = os.path.join(run_folder, 'batch_config.txt')
@@ -50,7 +53,6 @@ def run_cowbat_batch(sequencing_run_pk):
             f.write('STORAGE_ACCOUNT_KEY:={}\n'.format(settings.AZURE_ACCOUNT_KEY))
             f.write('JOB_NAME:={}\n'.format(container_name))
             f.write('VM_IMAGE:={}\n'.format(settings.VM_IMAGE))
-            f.write('VM_SIZE:=Standard_D32s_v3\n')  # Need a larger VM than standard, or SKESA will sometimes run out of memory.
             f.write('VM_CLIENT_ID:={}\n'.format(settings.VM_CLIENT_ID))
             f.write('VM_SECRET:={}\n'.format(settings.VM_SECRET))
             f.write('VM_TENANT:={}\n'.format(settings.VM_TENANT))

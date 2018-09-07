@@ -1,8 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from olc_webportalv2.metadata.forms import MetaDataRequestForm
 from olc_webportalv2.metadata.models import MetaDataRequest, SequenceData
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
+@login_required
 def metadata_home(request):
     form = MetaDataRequestForm()
     if request.method == 'POST':
@@ -41,6 +43,7 @@ def metadata_home(request):
                   })
 
 
+@login_required
 def metadata_results(request, metadata_request_pk):
     metadata_result = get_object_or_404(MetaDataRequest, pk=metadata_request_pk)
     return render(request,
