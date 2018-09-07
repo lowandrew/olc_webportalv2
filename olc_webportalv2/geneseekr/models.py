@@ -18,6 +18,9 @@ class GeneSeekrRequest(models.Model):
     # In format (ish) {'gene1': 70, 'gene2: 80}
     geneseekr_results = JSONField(default={}, blank=True, null=True)
 
+    def __str__(self):
+        return self.pk
+
 
 class AzureGeneSeekrTask(models.Model):
     geneseekr_request = models.ForeignKey(GeneSeekrRequest, on_delete=models.CASCADE, related_name='azuretask')
@@ -30,3 +33,6 @@ class GeneSeekrDetail(models.Model):
     # Pretty much identical to geneseekr request JSONField, but this one has percent ID for the value instead of percent
     # of times found.
     geneseekr_results = JSONField(default={}, blank=True, null=True)
+
+    def __str__(self):
+        return self.seqid

@@ -114,13 +114,15 @@ def get_geneseekr_detail(geneseekr_result_file, geneseekr_task):
         seqid = df['Strain'][i]
         geneseekr_detail = GeneSeekrDetail.objects.create(geneseekr_request=geneseekr_task,
                                                           seqid=seqid)
+        geneseekr_results = dict()
         for column in df.columns:
             if column != 'Strain':
                 gene = column
                 percent_id = df[gene][i]
                 if percent_id == 0:
                     percent_id = 0.0
-                geneseekr_detail.geneseekr_results[gene] = percent_id
+                geneseekr_results[gene] = percent_id
+        geneseekr_detail.geneseekr_results = geneseekr_results
         geneseekr_detail.save()
 
 
