@@ -68,3 +68,5 @@ From there, all you should need to do is run supervisor. This will keep `process
 restart them if they stop for any reason:
 
 `supervisord -c supervisord.conf`
+
+You can then exit the container.
