@@ -61,21 +61,10 @@ of the directory you cloned):
 - `docker-compose build`
 - `docker-compose up`
 
-At this point, the portal should be up. To make it fully functional, you'll need to attach into the running container twice
+At this point, the portal should be up. To make it fully functional, you'll need to attach into the running container to get task management going.
 (`docker exec -it olc_webportalv2_web_1 /bin/bash`).
 
-In the first attached instance, run:
+From there, all you should need to do is run supervisor. This will keep `process_tasks` and `monitor_tasks` running, and 
+restart them if they stop for any reason:
 
-- `python3 manage.py makemigrations`
-- `python3 manage.py migrate`
-- `python3 manage.py process_tasks > /dev/null &`
-
-Then, disown the process started (command should be `disown %1`) and do the same thing with the `monitor_tasks` command.
-
-- `python3 manage.py monitor_tasks > /dev/null &`
-- `disown %1`
-
-This way, if you lose connection to the VM hosting the site, tasks should still run.
-
-
-
+`supervisord -c supervisord.conf`

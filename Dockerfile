@@ -15,3 +15,5 @@ RUN pip3 install -r base.txt
 # Prepare
 COPY . /data/web/
 
+RUN apt-get update
+RUN apt-get install -y supervisor
