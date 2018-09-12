@@ -61,12 +61,5 @@ of the directory you cloned):
 - `docker-compose build`
 - `docker-compose up`
 
-At this point, the portal should be up. To make it fully functional, you'll need to attach into the running container to get task management going.
-(`docker exec -it olc_webportalv2_web_1 /bin/bash`).
+At this point the portal should be up and fully functional, and will restart automatically if it fails for any reason.
 
-From there, all you should need to do is run supervisor. This will keep `process_tasks` and `monitor_tasks` running, and 
-restart them if they stop for any reason:
-
-`supervisord -c supervisord.conf`
-
-You can then exit the container.

@@ -19,4 +19,3 @@ RUN apt-get update
 RUN apt-get install -y supervisor
 COPY crontab /etc/cron.d/clean-old-containers
 RUN chmod 0755 /etc/cron.d/clean-old-containers
-RUN service cron start
