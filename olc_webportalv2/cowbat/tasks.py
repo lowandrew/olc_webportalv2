@@ -27,7 +27,7 @@ def run_cowbat_batch(sequencing_run_pk):
             os.makedirs(run_folder)
         container_name = sequencing_run.run_name.lower().replace('_', '-')
         blob_filenames = list()
-        blobs = blob_client.list_blobs(container_name=container_name, )
+        blobs = blob_client.list_blobs(container_name=container_name)
         for blob in blobs:
             blob_filenames.append(blob.name)
         all_files_present = True

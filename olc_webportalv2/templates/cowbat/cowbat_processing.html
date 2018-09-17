@@ -14,7 +14,8 @@
   <button class="btn btn-warning btn-block" disabled>{{ sequencing_run.status }}</button>
   <br>
   <p>It looks like one or more of your files did not upload successfully. You'll need to delete
-  this sequencing run by clicking the button below, and then try uploading again.</p>
+  this sequencing run by clicking the button below, and then try uploading again. Only sequence files
+  that did not complete uploading will need to be re-uploaded.</p>
   <br>
   <div align="center">
   <a href="{% url 'cowbat:delete_sequencing_run' sequencing_run_pk=sequencing_run.pk %}" class="btn btn-warning"

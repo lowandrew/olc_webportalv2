@@ -1,16 +1,16 @@
 # Django-related imports
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.conf import settings
 # Standard libraries
 import logging
+import fnmatch
 import re
 import os
 # Portal-specific things.
-from olc_webportalv2.cowbat.models import SequencingRun, DataFile, InterOpFile
+from olc_webportalv2.cowbat.models import SequencingRun, DataFile
 from olc_webportalv2.cowbat.forms import RunNameForm
-from olc_webportalv2.cowbat.tasks import run_cowbat_batch, cowbat_cleanup
+from olc_webportalv2.cowbat.tasks import run_cowbat_batch
 # Azure!
 from azure.storage.blob import BlockBlobService
 import azure.batch.batch_service_client as batch
@@ -40,6 +40,25 @@ def find_percent_complete(sequencing_run):
     except batchmodels.BatchErrorException:  # Means task and job have not yet been created
         percent_completed = 1
     return percent_completed
+
+
+def check_uploaded_seqids(sequencing_run):
+    container_name = str(sequencing_run).lower().replace('_', '-')
+    blob_client = BlockBlobService(account_key=settings.AZURE_ACCOUNT_KEY,
+                                   account_name=settings.AZURE_ACCOUNT_NAME)
+    blob_filenames = list()
+    blobs = blob_client.list_blobs(container_name=container_name)
+    for blob in blobs:
+        blob_filenames.append(blob.name)
+    seqids_to_remove = list()
+    for seqid in sequencing_run.seqids:
+        forward_reads = fnmatch.filter(blob_filenames, seqid + '*_R1*')
+        reverse_reads = fnmatch.filter(blob_filenames, seqid + '*_R2*')
+        if len(forward_reads) == 1 and len(reverse_reads) == 1:
+            seqids_to_remove.append(seqid)
+    for seqid in seqids_to_remove:
+        sequencing_run.seqids.remove(seqid)
+    sequencing_run.save()
 
 
 # Create your views here.
@@ -142,6 +161,7 @@ def upload_interop(request, sequencing_run_pk):
 @login_required
 def upload_sequence_data(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
+    check_uploaded_seqids(sequencing_run=sequencing_run)
     if request.method == 'POST':
         container_name = sequencing_run.run_name.lower().replace('_', '-')
         blob_client = BlockBlobService(account_name=settings.AZURE_ACCOUNT_NAME,
