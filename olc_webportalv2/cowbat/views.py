@@ -27,7 +27,9 @@ def find_percent_complete(sequencing_run):
         batch_client = batch.BatchServiceClient(credentials, base_url=settings.BATCH_ACCOUNT_URL)
         node_files = batch_client.file.list_from_task(job_id=job_id, task_id=job_id, recursive=True)
         seqid_regex = '\d{4}-[A-Z]+-\d{4}'
-        final_num_subfolders = len(sequencing_run.seqids) * 20
+        # TODO: If an upload fails, the .seqids attribute of a sequencing run is reduced to whatever
+        # SEQIDs failed to upload. This leads to very wonky percent completes. Should get this fixed.
+        final_num_subfolders = len(sequencing_run.seqids) * 20  # TODO: Check if newer version of pipeline has different subfolder number
         current_subfolders = 0
         for node_file in node_files:
             if len(node_file.name.split('/')) == 4 and '.' not in os.path.split(node_file.name)[1] and re.search(seqid_regex, node_file.name) is not None:
