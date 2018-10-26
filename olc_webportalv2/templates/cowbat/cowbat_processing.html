@@ -56,7 +56,7 @@
 {% endif %}
   <script type="text/javascript">
     setInterval(function () {
-      {% if sequencing_run.status == 'Processing' or sequencing_run == 'Unprocessed' %}
+      {% if sequencing_run.status == 'Processing' or sequencing_run.status == 'Unprocessed' %}
         window.location = window.location.href;
       {% endif %}
     }, 60000) // This should refresh the page every 60 seconds as long as run status is processing.
