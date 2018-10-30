@@ -1,5 +1,4 @@
 # Django-related imports
-from django.core.mail import send_mail  # To be used eventually, only works in cloud
 from background_task import background
 from olc_webportalv2.cowbat.models import SequencingRun, AzureTask
 # For some reason settings get imported from base.py - in views they come from prod.py. Weird.
@@ -7,6 +6,11 @@ from django.conf import settings  # To access azure credentials
 # Standard python stuff
 import subprocess
 import datetime
+# For whatever reason tasks.py doesn't get django settings properly, so send_mail from django doesn't work.
+# Use SMTPlib combined with os.environ.get to get around this.
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
 import fnmatch
 import shutil
 import os
@@ -74,12 +78,27 @@ def run_cowbat_batch(sequencing_run_pk):
                                  exit_code_file=os.path.join(run_folder, 'exit_codes.txt'))
     except:
         """
-        send_mail(subject='Assembly Error - Run {} was not successfully submitted to Azure Batch.'.format(str(sequencing_run)),
-                  message='Fix it!',
-                  from_email=settings.EMAIL_HOST_USER,
-                  recipient_list=['andrew.low@canada.ca'])
+        send_email(subject='Assembly Error - Run {} was not successfully submitted to Azure Batch.'.format(str(sequencing_run)),
+                   body='Fix it!',
+                   recipient='andrew.low@canada.ca')
         """
         SequencingRun.objects.filter(pk=sequencing_run_pk).update(status='Error')
+
+
+def send_email(subject, body, recipient):
+    fromaddr = os.environ.get('EMAIL_HOST_USER')
+    toaddr = recipient
+    msg = MIMEMultipart()
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(user=os.environ.get('EMAIL_HOST_USER'), password=os.environ.get('EMAIL_HOST_PASSWORD'))
+    text = msg.as_string()
+    server.sendmail(fromaddr, toaddr, text)
 
 
 @background(schedule=1)
@@ -145,10 +164,10 @@ def cowbat_cleanup(sequencing_run_pk):
     # Finally (but actually this time) send an email to relevant people to let them know that things have worked.
     # Uncomment this on the cloud where email sending actually works
     """
-    send_mail(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
-              message='If you are Andrew or Adam, please download the blob container to local OLC storage.'
-                      ' If you\'re Paul, please add this data to the OLC database.',
-              from_email=settings.EMAIL_HOST_USER,
-              recipient_list=['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca'])
+    recipient_list = ['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca']
+    for recipient in recipient_list:
+        send_email(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
+                   body='If you are Andrew or Adam, please download the blob container to local OLC storage.'
+                          ' If you\'re Paul, please add this data to the OLC database.',
+                   recipient=recipient)
     """
-
