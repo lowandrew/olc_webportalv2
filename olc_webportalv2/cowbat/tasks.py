@@ -25,7 +25,7 @@ def run_cowbat_batch(sequencing_run_pk):
                                        account_name=settings.AZURE_ACCOUNT_NAME)
         sequencing_run = SequencingRun.objects.get(pk=sequencing_run_pk)
         # Check that all files are actually present. If not, some upload managed to fail.
-        # Change status to 'UploadError', which will allow user to delete run.
+        # Change status to 'UploadError', which will allow user to retry the upload.
         run_folder = 'olc_webportalv2/media/{run_name}'.format(run_name=str(sequencing_run))
         if not os.path.isdir(run_folder):
             os.makedirs(run_folder)

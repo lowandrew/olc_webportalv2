@@ -7,5 +7,5 @@ urlpatterns = [
     url(r'^upload_metadata/', views.upload_metadata, name='upload_metadata'),
     url(r'^upload_interop/(?P<sequencing_run_pk>\d+)/$', views.upload_interop, name='upload_interop'),
     url(r'^upload_sequence_data/(?P<sequencing_run_pk>\d+)/$', views.upload_sequence_data, name='upload_sequence_data'),
-    url(r'^delete_sequencing_run/(?P<sequencing_run_pk>\d+)/$', views.delete_sequencing_run, name='delete_sequencing_run')
+    url(r'^retry_sequence_data_upload/(?P<sequencing_run_pk>\d+)/$', views.retry_sequence_data_upload, name='retry_sequence_data_upload')
 ]

@@ -5,7 +5,6 @@ from django.conf import settings
 # Standard libraries
 import logging
 import fnmatch
-import re
 import os
 # Portal-specific things.
 from olc_webportalv2.cowbat.models import SequencingRun, DataFile
@@ -181,8 +180,8 @@ def upload_sequence_data(request, sequencing_run_pk):
 
 
 @login_required
-def delete_sequencing_run(request, sequencing_run_pk):
+def retry_sequence_data_upload(request, sequencing_run_pk):
     sequencing_run = get_object_or_404(SequencingRun, pk=sequencing_run_pk)
-    sequencing_run.delete()
-    return render(request,
-                  'cowbat/assembly_home.html')
+    sequencing_run.status = 'Unprocessed'
+    sequencing_run.save()
+    return redirect('cowbat:upload_sequence_data', sequencing_run_pk=sequencing_run.pk)
