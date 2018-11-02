@@ -163,11 +163,12 @@ def cowbat_cleanup(sequencing_run_pk):
     print('Complete!')
     # Finally (but actually this time) send an email to relevant people to let them know that things have worked.
     # Uncomment this on the cloud where email sending actually works
-    """
     recipient_list = ['paul.manninger@canada.ca', 'andrew.low@canada.ca', 'adam.koziol@canada.ca']
+    """
     for recipient in recipient_list:
         send_email(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
-                   body='If you are Andrew or Adam, please download the blob container to local OLC storage.'
-                          ' If you\'re Paul, please add this data to the OLC database.',
+                   body='If you are Andrew or Adam, please download the blob container to local OLC storage. '
+                        'If you\'re Paul, please add this data to the OLC database.\n Reports and assemblies '
+                        'are available at the following link: {}'.format(sequencing_run.download_link),
                    recipient=recipient)
     """
