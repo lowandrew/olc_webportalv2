@@ -27,6 +27,9 @@ they're MiSeq files that start with SEQIDs
 - create a container called `processed-data` in your Azure storage account and put your illumina assemblies there. It's 
 assumed that they're named in the format seqid.fasta
 
+#### Portal Machine Setup
+A copy of all your processed data needs to be on your portal machine - change the ./sequences volume mount
+in `docker-compose.yml` as necessary, and put all the FASTA files there in addition to the `processed-data` blob container.
 
 #### Making Your Env File
 
