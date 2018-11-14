@@ -41,7 +41,7 @@ def monitor_tasks():
                         # Delete task so we don't have to keep checking up on it.
                         AzureTask.objects.filter(id=task.id).delete()
 
-        # Also check for GeneSeekr completion.
+        # Also check for GeneSeekr completion. # TODO: GeneSeekr won't need this soon - to be deleted.
         geneseekr_tasks = AzureGeneSeekrTask.objects.filter()
         for task in geneseekr_tasks:
             if os.path.isfile(task.exit_code_file):

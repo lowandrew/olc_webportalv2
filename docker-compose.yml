@@ -12,6 +12,7 @@ services:
     env_file: env
     volumes:
       - ./:/data/web
+      - ./sequences:/sequences
       - /var/run/docker.sock:/var/run/docker.sock # send docker commands from the django docker container
     environment:
       - POSTGRES_USER=myproject_web

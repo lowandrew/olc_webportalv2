@@ -57,8 +57,9 @@ gunicorn==19.7.1
 uwsgi
 django-extensions
 django-debug-toolbar
-django-test-plus
+#django-test-plus  # This is breaking the build? Also, not sure that it actually gets used.
 azure-storage
 azure-batch
 KubeJobSub>=0.1.15
 biopython
+geneseekr
