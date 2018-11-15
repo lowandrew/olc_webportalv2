@@ -24,13 +24,14 @@ def geneseekr_query(request):
     if request.method == 'POST':
         form = GeneSeekrForm(request.POST, request.FILES)
         if form.is_valid():
-            seqid_input = form.cleaned_data.get('seqids')
-            seqids = seqid_input.split()
+            # seqid_input = form.cleaned_data.get('seqids')
+            # seqids = seqid_input.split()
+            seqids, query_sequence = form.cleaned_data
             geneseekr_request = GeneSeekrRequest.objects.create(user=request.user,
                                                                 seqids=seqids)
             # Use query sequence if entered. Otherwise, read in the FASTA file provided.
-            if form.cleaned_data.get('query_sequence') != '':
-                geneseekr_request.query_sequence = form.cleaned_data.get('query_sequence')
+            if query_sequence != '':
+                geneseekr_request.query_sequence = query_sequence
             else:
                 input_sequence_file = request.FILES['query_file']
                 # Pointer is at end of file in request, so move back to beginning before doing the read.

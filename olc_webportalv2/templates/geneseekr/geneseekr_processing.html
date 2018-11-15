@@ -9,7 +9,7 @@
   {% if geneseekr_request.status == 'Processing' %}
       <button class="btn btn-info btn-block progress-bar-striped progress-bar-animated" disabled>{{ geneseekr_request.status }}</button>
       <br>
-      <p>This page will automatically refresh.Your GeneSeekr request should be complete in 5-10 minutes.</p>
+      <p>This page will automatically refresh. Your GeneSeekr request should be complete in a minute or two.</p>
       <p>You don't have to remain on this page - this GeneSeekr request will be visible on the <a href="{% url 'geneseekr:geneseekr_home' %}">GeneSeekr homepage</a> </p>
   {% elif geneseekr_request.status == 'Unprocessed' %}
     <button class="btn btn-info btn-block progress-bar-striped" disabled>{{ geneseekr_request.status }}</button>

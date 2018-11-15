@@ -6,15 +6,19 @@ from olc_webportalv2.metadata.models import SequenceData
 
 
 class GeneSeekrForm(forms.Form):
-    seqids = forms.CharField(max_length=100000, widget=forms.Textarea, label='')
+    seqids = forms.CharField(max_length=100000, widget=forms.Textarea, label='', required=False)
     query_sequence = forms.CharField(max_length=10000, widget=forms.Textarea, label='', required=False)
     query_file = forms.FileField(label='', required=False)
+    genus = forms.CharField(max_length=48, label='', required=False)
+    everything_but = forms.BooleanField(required=False)
 
     def clean(self):
         super().clean()
         seqid_input = self.cleaned_data.get('seqids')
         query_sequence = self.cleaned_data.get('query_sequence')
         query_file = self.cleaned_data.get('query_file')
+        genus = self.cleaned_data.get('genus')
+        exclude = self.cleaned_data.get('everything_but')
 
         # Check that SEQIDs specified are in valid SEQID format.
         seqid_list = seqid_input.split()
@@ -40,8 +44,27 @@ class GeneSeekrForm(forms.Form):
             raise forms.ValidationError('One or more of the SEQIDs you entered was not found in our database.\n'
                                         'SEQIDs not found: {}'.format(bad_seqids))
 
-        # TODO: Ensure that input is in valid FASTA format.
-        # TODO: Make sure file size isn't greater than 10KB
+        # If user didn't input SeqIDs into the SeqID text box, do filtering based on Genus.
+        if len(seqid_list) == 0:
+            sequence_data_objects = SequenceData.objects.filter()
+            for sequence_data in sequence_data_objects:
+                if exclude is True:
+                    if sequence_data.genus != genus:
+                        seqid_list.append(sequence_data.seqid)
+                elif exclude is False:
+                    if sequence_data.genus.upper() == genus.upper() or genus == '':
+                        seqid_list.append(sequence_data.seqid)
+
+        # Now check that we actually have some SeqIDs, or things will break.
+        if len(seqid_list) == 0:
+            if exclude is False:
+                raise forms.ValidationError('Your query did not correspond to any sequences in our database: query was for '
+                                            'sequences from genus {}'.format(genus))
+            else:
+                raise forms.ValidationError('Your query did not correspond to any sequences in our database: query was for '
+                                            'sequences NOT from genus {}'.format(genus))
+
+
         # Ensure that query sequence or query file was submitted
         if query_sequence == '' and query_file is None:
             raise forms.ValidationError('No input found! You must submit a FASTA sequence by pasting it into the text '
@@ -85,3 +108,4 @@ class GeneSeekrForm(forms.Form):
             if num_nucleotides > 10000:
                 raise forms.ValidationError('FASTA sequence length maximum is 10000 bases. Your input sequence '
                                             'had {} bases.'.format(num_nucleotides))
+        return seqid_list, query_sequence
