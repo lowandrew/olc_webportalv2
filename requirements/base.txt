@@ -62,4 +62,4 @@ azure-storage
 azure-batch
 KubeJobSub>=0.1.15
 biopython
-geneseekr
+geneseekr>=0.2.6

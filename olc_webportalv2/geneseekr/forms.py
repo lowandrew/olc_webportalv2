@@ -9,7 +9,7 @@ class GeneSeekrForm(forms.Form):
     seqids = forms.CharField(max_length=100000, widget=forms.Textarea, label='', required=False)
     query_sequence = forms.CharField(max_length=10000, widget=forms.Textarea, label='', required=False)
     query_file = forms.FileField(label='', required=False)
-    genus = forms.CharField(max_length=48, label='', required=False)
+    genus = forms.CharField(max_length=48, label='', required=False)  # TODO: Genus should be an autocomplete field
     everything_but = forms.BooleanField(required=False)
 
     def clean(self):
