@@ -70,8 +70,17 @@
           </div>
          <div id="top-hits" class="tab-pane fade">
            <br>
-           <p>This table shows the top blast hits.</p>
-           <table id="top-hits-table" class="table table-hover compact display">
+           <ul class="nav nav-tabs nav-justified">
+
+             {% for gene, top_blast_hits in gene_top_hits.items %}
+                 <li><a data-toggle="tab" class="btn btn-outline-info" href="#{{ gene }}">{{ gene }}</a></li>
+             {% endfor %}
+           </ul>
+         <div class="tab-content">
+         {% for gene, top_blast_hits in gene_top_hits.items %}
+           <div id="{{ gene }}" class="tab-pane fade">
+           <h3>{{ gene }}</h3>
+             <table id="{{ gene }}-table" class="table table-hover compact display">
              <thead>
                 <tr>
                   <th>Contig</th>
@@ -95,7 +104,9 @@
              {% endfor %}
              </tbody>
            </table>
-
+           </div>
+        {% endfor %}
+         </div>
          </div>
     </div>
   {% else %}
@@ -138,9 +149,11 @@
     </script>
   <script type="text/javascript">
   $(document).ready(function () {
-    $('#top-hits-table').dataTable({
-      "pageLength": 50
-    })
+    {% for gene, top_blast_hits in gene_top_hits.items %}
+      $('#{{ gene }}-table').dataTable({
+        "pageLength": 50
+      });
+    {% endfor %}
   });
   </script>
 {% endblock %}

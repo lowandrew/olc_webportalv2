@@ -20,9 +20,6 @@ from azure.storage.blob import BlobPermissions
 def run_geneseekr(geneseekr_request_pk):
     geneseekr_request = GeneSeekrRequest.objects.get(pk=geneseekr_request_pk)
     try:
-        # Running GeneSeekr via batch is not ideal, as it's not really a big job - results should be relatively instant,
-        # no need for a 5ish minute delay.
-
         # Step 1: Make a directory for our things.
         geneseekr_dir = 'olc_webportalv2/media/geneseekr-{}'.format(geneseekr_request_pk)
         if not os.path.isdir(geneseekr_dir):
@@ -64,8 +61,6 @@ def run_geneseekr(geneseekr_request_pk):
                           geneseekr_task=geneseekr_request)
         get_blast_detail(blast_result_file=os.path.join(geneseekr_dir, 'blast_report.tsv'),
                          geneseekr_task=geneseekr_request)
-        # TODO: This doesn't work very well when multiple genes get submitted - will need to separate out
-        # on a gene by gene basis
         get_blast_top_hits(blast_result_file=os.path.join(geneseekr_dir, 'blast_report.tsv'),
                            geneseekr_task=geneseekr_request)
 
@@ -105,7 +100,7 @@ def run_geneseekr(geneseekr_request_pk):
         #                                     blob_name=blob_name,
         #                                     sas_token=sas_token)
         # geneseekr_request.download_link = sas_url
-        shutil.rmtree('olc_webportalv2/media/geneseekr-{}/'.format(geneseekr_request.pk))
+        # shutil.rmtree('olc_webportalv2/media/geneseekr-{}/'.format(geneseekr_request.pk))
         geneseekr_request.status = 'Complete'
         geneseekr_request.save()
     except:
@@ -195,8 +190,9 @@ def get_blast_detail(blast_result_file, geneseekr_task):
         for result_line in f:
             blast_result = BlastResult(result_line)
             # Everything gets initialized to zero - only take top hit for each SeqID, which should be first hit in file.
-            if gene_hits[blast_result.query_name][blast_result.seqid] == 0:
-                gene_hits[blast_result.query_name][blast_result.seqid] = blast_result.percent_identity
+            if blast_result.seqid in gene_hits[blast_result.query_name]:
+                if gene_hits[blast_result.query_name][blast_result.seqid] == 0:
+                    gene_hits[blast_result.query_name][blast_result.seqid] = blast_result.percent_identity
 
     for seqid in geneseekr_task.seqids:
         geneseekr_detail = GeneSeekrDetail.objects.create(geneseekr_request=geneseekr_task,
@@ -210,20 +206,29 @@ def get_blast_detail(blast_result_file, geneseekr_task):
 
 def get_blast_top_hits(blast_result_file, geneseekr_task, num_hits=50):
     # Looks at the top 50 hits for a GeneSeekr request and provides a blast-esque interface for them
+    query_hit_count = dict()
+    for query in SeqIO.parse(StringIO(geneseekr_task.query_sequence), 'fasta'):
+        query_hit_count[query.id] = 0
+
     with open(blast_result_file) as f:
-        count = 0
         for result_line in f:
             blast_result = BlastResult(result_line)
-            top_blast_hit = TopBlastHit(contig_name=blast_result.subject_name,
-                                        query_coverage=blast_result.query_coverage,
-                                        percent_identity=blast_result.percent_identity,
-                                        start_position=blast_result.subject_start_position,
-                                        end_position=blast_result.subject_end_position,
-                                        e_value=blast_result.evalue,
-                                        geneseekr_request=geneseekr_task)
-            top_blast_hit.save()
-            count += 1
-            if count >= num_hits:
+            if blast_result.seqid in geneseekr_task.seqids:
+                top_blast_hit = TopBlastHit(contig_name=blast_result.subject_name,
+                                            query_coverage=blast_result.query_coverage,
+                                            percent_identity=blast_result.percent_identity,
+                                            start_position=blast_result.subject_start_position,
+                                            end_position=blast_result.subject_end_position,
+                                            e_value=blast_result.evalue,
+                                            geneseekr_request=geneseekr_task,
+                                            gene_name=blast_result.query_name)
+                top_blast_hit.save()
+                query_hit_count[blast_result.query_name] += 1
+            all_have_50_hits = True
+            for query_id in query_hit_count:
+                if query_hit_count[query_id] < num_hits:
+                    all_have_50_hits = False
+            if all_have_50_hits:
                 break
 
 
