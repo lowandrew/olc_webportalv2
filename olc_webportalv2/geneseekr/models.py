@@ -22,6 +22,7 @@ class GeneSeekrRequest(models.Model):
         return self.pk
 
 
+# This model doesn't actually get used any more - to be deleted.
 class AzureGeneSeekrTask(models.Model):
     geneseekr_request = models.ForeignKey(GeneSeekrRequest, on_delete=models.CASCADE, related_name='azuretask')
     exit_code_file = models.CharField(max_length=256)
@@ -36,3 +37,18 @@ class GeneSeekrDetail(models.Model):
 
     def __str__(self):
         return self.seqid
+
+
+class TopBlastHit(models.Model):
+    geneseekr_request = models.ForeignKey(GeneSeekrRequest, on_delete=models.CASCADE, related_name='topblasthits', null=True)
+    contig_name = models.CharField(max_length=128)
+    query_coverage = models.FloatField()
+    percent_identity = models.FloatField()
+    start_position = models.IntegerField()
+    end_position = models.IntegerField()
+    e_value = models.FloatField()
+
+    # This should allow for ordering of results - when getting top blast hits associated with a GeneSeekrRequest,
+    # hits should be ordered by e-value, with ties broken by percent identity and then query coverage
+    class Meta:
+        ordering = ['e_value', '-percent_identity', '-query_coverage']

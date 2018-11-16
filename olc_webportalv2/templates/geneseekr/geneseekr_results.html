@@ -10,6 +10,7 @@
     <ul class="nav nav-tabs nav-justified">
       <li class="active"><a data-toggle="tab" class="btn btn-outline-primary" href="#overall">Overall Results</a></li>
       <li><a data-toggle="tab" class="btn btn-outline-secondary" href="#sequence-by-sequence">Sequence By Sequence</a></li>
+      <li><a data-toggle="tab" class="btn btn-outline-dark" href="#top-hits">Top Blast Hits</a></li>
     </ul>
     <div class="tab-content">
         <div id="overall" class="tab-pane fade show active">
@@ -67,13 +68,45 @@
             </tbody>
            </table>
           </div>
+         <div id="top-hits" class="tab-pane fade">
+           <br>
+           <p>This table shows the top blast hits.</p>
+           <table id="top-hits-table" class="table table-hover compact display">
+             <thead>
+                <tr>
+                  <th>Contig</th>
+                  <th>Query Coverage</th>
+                  <th>Percent Identity</th>
+                  <th>Subject Start Position</th>
+                  <th>Subject End Position</th>
+                  <th>E Value</th>
+                </tr>
+             </thead>
+             <tbody>
+             {% for top_blast_hit in top_blast_hits %}
+               <tr>
+                 <td>{{ top_blast_hit.contig_name }}</td>
+                 <td>{{ top_blast_hit.query_coverage }}</td>
+                 <td>{{ top_blast_hit.percent_identity }}</td>
+                 <td>{{ top_blast_hit.start_position }}</td>
+                 <td>{{ top_blast_hit.end_position }}</td>
+                 <td>{{ top_blast_hit.e_value }}</td>
+               </tr>
+             {% endfor %}
+             </tbody>
+           </table>
+
+         </div>
     </div>
   {% else %}
     <h2>GeneSeekr request not completed.</h2>
   {% endif %}
+  <script src="{% static 'js/datatables.min.js' %}"></script>
   <script src="{% static 'js/highcharts.js' %}"></script>
-    <script src="{% static 'js/modules/data.js' %}"></script>
-    <script src="{% static 'js/modules/exporting.js' %}"></script>
+  <script src="{% static 'js/modules/data.js' %}"></script>
+  <script src="{% static 'js/modules/exporting.js' %}"></script>
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
     <script>
     Highcharts.chart('container', {
         chart: {
@@ -103,4 +136,11 @@
         }
     });
     </script>
+  <script type="text/javascript">
+  $(document).ready(function () {
+    $('#top-hits-table').dataTable({
+      "pageLength": 50
+    })
+  });
+  </script>
 {% endblock %}
