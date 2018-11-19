@@ -73,14 +73,14 @@
            <ul class="nav nav-tabs nav-justified">
 
              {% for gene, top_blast_hits in gene_top_hits.items %}
-                 <li><a data-toggle="tab" class="btn btn-outline-info" href="#{{ gene }}">{{ gene }}</a></li>
+                 <li><a data-toggle="tab" class="btn btn-outline-info" href="#{{ gene|slugify }}">{{ gene }}</a></li>
              {% endfor %}
            </ul>
          <div class="tab-content">
          {% for gene, top_blast_hits in gene_top_hits.items %}
-           <div id="{{ gene }}" class="tab-pane fade">
+           <div id="{{ gene|slugify }}" class="tab-pane fade">
            <h3>{{ gene }}</h3>
-             <table id="{{ gene }}-table" class="table table-hover compact display">
+             <table id="{{ gene|slugify }}-table" class="table table-hover compact display">
              <thead>
                 <tr>
                   <th>Contig</th>
@@ -95,7 +95,7 @@
              {% for top_blast_hit in top_blast_hits %}
                <tr>
                  <td>{{ top_blast_hit.contig_name }}</td>
-                 <td>{{ top_blast_hit.query_coverage }}</td>
+                 <td>{{ top_blast_hit.query_coverage|floatformat:"-2" }}</td>
                  <td>{{ top_blast_hit.percent_identity }}</td>
                  <td>{{ top_blast_hit.start_position }}</td>
                  <td>{{ top_blast_hit.end_position }}</td>
@@ -150,7 +150,7 @@
   <script type="text/javascript">
   $(document).ready(function () {
     {% for gene, top_blast_hits in gene_top_hits.items %}
-      $('#{{ gene }}-table').dataTable({
+      $('#{{ gene|slugify }}-table').dataTable({
         "pageLength": 50
       });
     {% endfor %}
