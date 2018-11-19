@@ -150,9 +150,10 @@
   <script type="text/javascript">
   $(document).ready(function () {
     {% for gene, top_blast_hits in gene_top_hits.items %}
-      $('#{{ gene|slugify }}-table').dataTable({
+      var table = $('#{{ gene|slugify }}-table').DataTable({
         "pageLength": 50
       });
+      table.order([5, 'asc'], [2, 'desc'], [1, 'desc']).draw();
     {% endfor %}
   });
   </script>
