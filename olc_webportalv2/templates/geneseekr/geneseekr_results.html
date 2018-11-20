@@ -79,7 +79,6 @@
          <div class="tab-content">
          {% for gene, top_blast_hits in gene_top_hits.items %}
            <div id="{{ gene|slugify }}" class="tab-pane fade">
-           <h3>{{ gene }}</h3>
              <table id="{{ gene|slugify }}-table" class="table table-hover compact display">
              <thead>
                 <tr>

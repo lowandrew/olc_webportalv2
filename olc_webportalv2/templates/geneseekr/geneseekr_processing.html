@@ -20,10 +20,10 @@
   {% elif geneseekr_request.status == 'Complete' %}
     <button class="btn btn-success btn-block" disabled>{{ geneseekr_request.status }}</button>
     <br>
-    <p>These files will be available for 7 days.</p>
+    <p>These results will be available for 7 days.</p>
     <br>
     <div style="text-align: center">
-        <a href="{{ geneseekr_request.download_link }}" class="btn btn-outline-dark" role="button">Download GeneSeekr Report</a>
+        <a href="{{ geneseekr_request.download_link }}" class="btn btn-outline-dark" role="button">Download Raw BLAST Report</a>
         <br><br>
         <a href="{% url 'geneseekr:geneseekr_results' geneseekr_request_pk=geneseekr_request.pk %}" class="btn btn-outline-primary" role="button">View Results</a>
         <br>
