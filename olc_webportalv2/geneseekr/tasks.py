@@ -2,7 +2,6 @@ import os
 import shutil
 import datetime
 import subprocess
-import pandas as pd
 from Bio import SeqIO
 import multiprocessing
 from io import StringIO
@@ -14,8 +13,6 @@ from azure.storage.blob import BlockBlobService
 from azure.storage.blob import BlobPermissions
 
 
-# TODO: Much reworking - blast query sequences against all sequence data, and then just do post-filtering.
-# This requires pretty much completely re-writing this :(
 @background(schedule=1)
 def run_geneseekr(geneseekr_request_pk):
     geneseekr_request = GeneSeekrRequest.objects.get(pk=geneseekr_request_pk)
