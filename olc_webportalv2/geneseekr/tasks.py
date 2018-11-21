@@ -146,7 +146,7 @@ def get_blast_results(blast_result_file, geneseekr_task):
     with open(blast_result_file) as f:
         for result_line in f:
             blast_result = BlastResult(result_line)
-            if blast_result.query_coverage > 90 and blast_result.percent_identity > 90:
+            if blast_result.query_coverage > 90 and blast_result.percent_identity > 90 and blast_result.seqid in geneseekr_task.seqids:
                 gene_hits[blast_result.query_name][blast_result.seqid] = True
 
     # Now for each gene, total the number of True.
@@ -197,9 +197,13 @@ def get_blast_detail(blast_result_file, geneseekr_task):
 def get_blast_top_hits(blast_result_file, geneseekr_task, num_hits=50):
     # Looks at the top 50 hits for a GeneSeekr request and provides a blast-esque interface for them
     query_hit_count = dict()
+    gene_targets = list()
     for query in SeqIO.parse(StringIO(geneseekr_task.query_sequence), 'fasta'):
         query_hit_count[query.id] = 0
+        gene_targets.append(query.id)
 
+    geneseekr_task.gene_targets = gene_targets
+    geneseekr_task.save()
     with open(blast_result_file) as f:
         for result_line in f:
             blast_result = BlastResult(result_line)

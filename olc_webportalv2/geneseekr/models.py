@@ -17,6 +17,7 @@ class GeneSeekrRequest(models.Model):
     # This will hold a dictionary of percent of isolates where gene/sequence was found for each gene:
     # In format (ish) {'gene1': 70, 'gene2: 80}
     geneseekr_results = JSONField(default={}, blank=True, null=True)
+    gene_targets = ArrayField(models.CharField(max_length=128), blank=True, null=True, default=[])
 
     def __str__(self):
         return self.pk
@@ -48,6 +49,8 @@ class TopBlastHit(models.Model):
     end_position = models.IntegerField()
     e_value = models.FloatField()
     gene_name = models.CharField(max_length=256, blank=True, null=True)
+    query_start_position = models.IntegerField(blank=True, null=True)
+    query_end_position = models.IntegerField(blank=True, null=True)
 
     # This should allow for ordering of results - when getting top blast hits associated with a GeneSeekrRequest,
     # hits should be ordered by e-value, with ties broken by percent identity and then query coverage

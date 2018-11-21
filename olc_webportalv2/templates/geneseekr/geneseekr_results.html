@@ -72,12 +72,13 @@
            <br>
            <ul class="nav nav-tabs nav-justified">
 
-             {% for gene, top_blast_hits in gene_top_hits.items %}
+             {% for gene in geneseekr_request.gene_targets %}
                  <li><a data-toggle="tab" class="btn btn-outline-info" href="#{{ gene|slugify }}">{{ gene }}</a></li>
              {% endfor %}
            </ul>
          <div class="tab-content">
-         {% for gene, top_blast_hits in gene_top_hits.items %}
+{#         {% for gene, top_blast_hits in gene_top_hits.items %}#}
+           {% for gene in geneseekr_request.gene_targets %}
            <div id="{{ gene|slugify }}" class="tab-pane fade">
              <table id="{{ gene|slugify }}-table" class="table table-hover compact display">
              <thead>
@@ -91,16 +92,25 @@
                 </tr>
              </thead>
              <tbody>
-             {% for top_blast_hit in top_blast_hits %}
-               <tr>
-                 <td>{{ top_blast_hit.contig_name }}</td>
-                 <td>{{ top_blast_hit.query_coverage|floatformat:"-2" }}</td>
-                 <td>{{ top_blast_hit.percent_identity }}</td>
-                 <td>{{ top_blast_hit.start_position }}</td>
-                 <td>{{ top_blast_hit.end_position }}</td>
-                 <td>{{ top_blast_hit.e_value }}</td>
-               </tr>
+             {% for target, top_blast_hits in gene_top_hits.items %}
+                 {% if target == gene %}
+                     {% if top_blast_hits %}
+                         {% for top_blast_hit in top_blast_hits %}
+                           <tr>
+                             <td>{{ top_blast_hit.contig_name }}</td>
+                             <td>{{ top_blast_hit.query_coverage|floatformat:"-2" }}</td>
+                             <td>{{ top_blast_hit.percent_identity }}</td>
+                             <td>{{ top_blast_hit.start_position }}</td>
+                             <td>{{ top_blast_hit.end_position }}</td>
+                             <td>{{ top_blast_hit.e_value }}</td>
+                           </tr>
+                         {% endfor %}
+                     {% else %}
+                       <h5>This gene had no BLAST hits.</h5>
+                     {% endif %}
+                 {% endif %}
              {% endfor %}
+
              </tbody>
            </table>
            </div>

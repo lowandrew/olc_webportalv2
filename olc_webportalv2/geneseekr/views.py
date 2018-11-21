@@ -63,20 +63,15 @@ def geneseekr_processing(request, geneseekr_request_pk):
 def geneseekr_results(request, geneseekr_request_pk):
     geneseekr_request = get_object_or_404(GeneSeekrRequest, pk=geneseekr_request_pk)
     geneseekr_details = GeneSeekrDetail.objects.filter(geneseekr_request=geneseekr_request)
-    top_blast_hits = TopBlastHit.objects.filter(geneseekr_request=geneseekr_request)
-    # Create list of all gene names in top_blast_hits
-    gene_names = set()
-    for blast_hit in top_blast_hits:
-        gene_names.add(blast_hit.gene_name)
     # Create dictionary where each gene gets its own top hits
     gene_top_hits = dict()
-    for gene_name in gene_names:
+    for gene_name in geneseekr_request.gene_targets:
         gene_top_hits[gene_name] = TopBlastHit.objects.filter(geneseekr_request=geneseekr_request, gene_name=gene_name)
     return render(request,
                   'geneseekr/geneseekr_results.html',
                   {
                       'geneseekr_request': geneseekr_request,
                       'geneseekr_details': geneseekr_details,
-                      'gene_top_hits': gene_top_hits
+                      'gene_top_hits': gene_top_hits,
                       # 'top_blast_hits': top_blast_hits
                   })
