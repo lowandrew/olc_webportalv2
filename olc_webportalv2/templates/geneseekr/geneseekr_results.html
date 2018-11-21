@@ -4,6 +4,7 @@
 {% load bootstrap %}
 {% load i18n widget_tweaks %}
 {% block content %}
+  {# TODO: Get a nice blast-esque visualization going here. Use highcharts probably? #}
   <h2>GeneSeekr Results</h2>
   <br>
   {% if geneseekr_request.status == 'Complete' %}
@@ -77,9 +78,9 @@
              {% endfor %}
            </ul>
          <div class="tab-content">
-{#         {% for gene, top_blast_hits in gene_top_hits.items %}#}
            {% for gene in geneseekr_request.gene_targets %}
            <div id="{{ gene|slugify }}" class="tab-pane fade">
+             <div id="{{ gene|slugify }}-chart" style="height: 500px"></div>
              <table id="{{ gene|slugify }}-table" class="table table-hover compact display">
              <thead>
                 <tr>
@@ -93,7 +94,7 @@
              </thead>
              <tbody>
              {% for target, top_blast_hits in gene_top_hits.items %}
-                 {% if target == gene %}
+                 {% if target == gene %}  {# This seems like a very clumsy way to get dictionary accessed by key, but it works #}
                      {% if top_blast_hits %}
                          {% for top_blast_hit in top_blast_hits %}
                            <tr>
@@ -126,6 +127,7 @@
   <script src="{% static 'js/modules/data.js' %}"></script>
   <script src="{% static 'js/modules/exporting.js' %}"></script>
   <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <script src="https://code.highcharts.com/highcharts-more.js"></script>
   <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
     <script>
     Highcharts.chart('container', {
@@ -155,6 +157,62 @@
             table: 'datatable'
         }
     });
+    {% for gene in geneseekr_request.gene_targets %}
+          var query_sequence_length = 100;  // Default value
+          var blast_hit_names = [];
+          var query_start_stops = [];
+          {% for gene_target, top_blast_hits in gene_top_hits.items %}
+            {% if top_blast_hits %}
+              {% if gene_target == gene %}
+                  {% for top_blast_hit in top_blast_hits %}
+                      var color_position = {};
+                      var positions = [{{ top_blast_hit.query_start_position }}, {{ top_blast_hit.query_end_position }}];
+                      blast_hit_names.push("{{ top_blast_hit.contig_name }}");
+                      {% if top_blast_hit.percent_identity > 99.9 %}
+                        color_position = {low: positions[0], high: positions[1], color: '#0f6b2a'};
+                      {% elif top_blast_hit.percent_identity > 98 %}
+                        color_position = {low: positions[0], high: positions[1], color: '#bab932'};
+                      {% elif top_blast_hit.percent_identity > 90 %}
+                        color_position = {low: positions[0], high: positions[1], color: '#ff9127'};
+                      {% else %}
+                        color_position = {low: positions[0], high: positions[1], color: '#ff171a'};
+                      {% endif %}
+                      query_start_stops.push(color_position);
+                      query_sequence_length = {{ top_blast_hit.query_sequence_length }};
+                  {% endfor %}
+                {% endif %}
+            {% endif %}
+          {% endfor %}
+        Highcharts.chart("{{ gene|slugify }}-chart", {
+          chart: {
+            type: 'columnrange',
+            inverted: true
+          },
+
+          title: {
+            text: 'BLAST Hits for {{ gene }}: Query Length ' + query_sequence_length
+          },
+
+          yAxis: {
+            floor: 1,
+            ceiling: query_sequence_length
+          },
+
+          xAxis: {
+            categories: blast_hit_names
+          },
+
+          legend: {
+            enabled: false
+          },
+
+          series: [{
+            name: 'Query Coverage',
+            data: query_start_stops
+          }]
+
+        });
+    {% endfor %}
     </script>
   <script type="text/javascript">
   $(document).ready(function () {

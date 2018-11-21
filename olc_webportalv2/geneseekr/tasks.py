@@ -215,7 +215,10 @@ def get_blast_top_hits(blast_result_file, geneseekr_task, num_hits=50):
                                             end_position=blast_result.subject_end_position,
                                             e_value=blast_result.evalue,
                                             geneseekr_request=geneseekr_task,
-                                            gene_name=blast_result.query_name)
+                                            gene_name=blast_result.query_name,
+                                            query_start_position=blast_result.query_start_position,
+                                            query_end_position=blast_result.query_end_position,
+                                            query_sequence_length=blast_result.query_sequence_length)
                 top_blast_hit.save()
                 query_hit_count[blast_result.query_name] += 1
             all_have_50_hits = True

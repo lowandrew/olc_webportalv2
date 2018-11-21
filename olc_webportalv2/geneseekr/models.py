@@ -51,6 +51,7 @@ class TopBlastHit(models.Model):
     gene_name = models.CharField(max_length=256, blank=True, null=True)
     query_start_position = models.IntegerField(blank=True, null=True)
     query_end_position = models.IntegerField(blank=True, null=True)
+    query_sequence_length = models.IntegerField(blank=True, null=True)
 
     # This should allow for ordering of results - when getting top blast hits associated with a GeneSeekrRequest,
     # hits should be ordered by e-value, with ties broken by percent identity and then query coverage
