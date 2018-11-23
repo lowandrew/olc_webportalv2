@@ -46,7 +46,8 @@
   <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/>
   <script type="text/javascript">
     $(document).ready(function () {
-        $('#assembly-table').dataTable()
+        var table = $('#assembly-table').DataTable();
+        table.order([0, 'desc'])
     });
     setInterval(function () {
       {% for sequenceing_run in sequencing_runs %}
