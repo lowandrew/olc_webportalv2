@@ -43,10 +43,6 @@
             <li class="nav-item active">
               <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
             </li>
-{#            Put this back in once all the programs required for it have been added to batch service#}
-{#              <li class="nav-item active">#}
-{#                  <a class="nav-link" href="{% url 'new_multisample:new_multisample' %}">Projects</a>#}
-{#              </li>#}
             <li class="nav-item active">
               <a class="nav-link" href="{% url 'metadata:metadata_home' %}">Explore Data</a>
             </li>
@@ -58,10 +54,13 @@
             <li class="nav-item active">
               <a class="nav-link" href="{% url 'cowbat:assembly_home' %}">Assembly</a>
             </li>
-
-            <li class="nav-item active">
-              <a class="nav-link" href="{% url 'geneseekr:geneseekr_home' %}">Find Genes</a>
-            </li>
+              <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown">Analyze Data</button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item" href="{% url 'geneseekr:geneseekr_home' %}">Find Genes</a>
+                  <a class="dropdown-item" href="{% url 'geneseekr:tree_home' %}">Create Tree</a>
+                </div>
+            </div>
 
 
             {% if request.user.is_authenticated %}
