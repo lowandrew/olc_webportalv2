@@ -169,6 +169,6 @@ def cowbat_cleanup(sequencing_run_pk):
         send_email(subject='TEST PLEASE IGNORE - Run {} has finished assembly.'.format(str(sequencing_run)),
                    body='If you are Andrew or Adam, please download the blob container to local OLC storage. '
                         'If you\'re Paul, please add this data to the OLC database.\n Reports and assemblies '
-                        'are available at the following link: {}'.format(sequencing_run.download_link),
+                        'are available at the following link: {}'.format(sas_url),
                    recipient=recipient)
     """

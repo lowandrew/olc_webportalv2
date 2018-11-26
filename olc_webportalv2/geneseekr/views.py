@@ -1,10 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from olc_webportalv2.geneseekr.forms import GeneSeekrForm
-from olc_webportalv2.geneseekr.models import GeneSeekrRequest, GeneSeekrDetail, TopBlastHit
-from olc_webportalv2.geneseekr.tasks import run_geneseekr
+from olc_webportalv2.geneseekr.forms import GeneSeekrForm, ParsnpForm
+from olc_webportalv2.geneseekr.models import GeneSeekrRequest, GeneSeekrDetail, TopBlastHit, ParsnpTree
+from olc_webportalv2.geneseekr.tasks import run_geneseekr, run_parsnp
 
 import datetime
+
 
 # Create your views here.
 @login_required
@@ -75,3 +76,45 @@ def geneseekr_results(request, geneseekr_request_pk):
                       'gene_top_hits': gene_top_hits,
                       # 'top_blast_hits': top_blast_hits
                   })
+
+
+@login_required
+def tree_result(request, parsnp_request_pk):
+    tree_request = get_object_or_404(ParsnpTree, pk=parsnp_request_pk)
+    return render(request,
+                  'geneseekr/tree_result.html',
+                  {
+                      'tree_request': tree_request
+                  })
+
+
+@login_required
+def tree_request(request):
+    form = ParsnpForm()
+    if request.method == 'POST':
+        form = ParsnpForm(request.POST)
+        if form.is_valid():
+            seqids = form.cleaned_data.get('seqids')
+            tree_request = ParsnpTree.objects.create(user=request.user,
+                                                     seqids=seqids)
+            tree_request.status = 'Processing'
+            tree_request.save()
+            run_parsnp(tree_request.pk)
+            return redirect('geneseekr:tree_result', parsnp_request_pk=tree_request.pk)
+    return render(request,
+                  'geneseekr/tree_request.html',
+                  {
+                      'form': form
+                  })
+
+
+@login_required
+def tree_home(request):
+    one_week_ago = datetime.date.today() - datetime.timedelta(days=7)
+    tree_requests = ParsnpTree.objects.filter(user=request.user).filter(created_at__gte=one_week_ago)
+    return render(request,
+                  'geneseekr/tree_home.html',
+                  {
+                      'tree_requests': tree_requests
+                  })
+

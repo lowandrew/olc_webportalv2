@@ -58,3 +58,17 @@ class TopBlastHit(models.Model):
     # TODO: This doesn't quite seem to be working - to be investigated.
     class Meta:
         ordering = ['e_value', '-percent_identity', '-query_coverage']
+
+
+class ParsnpTree(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    seqids = ArrayField(models.CharField(max_length=24), blank=True, default=[])
+    newick_tree = models.CharField(max_length=10000, blank=True)
+    download_link = models.CharField(max_length=256, blank=True)
+    created_at = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=64, default='Unprocessed')
+
+
+class ParsnpAzureRequest(models.Model):
+    tree_request = models.ForeignKey(ParsnpTree, on_delete=models.CASCADE, related_name='azuretask')
+    exit_code_file = models.CharField(max_length=256)

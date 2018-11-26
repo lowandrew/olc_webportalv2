@@ -7,10 +7,63 @@ import multiprocessing
 from io import StringIO
 from background_task import background
 from django.conf import settings
-from olc_webportalv2.geneseekr.models import GeneSeekrRequest, GeneSeekrDetail, TopBlastHit
+from olc_webportalv2.geneseekr.models import GeneSeekrRequest, GeneSeekrDetail, TopBlastHit, ParsnpTree, ParsnpAzureRequest
 
 from azure.storage.blob import BlockBlobService
 from azure.storage.blob import BlobPermissions
+
+
+@background(schedule=1)
+def run_parsnp(parsnp_request_pk):
+    tree_request = ParsnpTree.objects.get(pk=parsnp_request_pk)
+    try:
+        container_name = 'parsnp-{}'.format(parsnp_request_pk)
+        run_folder = os.path.join('olc_webportalv2/media/{}'.format(container_name))
+        if not os.path.isdir(run_folder):
+            os.makedirs(run_folder)
+        # Set number of cpus to use/VM size based on how many sequences are input.
+        if len(tree_request.seqids) < 10:
+            vm_size = 'Standard_D4s_v3'
+            cpus = 4
+        elif len(tree_request.seqids) < 30:
+            vm_size = 'Standard_D8s_v3'
+            cpus = 8
+        elif len(tree_request.seqids) < 150:
+            vm_size = 'Standard_D16s_v3'
+            cpus = 16
+        else:
+            vm_size = 'Standard_D32s_v3'
+            cpus = 32
+        batch_config_file = os.path.join(run_folder, 'batch_config.txt')
+        with open(batch_config_file, 'w') as f:
+            f.write('BATCH_ACCOUNT_NAME:={}\n'.format(settings.BATCH_ACCOUNT_NAME))
+            f.write('BATCH_ACCOUNT_KEY:={}\n'.format(settings.BATCH_ACCOUNT_KEY))
+            f.write('BATCH_ACCOUNT_URL:={}\n'.format(settings.BATCH_ACCOUNT_URL))
+            f.write('STORAGE_ACCOUNT_NAME:={}\n'.format(settings.AZURE_ACCOUNT_NAME))
+            f.write('STORAGE_ACCOUNT_KEY:={}\n'.format(settings.AZURE_ACCOUNT_KEY))
+            f.write('JOB_NAME:={}\n'.format(container_name))
+            f.write('VM_IMAGE:={}\n'.format(settings.VM_IMAGE))
+            f.write('VM_CLIENT_ID:={}\n'.format(settings.VM_CLIENT_ID))
+            f.write('VM_SECRET:={}\n'.format(settings.VM_SECRET))
+            f.write('VM_TENANT:={}\n'.format(settings.VM_TENANT))
+            f.write('VM_SIZE:={}\n'.format(vm_size))
+            f.write('CLOUDIN:=')
+            for seqid in tree_request.seqids:
+                f.write('processed-data/{}.fasta '.format(seqid))
+            f.write('sequences\n')
+            f.write('OUTPUT:={}\n'.format(container_name + '/'))
+            f.write('COMMAND:=source $CONDA/activate /envs/parsnp && parsnp '
+                    '-d sequences -r ! -o {} -p {}\n'.format(container_name, cpus))
+
+        # With that done, we can submit the file to batch with our package.
+        # Use Popen to run in background so that task is considered complete.
+        subprocess.Popen('AzureBatch -k -e {run_folder}/exit_codes.txt -c {run_folder}/batch_config.txt '
+                         '-o olc_webportalv2/media'.format(run_folder=run_folder), shell=True)
+        ParsnpAzureRequest.objects.create(tree_request=tree_request,
+                                          exit_code_file=os.path.join(run_folder, 'exit_codes.txt'))
+    except:
+        tree_request.status = 'Error'
+        tree_request.save()
 
 
 @background(schedule=1)

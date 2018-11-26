@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{#Head container#}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load i18n widget_tweaks %}
+{% block content %}
+  <h2>Treesults</h2>
+  <br>
+  {% if tree_request.status == 'Processing' %}
+      <button class="btn btn-info btn-block progress-bar-striped progress-bar-animated" disabled>{{ tree_request.status }}</button>
+      <br>
+      <p>This page will automatically refresh. Your Tree request should be complete in 10 to 15 minutes (more if you requested many SeqIDs).</p>
+      <p>You don't have to remain on this page - this Tree request will be visible on the <a href="{% url 'geneseekr:tree_home' %}">Tree homepage</a> </p>
+  {% elif tree_request.status == 'Unprocessed' %}
+    <button class="btn btn-info btn-block progress-bar-striped" disabled>{{ tree_request.status }}</button>
+    <br>
+  {% elif tree_request.status == 'Error' %}
+    <button class="btn btn-danger btn-block" disabled>{{ tree_request.status }}</button>
+    <br>
+  {% elif tree_request.status == 'Complete' %}
+    <button class="btn btn-success btn-block" disabled>{{ tree_request.status }}</button>
+    {{ tree_request.newick_tree }}
+    <br><br>
+    <svg id="tree_display" />
+    <br>
+    <br>
+    <p>These results will be available for 7 days.</p>
+    <br>
+    <div style="text-align: center">
+        <a href="{{ tree_request.download_link }}" class="btn btn-outline-dark" role="button">Download Tree (.nwk format)</a>
+        <br>
+        <br>
+    <div class="alert alert-primary" role="alert" align="center">
+        <p>Shareable link: {{ tree_request.download_link }}</p>
+    </div>
+    </div>
+  {% endif %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/phylotree.css' %}"/>
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
+  <script src="{% static 'js/phylotree.js' %} "></script>
+  <script type="text/javascript">
+    setInterval(function () {
+      {% if tree_request.status == 'Processing' %}
+        window.location = window.location.href;
+      {% endif %}
+    }, 15000) // This should refresh the page every 15 seconds as long as run status is processing
+   </script>
+   <script type="text/javascript">
+   var tree_string = "{{ tree_request.newick_tree }}";
+   var tree = d3.layout.phylotree().svg(d3.select('#tree_display'));
+   tree(tree_string).layout()
+   </script>
+{% endblock %}
