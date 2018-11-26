@@ -19,7 +19,6 @@
     <br>
   {% elif tree_request.status == 'Complete' %}
     <button class="btn btn-success btn-block" disabled>{{ tree_request.status }}</button>
-    {{ tree_request.newick_tree }}
     <br><br>
     <svg id="tree_display" />
     <br>
@@ -46,7 +45,7 @@
       {% if tree_request.status == 'Processing' %}
         window.location = window.location.href;
       {% endif %}
-    }, 15000) // This should refresh the page every 15 seconds as long as run status is processing
+    }, 45000)  // Refresh every 45 seconds
    </script>
    <script type="text/javascript">
    var tree_string = "{{ tree_request.newick_tree }}";
