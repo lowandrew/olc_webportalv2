@@ -49,7 +49,10 @@
    </script>
    <script type="text/javascript">
    var tree_string = "{{ tree_request.newick_tree }}";
-   var tree = d3.layout.phylotree().svg(d3.select('#tree_display'));
+   var tree = d3.layout.phylotree().svg(d3.select('#tree_display')).options(
+     { 'zoom': true,
+       'left-right-spacing': 'fit-to-size',
+       'top-bottom-spacing': 'fit-to-size'}).size([500, 500]);
    tree(tree_string).layout()
    </script>
 {% endblock %}
