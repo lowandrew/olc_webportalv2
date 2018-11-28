@@ -9,12 +9,12 @@
   <br>
   {% if geneseekr_request.status == 'Complete' %}
     <ul class="nav nav-tabs nav-justified">
-      <li class="active"><a data-toggle="tab" class="btn btn-outline-primary" href="#overall">Overall Results</a></li>
+      <li><a data-toggle="tab" class="btn btn-outline-primary" href="#overall">% Sequences Query Found</a></li>
       <li><a data-toggle="tab" class="btn btn-outline-secondary" href="#sequence-by-sequence">Sequence By Sequence</a></li>
-      <li><a data-toggle="tab" class="btn btn-outline-dark" href="#top-hits">Top Blast Hits</a></li>
+      <li class="active"><a data-toggle="tab" class="btn btn-outline-dark" href="#top-hits">Top Blast Hits</a></li>
     </ul>
     <div class="tab-content">
-        <div id="overall" class="tab-pane fade show active">
+        <div id="overall" class="tab-pane fade">
             <br>
             <p>This graph shows the percentage of sequences in which each query gene was found.</p>
             <div id="container" style="height: 500px"></div>
@@ -69,7 +69,7 @@
             </tbody>
            </table>
           </div>
-         <div id="top-hits" class="tab-pane fade">
+         <div id="top-hits" class="tab-pane fade show active">
            <br>
            <ul class="nav nav-tabs nav-justified">
 
@@ -168,9 +168,9 @@
                       var color_position = {};
                       var positions = [{{ top_blast_hit.query_start_position }}, {{ top_blast_hit.query_end_position }}];
                       blast_hit_names.push("{{ top_blast_hit.contig_name }}");
-                      {% if top_blast_hit.percent_identity > 99.9 %}
+                      {% if top_blast_hit.percent_identity > 99 %}
                         color_position = {low: positions[0], high: positions[1], color: '#0f6b2a'};
-                      {% elif top_blast_hit.percent_identity > 98 %}
+                      {% elif top_blast_hit.percent_identity > 96 %}
                         color_position = {low: positions[0], high: positions[1], color: '#bab932'};
                       {% elif top_blast_hit.percent_identity > 90 %}
                         color_position = {low: positions[0], high: positions[1], color: '#ff9127'};
