@@ -114,7 +114,8 @@ class GeneSeekrForm(forms.Form):
 class ParsnpForm(forms.Form):
     seqids = forms.CharField(max_length=100000, widget=forms.Textarea, label='', required=False)
 
-    def clean_seqids(self):
+    def clean(self):
+        super().clean()
         seqid_input = self.cleaned_data['seqids']
         # Check that SEQIDs specified are in valid SEQID format.
         seqid_list = seqid_input.split()

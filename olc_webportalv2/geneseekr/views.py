@@ -94,7 +94,7 @@ def tree_request(request):
     if request.method == 'POST':
         form = ParsnpForm(request.POST)
         if form.is_valid():
-            seqids = form.cleaned_data.get('seqids')
+            seqids = form.cleaned_data
             tree_request = ParsnpTree.objects.create(user=request.user,
                                                      seqids=seqids)
             tree_request.status = 'Processing'
